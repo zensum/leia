@@ -1,0 +1,29 @@
+# JVM bytecode
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+target/
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+*.txt
+
+# Gradle
+.gradle
+gradle
+gradlew*
+build
+
+# Intellij
+.idea
+*.iml
+*.ipr
+*.iws
+
+# Environment variables for Docker
+.env

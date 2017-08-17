@@ -1,0 +1,128 @@
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'idea'
+
+group = 'se.zensum'
+version = '1.0-SNAPSHOT'
+description = 'description of project'
+
+defaultTasks 'run'
+
+buildscript {
+    ext.kotlin_version = '1.1.4'
+    ext.jvm_version = '1.8'
+    ext.junit_platform_version = '1.0.0-M4'
+    repositories {
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.junit.platform:junit-platform-gradle-plugin:$junit_platform_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.0'
+    }
+}
+
+apply plugin: "org.junit.platform.gradle.plugin"
+apply plugin: 'com.github.johnrengelman.shadow'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+    maven { url "https://dl.bintray.com/kotlin/ktor" }
+    maven {
+        url "https://jitpack.io"
+        credentials { username System.getenv("JITPACK_TOKEN") }
+    }
+}
+
+dependencies {
+    // Kotlin
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.17'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.17'
+    
+    // Junit
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M4'
+    testCompile "org.junit.platform:junit-platform-launcher:$junit_platform_version"
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0-M4'
+    
+    // Logging
+    compile 'io.github.microutils:kotlin-logging:1.4.6'
+    
+    // Project specific dependencies (disabled by default)
+    //compile 'com.github.zensum:franz:master-SNAPSHOT'
+    //compile 'com.github.zensum:server-utilities:master-SNAPSHOT'
+    //compile 'com.github.zensum:mail-proto:master-SNAPSHOT'
+    //compile 'com.github.zensum:sms-proto:master-SNAPSHOT'
+    //compile 'com.github.zensum:ktor-prometheus-feature:master-SNAPSHOT'
+    //compile 'com.github.zensum:ktor-sentry-feature:master-SNAPSHOT'
+    //compile 'org.jetbrains.ktor:ktor-core:0.3.3'
+    //compile 'org.jetbrains.ktor:ktor-netty:0.3.3'
+    //compile 'com.github.jkcclemens:khttp:eab56a27d3'
+}
+
+junitPlatform {
+    platformVersion = junit_platform_version
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': "se.zensum.KotlinMainClassKt"
+    }
+}
+
+shadowJar {
+    baseName = 'shadow'
+    classifier = null
+    version = null
+}
+
+compileKotlin {
+    sourceCompatibility = jvm_version
+    kotlinOptions {
+        jvmTarget = jvm_version
+    }
+}
+
+compileJava {
+    sourceCompatibility = jvm_version
+    targetCompatibility = jvm_version
+    options.incremental = true
+    options.encoding = 'UTF-8'
+}
+
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+// Important: All classes containing test cases must match the
+// the regex pattern "^.*Tests?$" to be picked up by the junit-gradle plugin.
+sourceSets {
+    main.resources.srcDirs += 'src/main/resources'
+    main.kotlin.srcDirs += 'src/main/kotlin'
+    test.kotlin.srcDirs += 'src/test/kotlin'
+    main.java.srcDirs += 'src/main/java'
+    test.java.srcDirs += 'src/test/java'
+}
+
+task run(type: JavaExec) {
+    main = 'se.zensum.KotlinMainClassKt' //Important that 'Kt' is appended to class name
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task debug(type: JavaExec) {
+    debug true
+    environment "DEBUG", "true"
+    main = project.tasks.run.main
+    classpath = project.tasks.run.classpath
+}
+
+task wrapper(type: Wrapper) {
+    description = 'Generates gradlew[.bat] scripts for faster execution'
+    gradleVersion = '4.0'
+}
