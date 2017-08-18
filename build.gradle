@@ -53,15 +53,12 @@ dependencies {
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     
     // Project specific dependencies (disabled by default)
-    //compile 'com.github.zensum:franz:master-SNAPSHOT'
+    compile 'com.github.zensum:franz:master-SNAPSHOT'
     //compile 'com.github.zensum:server-utilities:master-SNAPSHOT'
-    //compile 'com.github.zensum:mail-proto:master-SNAPSHOT'
-    //compile 'com.github.zensum:sms-proto:master-SNAPSHOT'
-    //compile 'com.github.zensum:ktor-prometheus-feature:master-SNAPSHOT'
-    //compile 'com.github.zensum:ktor-sentry-feature:master-SNAPSHOT'
-    //compile 'org.jetbrains.ktor:ktor-core:0.3.3'
-    //compile 'org.jetbrains.ktor:ktor-netty:0.3.3'
-    //compile 'com.github.jkcclemens:khttp:eab56a27d3'
+    compile 'com.github.zensum:ktor-prometheus-feature:master-SNAPSHOT'
+    compile 'com.github.zensum:ktor-sentry-feature:master-SNAPSHOT'
+    compile 'org.jetbrains.ktor:ktor-core:0.4.0'
+    compile 'org.jetbrains.ktor:ktor-netty:0.4.0'
 }
 
 junitPlatform {
@@ -70,7 +67,7 @@ junitPlatform {
 
 jar {
     manifest {
-        attributes 'Main-Class': "se.zensum.KotlinMainClassKt"
+        attributes 'Main-Class': "se.zensum.webhook.MainKt"
     }
 }
 
@@ -111,7 +108,7 @@ sourceSets {
 }
 
 task run(type: JavaExec) {
-    main = 'se.zensum.KotlinMainClassKt' //Important that 'Kt' is appended to class name
+    main = 'se.zensum.webhook.MainKt' //Important that 'Kt' is appended to class name
     classpath = sourceSets.main.runtimeClasspath
 }
 
