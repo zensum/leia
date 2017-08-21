@@ -7,7 +7,6 @@ USER gradle
 WORKDIR /usr/src/app
 ADD build.gradle /usr/src/app/
 
-ARG JITPACK_TOKEN=${JITPACK_TOKEN}
 RUN gradle -q --no-daemon dependencies
 
 ADD . /usr/src/app
