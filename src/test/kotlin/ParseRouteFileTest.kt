@@ -5,7 +5,7 @@ import se.zensum.webhook.lineToPair
 import se.zensum.webhook.parseRoutesFile
 import java.lang.IllegalArgumentException
 
-class someTest {
+class ParseRoutesTest {
 
     @Test
     fun testReadFile() {
