@@ -1,0 +1,4 @@
+/test -> test
+/status/mail -> mail
+/status/sms -> sms
+/bank/{bank} -> banks
