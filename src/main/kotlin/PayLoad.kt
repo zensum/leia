@@ -1,34 +1,67 @@
 package se.zensum.webhook
 
-import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.http.HttpMethod
+import org.jetbrains.ktor.http.HttpMethod as KtorHttpMethod
+import se.zensum.webhook.PayloadOuterClass.HttpMethod as WebhookHttpMethod
+
 import org.jetbrains.ktor.pipeline.PipelineContext
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.ValuesMap
+import se.zensum.webhook.PayloadOuterClass.Payload as Payload
 
-data class PayLoad(val path: String,
-                   val method: HttpMethod,
-                   val host: String,
-                   val headers: ValuesMap,
-                   val authorized: String,
-                   val contentType: ContentType,
-                   val userAgent: String,
-                   val parameters: ValuesMap,
-                   val queryString: String,
-                   val body: String)
-
-suspend fun createPayload(context: PipelineContext<Unit>): PayLoad {
+suspend fun createPayload(context: PipelineContext<Unit>): Payload  {
     return context.call.request.run {
-        val path: String = path()
-        val method: HttpMethod = httpMethod
-        val host: String = host() ?: "Unknown"
-        val authorization: String = authorization() ?: "Unauthorized"
-        val contentType: ContentType = contentType()
-        val userAgent: String = userAgent() ?: "Unknown"
-        val headers: ValuesMap = headers
-        val parameters: ValuesMap = context.call.parameters
-        val queryString: String = queryString()
-        val body: String = context.call.receiveText()
-        PayLoad(path, method, host, headers, authorization, contentType, userAgent, parameters, queryString, body)
+        val requestHeaders: ValuesMap = headers
+        Payload.newBuilder().apply {
+            this.path = path()
+            this.method = convertMethod(httpMethod)
+            this.headers = parseMap(requestHeaders)
+            this.parameters = parseMap(context.call.parameters)
+            this.queryString = queryString()
+            this.body = context.call.receiveText()
+        }.build()
     }
+}
+
+fun parseMap(valuesMap: ValuesMap): PayloadOuterClass.MultiMap {
+    return PayloadOuterClass.MultiMap.newBuilder().apply {
+        valuesMap.entries().asSequence()
+            .map { toListOfPair(it.key, it.value) }
+            .flatMap { it.asSequence() }
+            .map { toProtoPair(it) }
+    }.build()
+}
+
+fun toProtoPair(pair: Pair<String, String>): PayloadOuterClass.MultiMap.Pair {
+    return PayloadOuterClass.MultiMap.Pair.newBuilder().apply {
+        this.key = pair.first
+        this.value = pair.second
+    }.build()
+}
+
+fun toListOfPair(key: String, values: List<String>): List<Pair<String, String>> {
+    return values.asSequence()
+        .map { key to it }
+        .toList()
+}
+
+fun convertMethod(method: KtorHttpMethod): WebhookHttpMethod = when(method) {
+    KtorHttpMethod.Put -> WebhookHttpMethod.PUT
+    KtorHttpMethod.Patch -> WebhookHttpMethod.PATCH
+    KtorHttpMethod.Delete -> WebhookHttpMethod.DELETE
+    KtorHttpMethod.Get -> WebhookHttpMethod.GET
+    KtorHttpMethod.Head -> WebhookHttpMethod.HEAD
+    KtorHttpMethod.Post -> WebhookHttpMethod.POST
+    KtorHttpMethod.Options -> WebhookHttpMethod.OPTIONS
+    else -> throw IllegalArgumentException("Method ${method.value} is not supported")
+}
+
+fun methodIsSupported(method: KtorHttpMethod): Boolean = when(method) {
+    KtorHttpMethod.Put -> true
+    KtorHttpMethod.Patch -> true
+    KtorHttpMethod.Delete -> true
+    KtorHttpMethod.Get -> true
+    KtorHttpMethod.Head -> true
+    KtorHttpMethod.Post -> true
+    KtorHttpMethod.Options -> true
+    else -> false
 }

@@ -1,11 +1,15 @@
 package se.zensum.webhook
 
 import franz.ProducerBuilder
+import se.zensum.webhook.PayloadOuterClass.Payload
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.jetbrains.ktor.application.log
 import org.jetbrains.ktor.content.HttpStatusCodeContent
 import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.netty.Netty
+import org.jetbrains.ktor.request.host
+import org.jetbrains.ktor.request.httpMethod
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
@@ -20,7 +24,7 @@ fun main(args: Array<String>) {
 
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
-private val producer = ProducerBuilder.ofString.create()
+private val producer = ProducerBuilder.ofByteArray.create()
 private val routesFile = getEnv("ROUTES_FILE", "/etc/config/routes")
 
 fun server(port: Int) = embeddedServer(Netty, port) {
@@ -35,10 +39,16 @@ fun server(port: Int) = embeddedServer(Netty, port) {
         for((path, topic) in routes) {
             route(path) {
                 handle {
-                    val request: PayLoad = createPayload(this)
-                    println(request)
-                    producer.sendRaw(ProducerRecord(topic, request.toString()))
-                    call.respond(HttpStatusCodeContent(HttpStatusCode.OK))
+                    log.info("${call.request.httpMethod} from ${call.request.host()}")
+                    when(methodIsSupported(call.request.httpMethod)) {
+                        true -> {
+                            val request: Payload = createPayload(this)
+                            println(request)
+                            producer.sendRaw(ProducerRecord(topic, request.toByteArray()))
+                            call.respond(HttpStatusCodeContent(HttpStatusCode.OK))
+                        }
+                        false -> call.respond(HttpStatusCodeContent(HttpStatusCode.MethodNotAllowed))
+                    }
                 }
             }
         }
