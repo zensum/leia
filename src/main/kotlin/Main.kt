@@ -26,13 +26,13 @@ fun main(args: Array<String>) {
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
 private val producer = ProducerBuilder.ofByteArray.create()
-private val routesFile = getEnv("ROUTES_FILE", "/etc/config/routes")
+private const val ROUTES_FILE ="/etc/config/routes"
 
 fun server(port: Int) = embeddedServer(Netty, port) {
-    val routes = parseRoutesFile(routesFile)
+    val routes = parseRoutesFile(ROUTES_FILE)
 
     if(routes.isEmpty()) {
-        System.err.println("No routes found in $routesFile")
+        System.err.println("No routes found in $ROUTES_FILE")
         System.exit(1)
     }
 
