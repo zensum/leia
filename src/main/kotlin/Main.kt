@@ -13,6 +13,7 @@ import org.jetbrains.ktor.request.httpMethod
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -57,9 +58,20 @@ fun server(port: Int) = embeddedServer(Netty, port) {
 
 fun parseRoutesFile(file: String): Map<String, String> {
     val path: Path = Paths.get(file)
+    verifyFile(path)
     return Files.readAllLines(path).asSequence()
         .map { lineToPair(it) }
         .toMap()
+}
+
+fun verifyFile(path: Path) {
+    val file: File = path.toFile()
+    if(!file.exists()) {
+        throw IllegalArgumentException("File $file does not exist")
+    }
+    if(file.isDirectory) {
+        throw IllegalArgumentException("File $file is a directory")
+    }
 }
 
 fun lineToPair(line: String): Pair<String, String> {
