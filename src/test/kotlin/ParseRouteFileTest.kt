@@ -47,6 +47,15 @@ class ParseRoutesTest {
     }
 
     @Test
+    fun testLineToTrimExtraWhiteSpace() {
+        val line1 = "/test -> test "
+
+        val (key1, value1) = lineToPair(line1)
+        assertEquals("/test", key1)
+        assertEquals("test", value1)
+    }
+
+    @Test
     fun testLineToPairWithNoWhiteSpace() {
         val line1 = "/test->test"
         val line2 = "/bank/{bank}->banks"

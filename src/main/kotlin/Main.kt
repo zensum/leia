@@ -109,7 +109,7 @@ fun verifyFile(path: Path) {
 
 fun lineToPair(line: String): Pair<String, String> {
     val delimiter = Regex("\\s*->\\s*")
-    val split: List<String> = line.split(delimiter)
+    val split: List<String> = line.split(delimiter).map { it.trim() }
     if(split.size != 2)
         throw IllegalArgumentException("Found invalid route entry: $line")
 
