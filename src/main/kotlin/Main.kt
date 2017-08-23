@@ -33,7 +33,7 @@ fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?:
 
 private val producer = ProducerBuilder.ofByteArray.create()
 private const val ROUTES_FILE ="/etc/config/routes"
-private val logger = KotlinLogging.logger("request")
+private val logger = KotlinLogging.logger("process-request")
 
 fun server(port: Int) = embeddedServer(Netty, port) {
     val routes = parseRoutesFile(ROUTES_FILE)
