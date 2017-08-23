@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/webhook-service
     docker:
-      - image: gradle:3.5-jdk8
+      - image: gradle:4.0-jdk8
     steps:
       - checkout
       - restore_cache:
