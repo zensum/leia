@@ -1,18 +1,24 @@
 package se.zensum.webhook
 
 import franz.ProducerBuilder
-import se.zensum.webhook.PayloadOuterClass.Payload
+import kotlinx.coroutines.experimental.future.await
+import mu.KotlinLogging
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.jetbrains.ktor.application.log
-import org.jetbrains.ktor.content.HttpStatusCodeContent
+import org.apache.kafka.clients.producer.RecordMetadata
+import org.apache.kafka.common.errors.TimeoutException
+import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.netty.Netty
+import org.jetbrains.ktor.pipeline.PipelineContext
+import org.jetbrains.ktor.request.ApplicationRequest
 import org.jetbrains.ktor.request.host
 import org.jetbrains.ktor.request.httpMethod
+import org.jetbrains.ktor.request.path
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
+import se.zensum.webhook.PayloadOuterClass.Payload
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,6 +33,7 @@ fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?:
 
 private val producer = ProducerBuilder.ofByteArray.create()
 private const val ROUTES_FILE ="/etc/config/routes"
+private val logger = KotlinLogging.logger("request")
 
 fun server(port: Int) = embeddedServer(Netty, port) {
     val routes = parseRoutesFile(ROUTES_FILE)
@@ -40,19 +47,45 @@ fun server(port: Int) = embeddedServer(Netty, port) {
         for((path, topic) in routes) {
             route(path) {
                 handle {
-                    log.info("${call.request.httpMethod} from ${call.request.host()}")
-                    when(methodIsSupported(call.request.httpMethod)) {
-                        true -> {
-                            val request: Payload = createPayload(this)
-                            println(request)
-                            producer.sendRaw(ProducerRecord(topic, request.toByteArray()))
-                            call.respond(HttpStatusCodeContent(HttpStatusCode.OK))
-                        }
-                        false -> call.respond(HttpStatusCodeContent(HttpStatusCode.MethodNotAllowed))
-                    }
+                    logRequest(call.request)
+                    val response: HttpStatusCode = createResponse(this, topic)
+                    call.respond(response)
                 }
             }
         }
+    }
+}
+
+private fun logRequest(request: ApplicationRequest) {
+    request.apply {
+        logger.info("${httpMethod.value} ${path()} from ${host()}")
+    }
+}
+
+suspend fun createResponse(context: PipelineContext<Unit>, topic: String): HttpStatusCode
+{
+    context.run {
+        return when(methodIsSupported(call.request.httpMethod)) {
+            true -> {
+                val request: Payload = createPayload(context)
+                writeToKafka(this.call, topic, request)
+            }
+            false -> HttpStatusCode.MethodNotAllowed
+        }
+    }
+}
+
+private suspend fun writeToKafka(call: ApplicationCall, topic: String, request: Payload): HttpStatusCode
+{
+    val summary = "${call.request.httpMethod.value} ${call.request.path()}"
+    return try {
+        val metaData: RecordMetadata = producer.sendRaw(ProducerRecord(topic, request.toByteArray())).await()
+        logger.info("$summary written to ${metaData.topic()}")
+        HttpStatusCode.OK
+    }
+    catch (e: TimeoutException) {
+        logger.error("Time out when trying to write $summary to $topic")
+        HttpStatusCode.InternalServerError
     }
 }
 
