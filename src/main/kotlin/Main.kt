@@ -2,11 +2,13 @@ package se.zensum.webhook
 
 import franz.ProducerBuilder
 import kotlinx.coroutines.experimental.future.await
+import ktor_health_check.Health
 import mu.KotlinLogging
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 import org.jetbrains.ktor.application.ApplicationCall
+import org.jetbrains.ktor.application.install
 import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.netty.Netty
@@ -18,6 +20,8 @@ import org.jetbrains.ktor.request.path
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
+import se.zensum.ktorPrometheusFeature.PrometheusFeature
+import se.zensum.ktorSentry.SentryFeature
 import se.zensum.webhook.PayloadOuterClass.Payload
 import java.io.File
 import java.nio.file.Files
@@ -35,14 +39,18 @@ private val producer = ProducerBuilder.ofByteArray.create()
 private const val ROUTES_FILE ="/etc/config/routes"
 private val logger = KotlinLogging.logger("process-request")
 
-fun server(port: Int) = embeddedServer(Netty, port) {
-    val routes = parseRoutesFile(ROUTES_FILE)
-
-    if(routes.isEmpty()) {
+private fun getRoutes() = parseRoutesFile(ROUTES_FILE).also {
+    if(it.isEmpty()) {
         System.err.println("No routes found in $ROUTES_FILE")
         System.exit(1)
     }
+}
 
+fun server(port: Int) = embeddedServer(Netty, port) {
+    val routes = getRoutes()
+    install(SentryFeature)
+    install(PrometheusFeature)
+    install(Health)
     routing {
         for((path, topic) in routes) {
             route(path) {
