@@ -31,12 +31,12 @@ jobs:
           docker push zensum/webhook-service:$TAG zensum/webhook-service:latest
 workflows:
   version: 2
-  jobs:
-    - build
-    - build_and_docker:
-        requres:
-          - build
-          - name: docker-build
-        filters:
-          branches:
-            only: master
+  build_and_docker:
+    jobs:
+      - build
+      - docker-build:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
