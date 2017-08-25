@@ -15,3 +15,28 @@ jobs:
           key: circleci-webhook-service-{{ checksum "build.gradle" }}
       - run: gradle build
       - run: gradle test
+  docker-build:
+    docker:
+      - image: docker:17.07.0   # (1)
+    working_directory: ~/webhook-service
+    steps:
+      - checkout
+      - setup_remote_docker
+
+      # build and push Docker image
+      - deploy: |
+          TAG=CIRCLE_SHA1
+          docker build -t zensum/webhook-service:$TAG -t zensum/webhook-service:$TAG .
+          docker login -u $HUB_USER -p $HUB_PASS
+          docker push zensum/webhook-service:$TAG zensum/webhook-service:latest
+workflows:
+  version: 2
+  build_and_docker:
+    jobs:
+      - build
+      - name: docker-build
+        filters:
+          branches:
+            only: master
+        requires:
+          - build
