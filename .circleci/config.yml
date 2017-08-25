@@ -22,13 +22,13 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-
       # build and push Docker image
-      - deploy: |
-          TAG=CIRCLE_SHA1
-          docker build -t zensum/webhook-service:$TAG -t zensum/webhook-service:$TAG .
-          docker login -u $HUB_USER -p $HUB_PASS
-          docker push zensum/webhook-service:$TAG zensum/webhook-service:latest
+      - deploy:
+          command: |
+            TAG=CIRCLE_SHA1
+            docker build -t zensum/webhook-service:$TAG -t zensum/webhook-service:$TAG .
+            docker login -u $HUB_USER -p $HUB_PASS
+            docker push zensum/webhook-service:$TAG zensum/webhook-service:latest
 workflows:
   version: 2
   build_and_docker:
