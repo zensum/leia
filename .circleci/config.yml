@@ -27,7 +27,7 @@ jobs:
           command: |
             TAG=CIRCLE_SHA1
             docker build -t zensum/webhook-service:$TAG -t zensum/webhook-service:$TAG .
-            docker login -u $HUB_USER -p $HUB_PASS
+            docker login -u $HUB_USERNAME -p $HUB_PASSWORD
             docker push zensum/webhook-service:$TAG zensum/webhook-service:latest
 workflows:
   version: 2
