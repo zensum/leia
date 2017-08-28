@@ -17,4 +17,4 @@ RUN gradle -q shadowJar --no-daemon
 
 WORKDIR /usr/src/app
 
-CMD java -jar build/libs/shadow.jar
+CMD java $JAVA_OPTS -jar build/libs/shadow.jar
