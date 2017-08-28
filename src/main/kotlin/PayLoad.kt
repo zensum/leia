@@ -28,6 +28,7 @@ fun parseMap(valuesMap: ValuesMap): PayloadOuterClass.MultiMap {
             .map { toListOfPair(it.key, it.value) }
             .flatMap { it.asSequence() }
             .map { toProtoPair(it) }
+            .forEach { addPair(it) }
     }.build()
 }
 
