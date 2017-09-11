@@ -24,6 +24,7 @@ import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
 import se.zensum.webhook.PayloadOuterClass.Payload
 import java.io.File
+import java.net.InetAddress
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -92,7 +93,8 @@ private suspend fun writeToKafka(call: ApplicationCall, topic: String, request: 
         HttpStatusCode.OK
     }
     catch (e: TimeoutException) {
-        logger.error("Time out when trying to write $summary to $topic")
+        val kafkaIp: String = InetAddress.getByName("kafka").hostAddress
+        logger.error("Time out when trying to write $summary to $topic at $kafkaIp")
         HttpStatusCode.InternalServerError
     }
 }
