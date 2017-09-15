@@ -1,3 +1,4 @@
+import org.jetbrains.ktor.http.HttpMethod
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -5,6 +6,7 @@ import org.junit.jupiter.api.Test
 import se.zensum.webhook.Format
 import se.zensum.webhook.TopicRouting
 import se.zensum.webhook.getRoutes
+import se.zensum.webhook.httpMethods
 
 class ParseRoutesTest {
 
@@ -13,28 +15,37 @@ class ParseRoutesTest {
         val routes: Map<String, TopicRouting> = getRoutes("src/test/routes")
         assertEquals(4, routes.size)
 
-        val test = routes["/test"]!!
-        assertEquals("test", test.topic)
-        assertEquals("/test", test.path)
-        assertFalse(test.verify)
-        assertEquals(Format.PROTOBUF, test.format)
+        routes["/status/mail"]!!.apply{
+            assertEquals("mail-status", topic)
+            assertEquals("/status/mail", path)
+            assertFalse(verify)
+            assertEquals(Format.PROTOBUF, format)
+            val expectedMethods = setOf(HttpMethod.Post, HttpMethod.Put, HttpMethod.Head, HttpMethod.Get)
+            assertEquals(expectedMethods, allowedMethods)
+        }
 
-        val mailStatus = routes["/status/mail"]!!
-        assertEquals("mail-status", mailStatus.topic)
-        assertEquals("/status/mail", mailStatus.path)
-        assertFalse(mailStatus.verify)
-        assertEquals(Format.PROTOBUF, mailStatus.format)
+        routes["/status/sms"]!!.apply{
+            assertEquals("sms-status", topic)
+            assertEquals("/status/sms", path)
+            assertFalse(verify)
+            assertEquals(Format.PROTOBUF, format)
+            assertEquals(httpMethods.verbs, allowedMethods)
+        }
 
-        val smsStatus = routes["/status/sms"]!!
-        assertEquals("sms-status", smsStatus.topic)
-        assertEquals("/status/sms", smsStatus.path)
-        assertFalse(smsStatus.verify)
-        assertEquals(Format.PROTOBUF, smsStatus.format)
+        routes["/test"]!!.apply {
+            assertEquals("test", topic)
+            assertEquals("/test", path)
+            assertFalse(verify)
+            assertEquals(Format.PROTOBUF, format)
+            assertEquals(httpMethods.verbs, allowedMethods)
+        }
 
-        val auth = routes["/auth"]!!
-        assertEquals("test", auth.topic)
-        assertEquals("/auth", auth.path)
-        assertTrue(auth.verify)
-        assertEquals(Format.RAW_BODY, auth.format)
+        routes["/auth"]!!.apply {
+            assertEquals("test", topic)
+            assertEquals("/auth", path)
+            assertTrue(verify)
+            val expectedMethods = setOf(HttpMethod.Post)
+            assertEquals(expectedMethods, format)
+        }
     }
 }

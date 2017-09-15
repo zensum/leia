@@ -1,6 +1,7 @@
 package se.zensum.webhook
 
 import com.moandjiezana.toml.Toml
+import org.jetbrains.ktor.http.HttpMethod
 import java.io.File
 import java.nio.file.Path
 
@@ -11,10 +12,11 @@ enum class Format { RAW_BODY, PROTOBUF }
 data class TopicRouting(val path: String,
                         val topic: String,
                         val format: Format = Format.PROTOBUF,
-                        val verify: Boolean = false)
+                        val verify: Boolean = false,
+                        val allowedMethods: Collection<HttpMethod> = httpMethods.verbs)
 
 fun getRoutes(routesFile: String = ROUTES_FILE): Map<String, TopicRouting> {
-    val file: File = File(routesFile)
+    val file = File(routesFile)
     verifyFile(file.toPath())
     val toml = Toml().read(file)
     val routes = toml.getTables("routes")
@@ -35,7 +37,9 @@ private fun TopicRouting(routeConfig: Toml): TopicRouting {
         else -> Format.PROTOBUF
     }
     val verify: Boolean = routeConfig.getBoolean("verify", false)
-    return TopicRouting(path, topic, format, verify)
+    val methodsInput: List<String> = routeConfig.getList("methods", emptyList())
+    val methods: Set<HttpMethod> = methodsInput.asSequence().map { HttpMethod.parse(it) }.toSet()
+    return TopicRouting(path, topic, format, verify, methods)
 }
 
 fun verifyFile(path: Path) {

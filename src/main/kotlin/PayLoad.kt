@@ -56,13 +56,4 @@ fun convertMethod(method: KtorHttpMethod): WebhookHttpMethod = when(method) {
     else -> throw IllegalArgumentException("Method ${method.value} is not supported")
 }
 
-fun methodIsSupported(method: KtorHttpMethod): Boolean = when(method) {
-    KtorHttpMethod.Put -> true
-    KtorHttpMethod.Patch -> true
-    KtorHttpMethod.Delete -> true
-    KtorHttpMethod.Get -> true
-    KtorHttpMethod.Head -> true
-    KtorHttpMethod.Post -> true
-    KtorHttpMethod.Options -> true
-    else -> false
-}
+fun methodIsSupported(method: KtorHttpMethod): Boolean = method in httpMethods

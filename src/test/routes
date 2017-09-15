@@ -5,17 +5,16 @@ title="Route config"
         topic = "mail-status"
         verify = false
         format = "proto"
+        methods = [ "POST", "PUT", "HEAD", "GET" ]
 
 [[routes]]
         path = "/status/sms"
         topic = "sms-status"
         verify = false
-        format = "proto"
 
 [[routes]]
         path = "/test"
         topic = "test"
-        verify = false
         format = "proto"
 
 [[routes]]
@@ -23,3 +22,4 @@ title="Route config"
         topic = "test"
         verify = true
         format = "raw_body"
+        methods = [ "POST" ]
