@@ -1,4 +1,25 @@
-/test -> test
-/status/mail -> mail
-/status/sms -> sms
-/bank/{bank} -> banks
+title="Route config"
+
+[[routes]]
+        path = "/status/mail"
+        topic = "mail-status"
+        verify = false
+        format = "proto"
+
+[[routes]]
+        path = "/status/sms"
+        topic = "sms-status"
+        verify = false
+        format = "proto"
+
+[[routes]]
+        path = "/test"
+        topic = "test"
+        verify = false
+        format = "proto"
+
+[[routes]]
+        path = "/auth"
+        topic = "test"
+        verify = true
+        format = "raw_body"

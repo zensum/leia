@@ -23,11 +23,7 @@ import org.jetbrains.ktor.routing.routing
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
 import se.zensum.webhook.PayloadOuterClass.Payload
-import java.io.File
 import java.net.InetAddress
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 fun main(args: Array<String>) {
     val port: Int = Integer.parseInt(getEnv("PORT", "80"))
@@ -37,27 +33,20 @@ fun main(args: Array<String>) {
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
 private val producer = ProducerBuilder.ofByteArray.create()
-private const val ROUTES_FILE ="/etc/config/routes"
 private val logger = KotlinLogging.logger("process-request")
 
-private fun getRoutes() = parseRoutesFile(ROUTES_FILE).also {
-    if(it.isEmpty()) {
-        System.err.println("No routes found in $ROUTES_FILE")
-        System.exit(1)
-    }
-}
 
 fun server(port: Int) = embeddedServer(Netty, port) {
-    val routes = getRoutes()
+    val routes: Map<String, TopicRouting> = getRoutes()
     install(SentryFeature)
     install(PrometheusFeature)
     install(Health)
     routing {
-        for((path, topic) in routes) {
+        for((path, topicRouting) in routes) {
             route(path) {
                 handle {
                     logRequest(call.request)
-                    val response: HttpStatusCode = createResponse(this, topic)
+                    val response: HttpStatusCode = createResponse(this, topicRouting.topic)
                     call.respond(response)
                 }
             }
@@ -97,31 +86,4 @@ private suspend fun writeToKafka(call: ApplicationCall, topic: String, request: 
         logger.error("Time out when trying to write $summary to $topic at $kafkaIp")
         HttpStatusCode.InternalServerError
     }
-}
-
-fun parseRoutesFile(file: String): Map<String, String> {
-    val path: Path = Paths.get(file)
-    verifyFile(path)
-    return Files.readAllLines(path).asSequence()
-        .map { lineToPair(it) }
-        .toMap()
-}
-
-fun verifyFile(path: Path) {
-    val file: File = path.toFile()
-    if(!file.exists()) {
-        throw IllegalArgumentException("File $file does not exist")
-    }
-    if(file.isDirectory) {
-        throw IllegalArgumentException("File $file is a directory")
-    }
-}
-
-fun lineToPair(line: String): Pair<String, String> {
-    val delimiter = Regex("\\s*->\\s*")
-    val split: List<String> = line.split(delimiter).map { it.trim() }
-    if(split.size != 2)
-        throw IllegalArgumentException("Found invalid route entry: $line")
-
-    return Pair(split[0], split[1])
 }
