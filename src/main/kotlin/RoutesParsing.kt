@@ -31,15 +31,21 @@ fun getRoutes(routesFile: String = ROUTES_FILE): Map<String, TopicRouting> {
 private fun TopicRouting(routeConfig: Toml): TopicRouting {
     val path: String = routeConfig.getString("path")
     val topic: String = routeConfig.getString("topic")
-    val format: Format = when(routeConfig.getString("format", "proto"))
-    {
+    val format: Format = when(routeConfig.getString("format", "proto")) {
         "raw_body" -> Format.RAW_BODY
-        else -> Format.PROTOBUF
+        "proto" -> Format.PROTOBUF
+        else -> throw IllegalArgumentException("Invalid value for config parameter 'format'")
     }
     val verify: Boolean = routeConfig.getBoolean("verify", false)
     val methodsInput: List<String> = routeConfig.getList("methods", emptyList())
-    val methods: Set<HttpMethod> = methodsInput.asSequence().map { HttpMethod.parse(it) }.toSet()
-    return TopicRouting(path, topic, format, verify, methods)
+    val methods: Set<HttpMethod> = methodsInput.asSequence()
+        .map { HttpMethod.parse(it) }
+        .toSet()
+
+    return when(methods.isEmpty()) {
+        true -> TopicRouting(path, topic, format, verify)
+        false -> TopicRouting(path, topic, format, verify, methods)
+    }
 }
 
 fun verifyFile(path: Path) {
