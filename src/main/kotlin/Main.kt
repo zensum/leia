@@ -10,19 +10,17 @@ import org.apache.kafka.common.errors.TimeoutException
 import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.application.install
 import org.jetbrains.ktor.host.embeddedServer
+import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.pipeline.PipelineContext
-import org.jetbrains.ktor.request.ApplicationRequest
-import org.jetbrains.ktor.request.host
-import org.jetbrains.ktor.request.httpMethod
-import org.jetbrains.ktor.request.path
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
+import se.zensum.jwt.JWTFeature
+import se.zensum.jwt.isVerified
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
-import se.zensum.webhook.PayloadOuterClass.Payload
 import java.net.InetAddress
 
 fun main(args: Array<String>) {
@@ -41,43 +39,63 @@ fun server(port: Int) = embeddedServer(Netty, port) {
     install(SentryFeature)
     install(PrometheusFeature)
     install(Health)
+    install(JWTFeature)
     routing {
         for((path, topicRouting) in routes) {
             route(path) {
                 handle {
-                    logRequest(call.request)
-                    val response: HttpStatusCode = createResponse(this, topicRouting.topic)
-                    call.respond(response)
+                    val method: HttpMethod = call.request.httpMethod
+                    val host: String = call.request.host() ?: "Unknown host"
+
+                    logRequest(method, path, host)
+
+                    if(isVerified() || !topicRouting.verify) {
+                        val response: HttpStatusCode = createResponse(call, topicRouting)
+                        call.respond(response)
+                    }
+                    else {
+                        logAccessDenied(path, host)
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
                 }
             }
         }
     }
 }
 
-private fun logRequest(request: ApplicationRequest) {
-    request.apply {
-        logger.info("${httpMethod.value} ${path()} from ${host()}")
-    }
+private fun logRequest(method: HttpMethod, path: String, host: String) {
+    logger.info("${method.value} $path from $host")
 }
 
-suspend fun createResponse(context: PipelineContext<Unit>, topic: String): HttpStatusCode
-{
-    context.run {
-        return when(methodIsSupported(call.request.httpMethod)) {
-            true -> {
-                val request: Payload = createPayload(context)
-                writeToKafka(this.call, topic, request)
-            }
-            false -> HttpStatusCode.MethodNotAllowed
-        }
-    }
+private fun logAccessDenied(path: String, host: String) {
+    logger.info("Unauthorized request was denied to $path from $host")
 }
 
-private suspend fun writeToKafka(call: ApplicationCall, topic: String, request: Payload): HttpStatusCode
-{
-    val summary = "${call.request.httpMethod.value} ${call.request.path()}"
+suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
+    if(call.request.httpMethod !in routing.allowedMethods)
+        return HttpStatusCode.MethodNotAllowed
+
+    val method = call.request.httpMethod
+    val path: String = call.request.path()
+    val body: ByteArray = when(routing.format) {
+        Format.RAW_BODY -> receiveBody(call.request)
+        Format.PROTOBUF -> createPayload(call).toByteArray()
+    }
+
+    return writeToKafka(method, path, routing.topic, body)
+}
+
+fun hasBody(req: ApplicationRequest): Boolean = Integer.parseInt(req.headers["Content-Length"] ?: "0") > 0
+
+suspend fun receiveBody(req: ApplicationRequest): ByteArray = when(hasBody(req)) {
+    true -> req.call.receiveStream().readBytes(64)
+    false -> ByteArray(0)
+}
+
+private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray): HttpStatusCode {
+    val summary = "${method.value} $path"
     return try {
-        val metaData: RecordMetadata = producer.sendRaw(ProducerRecord(topic, request.toByteArray())).await()
+        val metaData: RecordMetadata = producer.sendRaw(ProducerRecord(topic, data)).await()
         logger.info("$summary written to ${metaData.topic()}")
         HttpStatusCode.OK
     }
