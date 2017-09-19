@@ -1,12 +1,11 @@
+import com.moandjiezana.toml.Toml
 import org.jetbrains.ktor.http.HttpMethod
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import se.zensum.webhook.Format
-import se.zensum.webhook.TopicRouting
-import se.zensum.webhook.getRoutes
-import se.zensum.webhook.httpMethods
+import se.zensum.webhook.*
 
 class ParseRoutesTest {
 
@@ -115,6 +114,30 @@ class ParseRoutesTest {
         routes["/auth"]!!.apply {
             val expectedMethods = setOf(HttpMethod.Post)
             assertEquals(expectedMethods, allowedMethods)
+        }
+    }
+
+    @Test
+    fun testRouteWithNoTopic() {
+        assertThrows(NullPointerException::class.java) {
+            val conf: String = """title = 'Config'
+                [[routes]]
+                    topic = 'test'
+            """.trimMargin()
+            val toml = Toml().read(conf)
+            parseTomlConfig(toml)
+        }
+    }
+
+    @Test
+    fun testRouteWithNoPath() {
+        assertThrows(NullPointerException::class.java) {
+            val conf: String = """title = 'Config'
+                [[routes]]
+                    path = '/test'
+            """.trimMargin()
+            val toml = Toml().read(conf)
+            parseTomlConfig(toml)
         }
     }
 }
