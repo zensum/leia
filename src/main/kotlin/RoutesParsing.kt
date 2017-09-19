@@ -14,7 +14,7 @@ data class TopicRouting(val path: String,
                         val verify: Boolean = false,
                         val allowedMethods: Collection<HttpMethod> = httpMethods.verbs)
 
-fun getRoutes(routesFile: String = ROUTES_FILE): Map<String, TopicRouting> {
+fun getRoutes(routesFile: String = getEnv("ROUTES_FILE", ROUTES_FILE)): Map<String, TopicRouting> {
     val toml = readTomlFromFile(routesFile)
     return parseTomlConfig(toml)
 }
