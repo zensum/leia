@@ -1,85 +1,143 @@
+import com.moandjiezana.toml.Toml
+import org.jetbrains.ktor.http.HttpMethod
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import se.zensum.webhook.lineToPair
-import se.zensum.webhook.parseRoutesFile
-import java.lang.IllegalArgumentException
+import se.zensum.webhook.*
 
 class ParseRoutesTest {
 
+    private val routes: Map<String, TopicRouting> = getRoutes("src/test/routes")
+
     @Test
-    fun testReadFile() {
-        val routes: Map<String, String> = parseRoutesFile("src/test/routes")
+    fun testSize() {
         assertEquals(4, routes.size)
-
-        assertEquals("test", routes["/test"])
-        assertEquals("mail", routes["/status/mail"])
-        assertEquals("sms", routes["/status/sms"])
-        assertEquals("banks", routes["/bank/{bank}"])
     }
 
     @Test
-    fun testLineToPair() {
-        val line1 = "/test -> test"
-        val line2 = "/bank/{bank} -> banks"
+    fun testTopic() {
+        routes["/status/mail"]!!.apply{
+            assertEquals("mail-status", topic)
+        }
 
-        val (key1, value1) = lineToPair(line1)
-        assertEquals("/test", key1)
-        assertEquals("test", value1)
+        routes["/status/sms"]!!.apply{
+            assertEquals("sms-status", topic)
+        }
 
-        val (key2, value2) = lineToPair(line2)
-        assertEquals("/bank/{bank}", key2)
-        assertEquals("banks", value2)
-    }
+        routes["/test"]!!.apply {
+            assertEquals("test", topic)
+        }
 
-    @Test
-    fun testLineToPairWithExtraWhiteSpace() {
-        val line1 = "/test  ->  test"
-        val line2 = "/bank/{bank}   ->   banks"
-
-        val (key1, value1) = lineToPair(line1)
-        assertEquals("/test", key1)
-        assertEquals("test", value1)
-
-        val (key2, value2) = lineToPair(line2)
-        assertEquals("/bank/{bank}", key2)
-        assertEquals("banks", value2)
-    }
-
-    @Test
-    fun testLineToTrimExtraWhiteSpace() {
-        val line1 = "/test -> test "
-
-        val (key1, value1) = lineToPair(line1)
-        assertEquals("/test", key1)
-        assertEquals("test", value1)
-    }
-
-    @Test
-    fun testLineToPairWithNoWhiteSpace() {
-        val line1 = "/test->test"
-        val line2 = "/bank/{bank}->banks"
-
-        val (key1, value1) = lineToPair(line1)
-        assertEquals("/test", key1)
-        assertEquals("test", value1)
-
-        val (key2, value2) = lineToPair(line2)
-        assertEquals("/bank/{bank}", key2)
-        assertEquals("banks", value2)
-    }
-
-    @Test
-    fun testLineToPairWithMissingDelimiter() {
-        assertThrows(IllegalArgumentException::class.java) {
-            lineToPair("/test-test")
+        routes["/auth"]!!.apply {
+            assertEquals("test", topic)
         }
     }
 
     @Test
-    fun testLineToPairWithMultipleDelimiters() {
-        assertThrows(IllegalArgumentException::class.java) {
-            lineToPair("/test->test1->test2")
+    fun testPath() {
+        routes["/status/mail"]!!.apply{
+            assertEquals("/status/mail", path)
+        }
+
+        routes["/status/sms"]!!.apply{
+            assertEquals("/status/sms", path)
+        }
+
+        routes["/test"]!!.apply {
+            assertEquals("/test", path)
+        }
+
+        routes["/auth"]!!.apply {
+            assertEquals("/auth", path)
+        }
+    }
+
+    @Test
+    fun testVerify() {
+        routes["/status/mail"]!!.apply{
+            assertFalse(verify)
+        }
+
+        routes["/status/sms"]!!.apply{
+            assertFalse(verify)
+        }
+
+        routes["/test"]!!.apply {
+            assertFalse(verify)
+        }
+
+        routes["/auth"]!!.apply {
+            assertTrue(verify)
+        }
+    }
+
+    @Test
+    fun testFormat() {
+        assertEquals(4, routes.size)
+
+        routes["/status/mail"]!!.apply{
+            assertEquals(Format.PROTOBUF, format)
+        }
+
+        routes["/status/sms"]!!.apply{
+            assertEquals(Format.PROTOBUF, format)
+        }
+
+        routes["/test"]!!.apply {
+            assertEquals(Format.PROTOBUF, format)
+        }
+
+        routes["/auth"]!!.apply {
+            assertEquals(Format.RAW_BODY, format)
+        }
+    }
+
+    @Test
+    fun testExpectedMethods() {
+        assertEquals(4, routes.size)
+
+        routes["/status/mail"]!!.apply{
+            val expectedMethods = setOf(HttpMethod.Post, HttpMethod.Put, HttpMethod.Head, HttpMethod.Get)
+            assertEquals(expectedMethods, allowedMethods)
+        }
+
+        routes["/status/sms"]!!.apply{
+            assertEquals(httpMethods.verbs, allowedMethods)
+        }
+
+        routes["/test"]!!.apply {
+            assertEquals(httpMethods.verbs, allowedMethods)
+        }
+
+        routes["/auth"]!!.apply {
+            val expectedMethods = setOf(HttpMethod.Post)
+            assertEquals(expectedMethods, allowedMethods)
+        }
+    }
+
+    @Test
+    fun testRouteWithNoTopic() {
+        assertThrows(NullPointerException::class.java) {
+            val conf: String = """title = 'Config'
+                [[routes]]
+                    topic = 'test'
+            """.trimMargin()
+            val toml = Toml().read(conf)
+            parseTomlConfig(toml)
+        }
+    }
+
+    @Test
+    fun testRouteWithNoPath() {
+        assertThrows(NullPointerException::class.java) {
+            val conf: String = """title = 'Config'
+                [[routes]]
+                    path = '/test'
+            """.trimMargin()
+            val toml = Toml().read(conf)
+            parseTomlConfig(toml)
         }
     }
 }

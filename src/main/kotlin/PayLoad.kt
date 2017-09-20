@@ -1,5 +1,6 @@
 package se.zensum.webhook
 
+import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.http.HttpMethod as KtorHttpMethod
 import se.zensum.webhook.PayloadOuterClass.HttpMethod as WebhookHttpMethod
 
@@ -8,16 +9,16 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.ValuesMap
 import se.zensum.webhook.PayloadOuterClass.Payload as Payload
 
-suspend fun createPayload(context: PipelineContext<Unit>): Payload  {
-    return context.call.request.run {
+suspend fun createPayload(call: ApplicationCall): Payload  {
+    return call.request.run {
         val requestHeaders: ValuesMap = headers
         Payload.newBuilder().apply {
             this.path = path()
             this.method = convertMethod(httpMethod)
             this.headers = parseMap(requestHeaders)
-            this.parameters = parseMap(context.call.parameters)
+            this.parameters = parseMap(call.parameters)
             this.queryString = queryString()
-            this.body = context.call.receiveText()
+            this.body = call.receiveText()
         }.build()
     }
 }
@@ -56,13 +57,4 @@ fun convertMethod(method: KtorHttpMethod): WebhookHttpMethod = when(method) {
     else -> throw IllegalArgumentException("Method ${method.value} is not supported")
 }
 
-fun methodIsSupported(method: KtorHttpMethod): Boolean = when(method) {
-    KtorHttpMethod.Put -> true
-    KtorHttpMethod.Patch -> true
-    KtorHttpMethod.Delete -> true
-    KtorHttpMethod.Get -> true
-    KtorHttpMethod.Head -> true
-    KtorHttpMethod.Post -> true
-    KtorHttpMethod.Options -> true
-    else -> false
-}
+fun methodIsSupported(method: KtorHttpMethod): Boolean = method in httpMethods

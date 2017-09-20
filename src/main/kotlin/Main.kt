@@ -10,24 +10,18 @@ import org.apache.kafka.common.errors.TimeoutException
 import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.application.install
 import org.jetbrains.ktor.host.embeddedServer
+import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.pipeline.PipelineContext
-import org.jetbrains.ktor.request.ApplicationRequest
-import org.jetbrains.ktor.request.host
-import org.jetbrains.ktor.request.httpMethod
-import org.jetbrains.ktor.request.path
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
+import se.zensum.jwt.JWTFeature
+import se.zensum.jwt.isVerified
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
-import se.zensum.webhook.PayloadOuterClass.Payload
-import java.io.File
 import java.net.InetAddress
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 fun main(args: Array<String>) {
     val port: Int = Integer.parseInt(getEnv("PORT", "80"))
@@ -37,58 +31,71 @@ fun main(args: Array<String>) {
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
 private val producer = ProducerBuilder.ofByteArray.create()
-private const val ROUTES_FILE ="/etc/config/routes"
 private val logger = KotlinLogging.logger("process-request")
 
-private fun getRoutes() = parseRoutesFile(ROUTES_FILE).also {
-    if(it.isEmpty()) {
-        System.err.println("No routes found in $ROUTES_FILE")
-        System.exit(1)
-    }
-}
 
 fun server(port: Int) = embeddedServer(Netty, port) {
-    val routes = getRoutes()
+    val routes: Map<String, TopicRouting> = getRoutes()
     install(SentryFeature)
     install(PrometheusFeature)
     install(Health)
+    install(JWTFeature)
     routing {
-        for((path, topic) in routes) {
+        for((path, topicRouting) in routes) {
             route(path) {
                 handle {
-                    logRequest(call.request)
-                    val response: HttpStatusCode = createResponse(this, topic)
-                    call.respond(response)
+                    val method: HttpMethod = call.request.httpMethod
+                    val host: String = call.request.host() ?: "Unknown host"
+
+                    logRequest(method, path, host)
+
+                    if(isVerified() || !topicRouting.verify) {
+                        val response: HttpStatusCode = createResponse(call, topicRouting)
+                        call.respond(response)
+                    }
+                    else {
+                        logAccessDenied(path, host)
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
                 }
             }
         }
     }
 }
 
-private fun logRequest(request: ApplicationRequest) {
-    request.apply {
-        logger.info("${httpMethod.value} ${path()} from ${host()}")
-    }
+private fun logRequest(method: HttpMethod, path: String, host: String) {
+    logger.info("${method.value} $path from $host")
 }
 
-suspend fun createResponse(context: PipelineContext<Unit>, topic: String): HttpStatusCode
-{
-    context.run {
-        return when(methodIsSupported(call.request.httpMethod)) {
-            true -> {
-                val request: Payload = createPayload(context)
-                writeToKafka(this.call, topic, request)
-            }
-            false -> HttpStatusCode.MethodNotAllowed
-        }
-    }
+private fun logAccessDenied(path: String, host: String) {
+    logger.info("Unauthorized request was denied to $path from $host")
 }
 
-private suspend fun writeToKafka(call: ApplicationCall, topic: String, request: Payload): HttpStatusCode
-{
-    val summary = "${call.request.httpMethod.value} ${call.request.path()}"
+suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
+    if(call.request.httpMethod !in routing.allowedMethods)
+        return HttpStatusCode.MethodNotAllowed
+
+    val method = call.request.httpMethod
+    val path: String = call.request.path()
+    val body: ByteArray = when(routing.format) {
+        Format.RAW_BODY -> receiveBody(call.request)
+        Format.PROTOBUF -> createPayload(call).toByteArray()
+    }
+
+    return writeToKafka(method, path, routing.topic, body)
+}
+
+fun hasBody(req: ApplicationRequest): Boolean = Integer.parseInt(req.headers["Content-Length"] ?: "0") > 0
+
+suspend fun receiveBody(req: ApplicationRequest): ByteArray = when(hasBody(req)) {
+    true -> req.call.receiveStream().readBytes(64)
+    false -> ByteArray(0)
+}
+
+private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray): HttpStatusCode {
+    val summary = "${method.value} $path"
     return try {
-        val metaData: RecordMetadata = producer.sendRaw(ProducerRecord(topic, request.toByteArray())).await()
+        val metaData: RecordMetadata = producer.sendRaw(ProducerRecord(topic, data)).await()
         logger.info("$summary written to ${metaData.topic()}")
         HttpStatusCode.OK
     }
@@ -97,31 +104,4 @@ private suspend fun writeToKafka(call: ApplicationCall, topic: String, request: 
         logger.error("Time out when trying to write $summary to $topic at $kafkaIp")
         HttpStatusCode.InternalServerError
     }
-}
-
-fun parseRoutesFile(file: String): Map<String, String> {
-    val path: Path = Paths.get(file)
-    verifyFile(path)
-    return Files.readAllLines(path).asSequence()
-        .map { lineToPair(it) }
-        .toMap()
-}
-
-fun verifyFile(path: Path) {
-    val file: File = path.toFile()
-    if(!file.exists()) {
-        throw IllegalArgumentException("File $file does not exist")
-    }
-    if(file.isDirectory) {
-        throw IllegalArgumentException("File $file is a directory")
-    }
-}
-
-fun lineToPair(line: String): Pair<String, String> {
-    val delimiter = Regex("\\s*->\\s*")
-    val split: List<String> = line.split(delimiter).map { it.trim() }
-    if(split.size != 2)
-        throw IllegalArgumentException("Found invalid route entry: $line")
-
-    return Pair(split[0], split[1])
 }
