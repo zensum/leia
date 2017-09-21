@@ -51,7 +51,7 @@ dependencies {
     
     // Project specific dependencies (disabled by default)
     compile 'com.github.zensum:franz:master-SNAPSHOT'
-    compile 'com.github.zensum:webhook-proto:9eba652fe1'
+    compile 'com.github.zensum:webhook-proto:0.1.0'
     compile 'com.github.zensum:ktor-prometheus-feature:master-SNAPSHOT'
     compile 'com.github.zensum:ktor-sentry-feature:master-SNAPSHOT'
     compile 'com.github.zensum:ktor-jwt:0.1.1:sources'
@@ -60,6 +60,7 @@ dependencies {
     compile 'org.jetbrains.ktor:ktor-core:0.4.0'
     compile 'org.jetbrains.ktor:ktor-netty:0.4.0'
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
+    compile 'com.github.rholder.fauxflake:fauxflake-core:1.1.0'
 }
 
 junitPlatform {

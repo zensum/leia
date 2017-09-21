@@ -1,13 +1,18 @@
 package se.zensum.webhook
 
+import com.github.rholder.fauxflake.IdGenerators
 import org.jetbrains.ktor.application.ApplicationCall
+import org.jetbrains.ktor.request.httpMethod
+import org.jetbrains.ktor.request.path
+import org.jetbrains.ktor.request.queryString
+import org.jetbrains.ktor.request.receiveText
+import org.jetbrains.ktor.util.ValuesMap
+import se.zensum.webhook.PayloadOuterClass.Payload
 import org.jetbrains.ktor.http.HttpMethod as KtorHttpMethod
 import se.zensum.webhook.PayloadOuterClass.HttpMethod as WebhookHttpMethod
 
-import org.jetbrains.ktor.pipeline.PipelineContext
-import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.util.ValuesMap
-import se.zensum.webhook.PayloadOuterClass.Payload as Payload
+val idGen = IdGenerators.newFlakeIdGenerator()!!
+fun generateId(): Long = idGen.generateId(10).asLong()
 
 suspend fun createPayload(call: ApplicationCall): Payload  {
     return call.request.run {
@@ -19,6 +24,7 @@ suspend fun createPayload(call: ApplicationCall): Payload  {
             this.parameters = parseMap(call.parameters)
             this.queryString = queryString()
             this.body = call.receiveText()
+            this.flakeId = generateId()
         }.build()
     }
 }
