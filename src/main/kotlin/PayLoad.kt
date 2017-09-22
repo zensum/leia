@@ -11,7 +11,7 @@ import se.zensum.webhook.PayloadOuterClass.Payload
 import org.jetbrains.ktor.http.HttpMethod as KtorHttpMethod
 import se.zensum.webhook.PayloadOuterClass.HttpMethod as WebhookHttpMethod
 
-val idGen = IdGenerators.newFlakeIdGenerator()!!
+val idGen = IdGenerators.newSnowflakeIdGenerator()
 fun generateId(): Long = idGen.generateId(10).asLong()
 
 suspend fun createPayload(call: ApplicationCall): Payload  {
