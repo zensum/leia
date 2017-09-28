@@ -1,4 +1,4 @@
-package se.zensum.webhook
+package se.zensum.leia
 
 import org.jetbrains.ktor.http.HttpMethod
 

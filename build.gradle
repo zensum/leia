@@ -5,12 +5,12 @@ apply plugin: 'idea'
 
 group = 'se.zensum'
 version = '1.0-SNAPSHOT'
-description = 'description of project'
+description = 'Receive incoming HTTP requests/webhooks and write them to a Kafka topic'
 
 defaultTasks 'run'
 
 buildscript {
-    ext.kotlin_version = '1.1.4'
+    ext.kotlin_version = '1.1.50'
     ext.jvm_version = '1.8'
     ext.junit_platform_version = '1.0.0-M4'
     repositories {
@@ -69,7 +69,7 @@ junitPlatform {
 
 jar {
     manifest {
-        attributes 'Main-Class': "se.zensum.webhook.MainKt"
+        attributes 'Main-Class': "se.zensum.leia.MainKt"
     }
 }
 
@@ -110,7 +110,7 @@ sourceSets {
 }
 
 task run(type: JavaExec) {
-    main = 'se.zensum.webhook.MainKt' //Important that 'Kt' is appended to class name
+    main = 'se.zensum.leia.MainKt' //Important that 'Kt' is appended to class name
     classpath = sourceSets.main.runtimeClasspath
 }
 

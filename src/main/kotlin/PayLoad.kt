@@ -1,4 +1,4 @@
-package se.zensum.webhook
+package se.zensum.leia
 
 import com.github.rholder.fauxflake.IdGenerators
 import org.jetbrains.ktor.application.ApplicationCall
@@ -7,9 +7,10 @@ import org.jetbrains.ktor.request.path
 import org.jetbrains.ktor.request.queryString
 import org.jetbrains.ktor.request.receiveText
 import org.jetbrains.ktor.util.ValuesMap
+import se.zensum.webhook.PayloadOuterClass
 import se.zensum.webhook.PayloadOuterClass.Payload
 import org.jetbrains.ktor.http.HttpMethod as KtorHttpMethod
-import se.zensum.webhook.PayloadOuterClass.HttpMethod as WebhookHttpMethod
+import se.zensum.webhook.PayloadOuterClass.HttpMethod as HttpMethod
 
 val idGen = IdGenerators.newSnowflakeIdGenerator()
 fun generateId(): Long = idGen.generateId(10).asLong()
@@ -52,14 +53,14 @@ fun toListOfPair(key: String, values: List<String>): List<Pair<String, String>> 
         .toList()
 }
 
-fun convertMethod(method: KtorHttpMethod): WebhookHttpMethod = when(method) {
-    KtorHttpMethod.Put -> WebhookHttpMethod.PUT
-    KtorHttpMethod.Patch -> WebhookHttpMethod.PATCH
-    KtorHttpMethod.Delete -> WebhookHttpMethod.DELETE
-    KtorHttpMethod.Get -> WebhookHttpMethod.GET
-    KtorHttpMethod.Head -> WebhookHttpMethod.HEAD
-    KtorHttpMethod.Post -> WebhookHttpMethod.POST
-    KtorHttpMethod.Options -> WebhookHttpMethod.OPTIONS
+fun convertMethod(method: KtorHttpMethod): HttpMethod = when(method) {
+    KtorHttpMethod.Put -> HttpMethod.PUT
+    KtorHttpMethod.Patch -> HttpMethod.PATCH
+    KtorHttpMethod.Delete -> HttpMethod.DELETE
+    KtorHttpMethod.Get -> HttpMethod.GET
+    KtorHttpMethod.Head -> HttpMethod.HEAD
+    KtorHttpMethod.Post -> HttpMethod.POST
+    KtorHttpMethod.Options -> HttpMethod.OPTIONS
     else -> throw IllegalArgumentException("Method ${method.value} is not supported")
 }
 

@@ -1,4 +1,4 @@
-package se.zensum.webhook
+package se.zensum.leia
 
 import franz.ProducerBuilder
 import kotlinx.coroutines.experimental.future.await
@@ -30,7 +30,10 @@ fun main(args: Array<String>) {
 
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
-private val producer = ProducerBuilder.ofByteArray.create()
+private val producer = ProducerBuilder.ofByteArray
+    .option("client.id", "leia")
+    .create()
+
 private val logger = KotlinLogging.logger("process-request")
 
 
