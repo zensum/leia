@@ -2,7 +2,7 @@
 
 ### What?
 
-A service backened by Ktor, writing incoming HTTP requests to one or serveral Kafka topics.
+A service backed by Ktor, writing incoming HTTP requests to one or serveral Kafka topics.
 
 ### Why?
 
