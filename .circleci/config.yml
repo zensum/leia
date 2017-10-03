@@ -36,6 +36,7 @@ workflows:
     jobs:
       - build
       - docker-build:
+          context: org-global
           requires:
             - build
           filters:
