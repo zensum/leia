@@ -1,11 +1,9 @@
+package se.zensum.leia
+
 import com.moandjiezana.toml.Toml
 import org.jetbrains.ktor.http.HttpMethod
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import se.zensum.webhook.*
 
 class ParseRoutesTest {
 
