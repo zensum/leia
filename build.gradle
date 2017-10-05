@@ -10,7 +10,7 @@ description = 'Receive incoming HTTP requests/webhooks and write them to a Kafka
 defaultTasks 'run'
 
 buildscript {
-    ext.kotlin_version = '1.1.50'
+    ext.kotlin_version = '1.1.51'
     ext.jvm_version = '1.8'
     ext.junit_platform_version = '1.0.0-M4'
     repositories {
