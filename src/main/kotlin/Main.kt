@@ -1,6 +1,7 @@
 package se.zensum.leia
 
 import franz.ProducerBuilder
+import franz.producer.ProduceResult
 import kotlinx.coroutines.experimental.future.await
 import ktor_health_check.Health
 import mu.KotlinLogging
@@ -98,7 +99,7 @@ suspend fun receiveBody(req: ApplicationRequest): ByteArray = when(hasBody(req))
 private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray): HttpStatusCode {
     val summary = "${method.value} $path"
     return try {
-        val metaData: RecordMetadata = producer.sendRaw(ProducerRecord(topic, data)).await()
+        val metaData: ProduceResult = producer.sendRaw(ProducerRecord(topic, data)).await()
         logger.info("$summary written to ${metaData.topic()}")
         HttpStatusCode.OK
     }
