@@ -50,7 +50,7 @@ dependencies {
     compile 'io.github.microutils:kotlin-logging:1.4.6'
     
     // Project specific dependencies (disabled by default)
-    compile 'com.github.zensum:franz:master-SNAPSHOT'
+    compile 'com.github.zensum:franz:59132b791c'
     compile 'com.github.zensum:webhook-proto:0.1.1'
     compile 'com.github.zensum:ktor-prometheus-feature:master-SNAPSHOT'
     compile 'com.github.zensum:ktor-sentry-feature:master-SNAPSHOT'
