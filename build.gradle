@@ -54,7 +54,7 @@ dependencies {
     compile 'com.github.zensum:webhook-proto:0.1.1'
     compile 'com.github.zensum:ktor-prometheus-feature:master-SNAPSHOT'
     compile 'com.github.zensum:ktor-sentry-feature:master-SNAPSHOT'
-    compile 'com.github.zensum:ktor-jwt:0.1.2'
+    compile 'com.github.zensum:ktor-jwt:0.1.3'
     compile 'com.github.zensum:ktor-health-check:master-SNAPSHOT'
     compile 'org.jetbrains.ktor:ktor-core:0.4.0'
     compile 'org.jetbrains.ktor:ktor-netty:0.4.0'
