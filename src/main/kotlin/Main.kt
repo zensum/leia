@@ -87,8 +87,10 @@ private fun logAccessDenied(path: String, host: String) {
 }
 
 suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
-    if(call.request.httpMethod !in routing.allowedMethods)
+    if(call.request.httpMethod !in routing.allowedMethods) {
+        call.response.header("Allow", asHeaderValue(routing.allowedMethods))
         return HttpStatusCode.MethodNotAllowed
+    }
 
     val method = call.request.httpMethod
     val path: String = call.request.path()
@@ -99,6 +101,8 @@ suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpSt
 
     return writeToKafka(method, path, routing.topic, body)
 }
+
+private fun asHeaderValue(values: Collection<*>): String = values.joinToString(separator = ", ")
 
 fun hasBody(req: ApplicationRequest): Boolean = Integer.parseInt(req.headers["Content-Length"] ?: "0") > 0
 
