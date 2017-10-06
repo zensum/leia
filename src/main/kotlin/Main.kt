@@ -101,7 +101,7 @@ private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String
     return try {
         val metaData: ProduceResult = producer.sendRaw(ProducerRecord(topic, data)).await()
         logger.info("$summary written to ${metaData.topic()}")
-        HttpStatusCode.OK
+        HttpStatusCode.NoContent
     }
     catch (e: TimeoutException) {
         val kafkaIp: String = InetAddress.getByName("kafka").hostAddress
