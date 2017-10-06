@@ -15,6 +15,9 @@ import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.netty.Netty
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.ApplicationResponse
+import org.jetbrains.ktor.response.ResponseHeaders
+import org.jetbrains.ktor.response.header
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
@@ -37,6 +40,9 @@ private val producer = ProducerBuilder.ofByteArray
 
 private val logger = KotlinLogging.logger("process-request")
 
+private val genericHeaders: Map<String, String> = mapOf(
+    "Server" to "Zensum/Leia"
+)
 
 fun server(port: Int) = embeddedServer(Netty, port) {
     val routes: Map<String, TopicRouting> = getRoutes()
@@ -48,6 +54,7 @@ fun server(port: Int) = embeddedServer(Netty, port) {
         for((path, topicRouting) in routes) {
             route(path) {
                 handle {
+                    setGenericHeaders(call.response)
                     val method: HttpMethod = call.request.httpMethod
                     val host: String = call.request.host() ?: "Unknown host"
 
@@ -65,6 +72,10 @@ fun server(port: Int) = embeddedServer(Netty, port) {
             }
         }
     }
+}
+
+private fun setGenericHeaders(response: ApplicationResponse) {
+    genericHeaders.forEach { key, value -> response.header(key, value) }
 }
 
 private fun logRequest(method: HttpMethod, path: String, host: String) {
