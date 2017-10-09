@@ -1,6 +1,7 @@
 package se.zensum.leia
 
 import com.github.rholder.fauxflake.IdGenerators
+import com.github.rholder.fauxflake.api.IdGenerator
 import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.request.httpMethod
 import org.jetbrains.ktor.request.path
@@ -12,7 +13,7 @@ import se.zensum.webhook.PayloadOuterClass.Payload
 import org.jetbrains.ktor.http.HttpMethod as KtorHttpMethod
 import se.zensum.webhook.PayloadOuterClass.HttpMethod as HttpMethod
 
-val idGen = IdGenerators.newSnowflakeIdGenerator()
+val idGen: IdGenerator = IdGenerators.newSnowflakeIdGenerator()
 fun generateId(): Long = idGen.generateId(10).asLong()
 
 suspend fun createPayload(call: ApplicationCall): Payload  {
@@ -26,6 +27,9 @@ suspend fun createPayload(call: ApplicationCall): Payload  {
             this.queryString = queryString()
             this.body = call.receiveText()
             this.flakeId = generateId()
+            if(this.flakeId == null || this.flakeId == 0L) {
+                throw IllegalStateException("Generated flake id was 0 or null")
+            }
         }.build()
     }
 }
