@@ -2,6 +2,7 @@ package se.zensum.leia
 
 import com.moandjiezana.toml.Toml
 import org.jetbrains.ktor.http.HttpMethod
+import org.jetbrains.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -143,5 +144,20 @@ class ParseRoutesTest {
     fun testCors() {
         assertEquals(listOf("*"), routes["/auth"]!!.corsHosts)
         assertEquals(emptyList<String>(), routes["/test"]!!.corsHosts)
+    }
+
+    @Test
+    fun testResponseCodeDefaultImplicit() {
+        assertEquals(HttpStatusCode.NoContent, routes["/test"]!!.response)
+    }
+
+    @Test
+    fun testResponseCodeDefaultExplicit() {
+        assertEquals(HttpStatusCode.NoContent, routes["/status/sms"]!!.response)
+    }
+
+    @Test
+    fun testResponseCodeCustom() {
+        assertEquals(HttpStatusCode.OK, routes["/status/mail"]!!.response)
     }
 }

@@ -2,6 +2,7 @@ package se.zensum.leia
 
 import com.moandjiezana.toml.Toml
 import org.jetbrains.ktor.http.HttpMethod
+import org.jetbrains.ktor.http.HttpStatusCode
 import java.io.File
 
 private const val ROUTES_FILE ="/etc/config/routes"
@@ -13,7 +14,8 @@ data class TopicRouting(val path: String,
                         val format: Format = Format.PROTOBUF,
                         val verify: Boolean = false,
                         val allowedMethods: Collection<HttpMethod>,
-                        val corsHosts: List<String>)
+                        val corsHosts: List<String>,
+                        val response: HttpStatusCode)
 
 fun getRoutes(routesFile: String = getEnv("ROUTES_FILE", ROUTES_FILE)): Map<String, TopicRouting> {
     val toml = readTomlFromFile(routesFile)
@@ -46,19 +48,15 @@ private fun TopicRouting(routeConfig: Toml): TopicRouting {
         else -> throw IllegalArgumentException("Invalid value for config parameter 'format'")
     }
     val verify: Boolean = routeConfig.getBoolean("verify", false)
-    val methods: Set<HttpMethod> = parseMethods(routeConfig).let {
-        if (it.isEmpty()) {
-            httpMethods.verbs
-        } else {
-            it
-        }
-    }
+    val methods: Set<HttpMethod> = parseMethods(routeConfig)
     val cors = parseCors(routeConfig)
-    return TopicRouting(path, topic, format, verify, methods, cors)
+    val code: Int = routeConfig.getLong("response", 204L).toInt()
+    val responseCode: HttpStatusCode = HttpStatusCode.fromValue(code)
+    return TopicRouting(path, topic, format, verify, methods, cors, responseCode)
 }
 
 private fun parseMethods(toml: Toml): Set<HttpMethod> {
-    val methodsInput: List<String> = toml.getList("methods", emptyList())
+    val methodsInput: List<String> = toml.getList("methods", null) ?: return httpMethods.verbs
     return methodsInput.asSequence()
         .map { HttpMethod.parse(it) }
         .toSet()

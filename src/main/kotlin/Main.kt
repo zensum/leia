@@ -107,7 +107,7 @@ suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpSt
         Format.PROTOBUF -> createPayload(call).toByteArray()
     }
 
-    return writeToKafka(method, path, routing.topic, body)
+    return writeToKafka(method, path, routing.topic, body, routing.response)
 }
 
 private fun asHeaderValue(values: Collection<*>): String = values.joinToString(separator = ", ")
@@ -119,12 +119,12 @@ suspend fun receiveBody(req: ApplicationRequest): ByteArray = when(hasBody(req))
     false -> ByteArray(0)
 }
 
-private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray): HttpStatusCode {
+private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray, successResponse: HttpStatusCode): HttpStatusCode {
     val summary = "${method.value} $path"
     return try {
         val metaData: ProduceResult = producer.send(topic, data)
         logger.info("$summary written to ${metaData.topic()}")
-        HttpStatusCode.NoContent
+        successResponse
     }
     catch (e: TimeoutException) {
         val kafkaIp: String = InetAddress.getByName("kafka").hostAddress
