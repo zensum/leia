@@ -12,7 +12,7 @@ defaultTasks 'run'
 buildscript {
     ext.kotlin_version = '1.1.51'
     ext.jvm_version = '1.8'
-    ext.junit_platform_version = '1.0.0-M4'
+    ext.junit_platform_version = '1.0.1'
     repositories {
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
@@ -42,9 +42,9 @@ dependencies {
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.17'
     
     // Junit
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M4'
-    testCompile "org.junit.platform:junit-platform-launcher:$junit_platform_version"
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0-M4'
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.1'
+    testRuntime "org.junit.platform:junit-platform-launcher:$junit_platform_version"
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.1'
     
     // Logging
     compile 'io.github.microutils:kotlin-logging:1.4.6'
@@ -64,6 +64,11 @@ dependencies {
 
 junitPlatform {
     platformVersion = junit_platform_version
+    filters {
+        engines {
+            include 'junit-jupiter'
+        }
+    }
 }
 
 jar {
