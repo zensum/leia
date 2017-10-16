@@ -114,7 +114,7 @@ suspend fun receiveBody(req: ApplicationRequest): ByteArray = when(hasBody(req))
 private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray): HttpStatusCode {
     val summary = "${method.value} $path"
     return try {
-        val metaData: ProduceResult = producer.sendRaw(ProducerRecord(topic, data)).await()
+        val metaData: ProduceResult = producer.send(topic, data)
         logger.info("$summary written to ${metaData.topic()}")
         HttpStatusCode.NoContent
     }
