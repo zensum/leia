@@ -9,7 +9,9 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 import org.jetbrains.ktor.application.ApplicationCall
+import org.jetbrains.ktor.application.ApplicationCallPipeline
 import org.jetbrains.ktor.application.install
+import org.jetbrains.ktor.features.CORS
 import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
@@ -53,6 +55,12 @@ fun server(port: Int) = embeddedServer(Netty, port) {
     routing {
         for((path, topicRouting) in routes) {
             route(path) {
+                // Being explicit here, we're install CORS to the route
+                if (topicRouting.corsHosts.isNotEmpty()) {
+                    this@route.install(CORS) {
+                        hosts.addAll(topicRouting.corsHosts)
+                    }
+                }
                 handle {
                     setGenericHeaders(call.response)
                     val method: HttpMethod = call.request.httpMethod

@@ -12,7 +12,8 @@ data class TopicRouting(val path: String,
                         val topic: String,
                         val format: Format = Format.PROTOBUF,
                         val verify: Boolean = false,
-                        val allowedMethods: Collection<HttpMethod> = httpMethods.verbs)
+                        val allowedMethods: Collection<HttpMethod>,
+                        val corsHosts: List<String>)
 
 fun getRoutes(routesFile: String = getEnv("ROUTES_FILE", ROUTES_FILE)): Map<String, TopicRouting> {
     val toml = readTomlFromFile(routesFile)
@@ -32,6 +33,10 @@ fun parseTomlConfig(toml: Toml): Map<String, TopicRouting> {
         .toMap()
 }
 
+private fun parseCors(routeConfig: Toml) =
+    routeConfig.getList<String>("cors", emptyList()).toList()
+
+
 private fun TopicRouting(routeConfig: Toml): TopicRouting {
     val path: String = routeConfig.getString("path")!!
     val topic: String = routeConfig.getString("topic")!!
@@ -41,12 +46,15 @@ private fun TopicRouting(routeConfig: Toml): TopicRouting {
         else -> throw IllegalArgumentException("Invalid value for config parameter 'format'")
     }
     val verify: Boolean = routeConfig.getBoolean("verify", false)
-    val methods: Set<HttpMethod> = parseMethods(routeConfig)
-
-    return when(methods.isEmpty()) {
-        true -> TopicRouting(path, topic, format, verify)
-        false -> TopicRouting(path, topic, format, verify, methods)
+    val methods: Set<HttpMethod> = parseMethods(routeConfig).let {
+        if (it.isEmpty()) {
+            httpMethods.verbs
+        } else {
+            it
+        }
     }
+    val cors = parseCors(routeConfig)
+    return TopicRouting(path, topic, format, verify, methods, cors)
 }
 
 private fun parseMethods(toml: Toml): Set<HttpMethod> {

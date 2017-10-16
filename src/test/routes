@@ -22,4 +22,5 @@ title="Route config"
         topic = "test"
         verify = true
         format = "raw_body"
+        cors = ["*"]
         methods = [ "POST" ]

@@ -138,4 +138,10 @@ class ParseRoutesTest {
             parseTomlConfig(toml)
         }
     }
+
+    @Test
+    fun testCors() {
+        assertEquals(listOf("*"), routes["/auth"]!!.corsHosts)
+        assertEquals(emptyList<String>(), routes["/test"]!!.corsHosts)
+    }
 }
