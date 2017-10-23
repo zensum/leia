@@ -110,7 +110,7 @@ suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpSt
     return writeToKafka(method, path, routing.topic, body, routing.response)
 }
 
-private fun asHeaderValue(values: Collection<*>): String = values.joinToString(separator = ", ")
+private fun asHeaderValue(values: Collection<HttpMethod>): String = values.joinToString(separator = ", ", transform = { it.value })
 
 fun hasBody(req: ApplicationRequest): Boolean = Integer.parseInt(req.headers["Content-Length"] ?: "0") > 0
 
