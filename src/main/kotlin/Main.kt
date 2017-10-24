@@ -127,8 +127,7 @@ private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String
         successResponse
     }
     catch (e: TimeoutException) {
-        val kafkaIp: String = InetAddress.getByName("kafka").hostAddress
-        logger.error("Time out when trying to write $summary to $topic at $kafkaIp")
+        logger.error("Time out when trying to write $summary to $topic")
         HttpStatusCode.InternalServerError
     }
 }
