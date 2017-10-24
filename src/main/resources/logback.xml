@@ -7,7 +7,7 @@
     </encoder>
   </appender>
 
-  <root level="info">
+  <root level="${LOGBACK_LOGGING_LEVEL:-INFO}">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
