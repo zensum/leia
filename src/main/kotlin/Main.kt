@@ -8,6 +8,7 @@ import org.apache.kafka.common.errors.TimeoutException
 import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.application.install
 import org.jetbrains.ktor.features.CORS
+import org.jetbrains.ktor.features.origin
 import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
@@ -18,6 +19,7 @@ import org.jetbrains.ktor.request.httpMethod
 import org.jetbrains.ktor.request.path
 import org.jetbrains.ktor.request.receiveStream
 import org.jetbrains.ktor.response.ApplicationResponse
+import org.jetbrains.ktor.response.ResponseHeaders
 import org.jetbrains.ktor.response.header
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
@@ -95,9 +97,21 @@ private inline fun logAccessDenied(path: String, host: String) {
 
 private inline fun logResponse(call: ApplicationCall) {
     logger.debug {
-        "Sent response to ${call.request.host()} with headers\n" +
-        "\t${call.response.headers}\n" + "and response code ${call.response.status()}"
+        "Sent response to ${call.request.origin.host} with headers\n" +
+        "${printHeaders(call.response.headers)}\n" +
+        "\tand response code ${call.response.status()}"
     }
+}
+
+private fun printHeaders(headers: ResponseHeaders): String {
+    return headers.allValues()
+        .entries()
+        .asSequence()
+        .map { it.key to it.value }
+        .map {
+            (key, values) -> "$key: " + values.asSequence().joinToString(separator = ", ")
+        }
+        .joinToString(separator = "\n"){ "\t\t$it" }
 }
 
 suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
