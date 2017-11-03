@@ -66,14 +66,15 @@ fun server(port: Int) = embeddedServer(Netty, port) {
 
                     logRequest(method, path, host)
 
-                    if(isVerified() || !topicRouting.verify) {
-                        val response: HttpStatusCode = createResponse(call, topicRouting)
-                        call.respond(response)
+                    val response: HttpStatusCode = when(isVerified() || !topicRouting.verify) {
+                        true -> createResponse(call, topicRouting)
+                        false -> {
+                            logAccessDenied(path, host)
+                            HttpStatusCode.Unauthorized
+                        }
                     }
-                    else {
-                        logAccessDenied(path, host)
-                        call.respond(HttpStatusCode.Unauthorized)
-                    }
+
+                    call.respond(response)
                 }
             }
         }
