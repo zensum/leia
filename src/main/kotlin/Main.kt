@@ -2,23 +2,22 @@ package se.zensum.leia
 
 import franz.ProducerBuilder
 import franz.producer.ProduceResult
-import kotlinx.coroutines.experimental.future.await
 import ktor_health_check.Health
 import mu.KotlinLogging
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TimeoutException
 import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.application.ApplicationCallPipeline
 import org.jetbrains.ktor.application.install
 import org.jetbrains.ktor.features.CORS
 import org.jetbrains.ktor.host.embeddedServer
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.request.ApplicationRequest
+import org.jetbrains.ktor.request.host
+import org.jetbrains.ktor.request.httpMethod
+import org.jetbrains.ktor.request.path
+import org.jetbrains.ktor.request.receiveStream
 import org.jetbrains.ktor.response.ApplicationResponse
-import org.jetbrains.ktor.response.ResponseHeaders
 import org.jetbrains.ktor.response.header
 import org.jetbrains.ktor.response.respond
 import org.jetbrains.ktor.routing.route
@@ -27,7 +26,6 @@ import se.zensum.jwt.JWTFeature
 import se.zensum.jwt.isVerified
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
-import java.net.InetAddress
 
 fun main(args: Array<String>) {
     val port: Int = Integer.parseInt(getEnv("PORT", "80"))
