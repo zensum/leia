@@ -74,7 +74,7 @@ fun server(port: Int) = embeddedServer(Netty, port) {
                         }
                     }
 
-                    call.respond(response)
+                    call.respond(response).also { logResponse(call) }
                 }
             }
         }
@@ -91,6 +91,13 @@ private fun logRequest(method: HttpMethod, path: String, host: String) {
 
 private fun logAccessDenied(path: String, host: String) {
     logger.info("Unauthorized request was denied to $path from $host")
+}
+
+private fun logResponse(call: ApplicationCall) {
+    logger.debug {
+        "Sent response to ${call.request.host()} with headers\n" +
+        "\t${call.response.headers}\n" + "and response code ${call.response.status()}"
+    }
 }
 
 suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
