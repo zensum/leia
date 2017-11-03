@@ -85,15 +85,15 @@ private fun setGenericHeaders(response: ApplicationResponse) {
     genericHeaders.forEach { key, value -> response.header(key, value) }
 }
 
-private fun logRequest(method: HttpMethod, path: String, host: String) {
-    logger.info("${method.value} $path from $host")
+private inline fun logRequest(method: HttpMethod, path: String, host: String) {
+    logger.info { "${method.value} $path from $host" }
 }
 
-private fun logAccessDenied(path: String, host: String) {
-    logger.info("Unauthorized request was denied to $path from $host")
+private inline fun logAccessDenied(path: String, host: String) {
+    logger.info { "Unauthorized request was denied to $path from $host" }
 }
 
-private fun logResponse(call: ApplicationCall) {
+private inline fun logResponse(call: ApplicationCall) {
     logger.debug {
         "Sent response to ${call.request.host()} with headers\n" +
         "\t${call.response.headers}\n" + "and response code ${call.response.status()}"
