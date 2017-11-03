@@ -21,7 +21,7 @@ import org.jetbrains.ktor.request.receiveStream
 import org.jetbrains.ktor.response.ApplicationResponse
 import org.jetbrains.ktor.response.ResponseHeaders
 import org.jetbrains.ktor.response.header
-import org.jetbrains.ktor.response.respond
+import org.jetbrains.ktor.response.respondText
 import org.jetbrains.ktor.routing.route
 import org.jetbrains.ktor.routing.routing
 import se.zensum.jwt.JWTFeature
@@ -76,7 +76,7 @@ fun server(port: Int) = embeddedServer(Netty, port) {
                         }
                     }
 
-                    call.respond(response).also { logResponse(call) }
+                    call.respondText("", status = response).also { logResponse(call) }
                 }
             }
         }
