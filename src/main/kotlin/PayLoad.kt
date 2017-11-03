@@ -26,9 +26,8 @@ suspend fun createPayload(call: ApplicationCall): Payload  {
             this.parameters = parseMap(call.parameters)
             this.queryString = queryString()
             this.body = call.receiveText()
-            this.flakeId = generateId()
-            if(this.flakeId == null || this.flakeId == 0L) {
-                throw IllegalStateException("Generated flake id was 0 or null")
+            this.flakeId = generateId().also {
+                if(it == 0L) throw IllegalStateException("Generated flake id was 0")
             }
         }.build()
     }
