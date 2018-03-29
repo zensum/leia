@@ -1,8 +1,8 @@
 package se.zensum.leia
 
 import com.moandjiezana.toml.Toml
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.http.HttpStatusCode
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

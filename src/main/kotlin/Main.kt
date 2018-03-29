@@ -5,25 +5,26 @@ import franz.producer.ProduceResult
 import ktor_health_check.Health
 import mu.KotlinLogging
 import org.apache.kafka.common.errors.TimeoutException
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.features.CORS
-import org.jetbrains.ktor.features.origin
-import org.jetbrains.ktor.host.embeddedServer
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.http.HttpStatusCode
-import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.request.ApplicationRequest
-import org.jetbrains.ktor.request.host
-import org.jetbrains.ktor.request.httpMethod
-import org.jetbrains.ktor.request.path
-import org.jetbrains.ktor.request.receiveStream
-import org.jetbrains.ktor.response.ApplicationResponse
-import org.jetbrains.ktor.response.ResponseHeaders
-import org.jetbrains.ktor.response.header
-import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.routing.route
-import org.jetbrains.ktor.routing.routing
+import io.ktor.application.ApplicationCall
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.features.CORS
+import io.ktor.features.origin
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.request.ApplicationRequest
+import io.ktor.request.host
+import io.ktor.request.httpMethod
+import io.ktor.request.path
+import io.ktor.request.receiveStream
+import io.ktor.response.ApplicationResponse
+import io.ktor.response.ResponseHeaders
+import io.ktor.response.header
+import io.ktor.response.respondText
+import io.ktor.routing.route
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import se.zensum.jwt.JWTFeature
 import se.zensum.jwt.isVerified
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
@@ -49,7 +50,7 @@ private val genericHeaders: Map<String, String> = mapOf(
 fun server(port: Int) = embeddedServer(Netty, port) {
     val routes: Map<String, TopicRouting> = getRoutes()
     install(SentryFeature)
-    install(PrometheusFeature)
+    install(PrometheusFeature.Feature)
     install(Health)
     install(JWTFeature)
     routing {
@@ -63,12 +64,12 @@ fun server(port: Int) = embeddedServer(Netty, port) {
                 }
                 handle {
                     setGenericHeaders(call.response)
-                    val method: HttpMethod = call.request.httpMethod
+                    val method = call.request.httpMethod
                     val host: String = call.request.host() ?: "Unknown host"
 
                     logRequest(method, path, host)
 
-                    val response: HttpStatusCode = when(isVerified() || !topicRouting.verify) {
+                    val response = when(isVerified() || !topicRouting.verify) {
                         true -> createResponse(call, topicRouting)
                         false -> {
                             logAccessDenied(path, host)
