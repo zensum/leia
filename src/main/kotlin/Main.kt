@@ -2,6 +2,7 @@ package se.zensum.leia
 
 import franz.ProducerBuilder
 import franz.producer.ProduceResult
+import io.ktor.application.Application
 import ktor_health_check.Health
 import mu.KotlinLogging
 import org.apache.kafka.common.errors.TimeoutException
@@ -47,7 +48,7 @@ private val genericHeaders: Map<String, String> = mapOf(
     "Server" to "Zensum/Leia"
 )
 
-fun server(port: Int) = embeddedServer(Netty, port) {
+fun Application.leia() {
     val routes: Map<String, TopicRouting> = getRoutes()
     install(SentryFeature)
     install(PrometheusFeature.Feature)
@@ -83,6 +84,9 @@ fun server(port: Int) = embeddedServer(Netty, port) {
         }
     }
 }
+
+fun server(port: Int) =
+    embeddedServer(Netty, port, module = Application::leia)
 
 private fun setGenericHeaders(response: ApplicationResponse) {
     genericHeaders.forEach { key, value -> response.header(key, value) }
