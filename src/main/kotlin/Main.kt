@@ -2,6 +2,7 @@ package se.zensum.leia
 
 import franz.ProducerBuilder
 import franz.producer.ProduceResult
+import franz.producer.Producer
 import io.ktor.application.Application
 import ktor_health_check.Health
 import mu.KotlinLogging
@@ -38,9 +39,10 @@ fun main(args: Array<String>) {
 
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
-private val producer = ProducerBuilder.ofByteArray
-    .option("client.id", "leia")
-    .create()
+private fun mkProducer() =
+    ProducerBuilder.ofByteArray
+        .option("client.id", "leia")
+        .create()
 
 private val logger = KotlinLogging.logger("process-request")
 
@@ -48,12 +50,15 @@ private val genericHeaders: Map<String, String> = mapOf(
     "Server" to "Zensum/Leia"
 )
 
-fun Application.leia() {
-    val routes: Map<String, TopicRouting> = getRoutes()
+fun leia(producer: Producer<String, ByteArray>,
+         routes: Map<String, TopicRouting>,
+         installPrometheus: Boolean = true): Application.() -> Unit = {
     install(SentryFeature)
-    install(PrometheusFeature.Feature)
-    install(Health)
+    if (installPrometheus) {
+        install(PrometheusFeature.Feature)
+    }
     install(JWTFeature)
+    install(Health)
     routing {
         for((path, topicRouting) in routes) {
             route(path) {
@@ -71,7 +76,7 @@ fun Application.leia() {
                     logRequest(method, path, host)
 
                     val response = when(isVerified() || !topicRouting.verify) {
-                        true -> createResponse(call, topicRouting)
+                        true -> createResponse(producer, call, topicRouting)
                         false -> {
                             logAccessDenied(path, host)
                             HttpStatusCode.Unauthorized
@@ -86,7 +91,7 @@ fun Application.leia() {
 }
 
 fun server(port: Int) =
-    embeddedServer(Netty, port, module = Application::leia)
+    embeddedServer(Netty, port, module = leia(mkProducer(), getRoutes()))
 
 private fun setGenericHeaders(response: ApplicationResponse) {
     genericHeaders.forEach { key, value -> response.header(key, value) }
@@ -119,7 +124,7 @@ private fun printHeaders(headers: ResponseHeaders): String {
         .joinToString(separator = "\n"){ "\t\t$it" }
 }
 
-suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
+suspend fun createResponse(producer: Producer<String, ByteArray>,call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
     if(call.request.httpMethod !in routing.allowedMethods) {
         call.response.header("Allow", asHeaderValue(routing.allowedMethods))
         return HttpStatusCode.MethodNotAllowed
@@ -132,7 +137,7 @@ suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpSt
         Format.PROTOBUF -> createPayload(call).toByteArray()
     }
 
-    return writeToKafka(method, path, routing.topic, body, routing.response)
+    return writeToKafka(producer, method, path, routing.topic, body, routing.response)
 }
 
 private fun asHeaderValue(values: Collection<HttpMethod>): String = values.joinToString(separator = ", ", transform = { it.value })
@@ -144,7 +149,7 @@ suspend fun receiveBody(req: ApplicationRequest): ByteArray = when(hasBody(req))
     false -> ByteArray(0)
 }
 
-private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray, successResponse: HttpStatusCode): HttpStatusCode {
+private suspend fun writeToKafka(producer: Producer<String, ByteArray>, method: HttpMethod, path: String, topic: String, data: ByteArray, successResponse: HttpStatusCode): HttpStatusCode {
     val summary = "${method.value} $path"
     return try {
         val metaData: ProduceResult = producer.send(topic, data)

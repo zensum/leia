@@ -37,9 +37,10 @@ repositories {
 
 dependencies {
     // Kotlin
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.22.5'
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5'
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     
     // Junit
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.1'
@@ -58,6 +59,7 @@ dependencies {
     compile 'com.github.zensum:ktor-health-check:94a7b02'
     compile 'io.ktor:ktor-server-core:0.9.1'
     compile 'io.ktor:ktor-server-netty:0.9.1'
+    testCompile "io.ktor:ktor-server-test-host:0.9.1"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile 'com.github.rholder.fauxflake:fauxflake-core:1.1.0'
 }
