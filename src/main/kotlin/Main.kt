@@ -28,6 +28,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import se.zensum.jwt.JWTFeature
+import se.zensum.jwt.JWTProvider
 import se.zensum.jwt.isVerified
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
@@ -52,12 +53,17 @@ private val genericHeaders: Map<String, String> = mapOf(
 
 fun leia(producer: Producer<String, ByteArray>,
          routes: Map<String, TopicRouting>,
+         jwtProvider: JWTProvider? = null,
          installPrometheus: Boolean = true): Application.() -> Unit = {
     install(SentryFeature)
     if (installPrometheus) {
         install(PrometheusFeature.Feature)
     }
-    install(JWTFeature)
+    install(JWTFeature) {
+        jwtProvider?.let {
+            jwtProvider(it)
+        }
+    }
     install(Health)
     routing {
         for((path, topicRouting) in routes) {
