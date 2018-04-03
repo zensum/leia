@@ -85,19 +85,15 @@ class RequestTest {
         }
     }
 
-    @Test fun testOptionsCorsHeaders() {
+    @Test fun testStatusCode() {
         val p = MockProducer<String, ByteArray>()
         withApp(p) {
-            with(handleRequest(HttpMethod.Options, "/cors-test", {
+            with(handleRequest(HttpMethod.Get, "/status-test", {
                 addHeader("Origin", "https://HackerMan.net")
-                addHeader("Access-Control-Request-Method", "POST")
             })) {
-                val allowOrigin = response.headers["Access-Control-Allow-Origin"]
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals("*", allowOrigin)
+                assertEquals(HttpStatusCode.fromValue(255), response.status())
             }
         }
     }
 
-    
 }
