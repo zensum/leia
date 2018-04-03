@@ -88,10 +88,18 @@ class RequestTest {
     @Test fun testStatusCode() {
         val p = MockProducer<String, ByteArray>()
         withApp(p) {
-            with(handleRequest(HttpMethod.Get, "/status-test", {
-                addHeader("Origin", "https://HackerMan.net")
-            })) {
+            with(handleRequest(HttpMethod.Get, "/status-test")) {
                 assertEquals(HttpStatusCode.fromValue(255), response.status())
+            }
+        }
+    }
+
+    @Test fun testUnsupportedMethod() {
+        val p = MockProducer<String, ByteArray>()
+        withApp(p) {
+            with(handleRequest(HttpMethod.Put, "/cors-test", {
+            })) {
+                assertEquals(HttpStatusCode.MethodNotAllowed, response.status())
             }
         }
     }
