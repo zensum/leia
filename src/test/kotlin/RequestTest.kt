@@ -104,4 +104,21 @@ class RequestTest {
         }
     }
 
+
+    @Test fun testWritingToTopic() {
+        var sentBytes = 0
+        val p = MockProducer<String, ByteArray>(onSendAsync = {
+            sentBytes = it.size
+        })
+        val example = "hoi m8"
+        withApp(p) {
+            with(handleRequest(HttpMethod.Put, "/test", {
+                body = example
+            })) {
+                assert(sentBytes > example.length) {
+                    "np/o sent bytes should be longer than the body"
+                }
+            }
+        }
+    }
 }
