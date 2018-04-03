@@ -26,3 +26,9 @@ title="Route config"
         format = "raw_body"
         cors = ["*"]
         methods = [ "POST" ]
+
+[[routes]]
+        path = "/cors-test"
+        topic = "foo"
+        methods = [ "GET", "POST" ]
+        cors = [ "*" ]
