@@ -12,7 +12,7 @@ class ParseRoutesTest {
 
     @Test
     fun testSize() {
-        assertEquals(4, routes.size)
+        assertEquals(6, routes.size)
     }
 
     @Test
@@ -95,8 +95,6 @@ class ParseRoutesTest {
 
     @Test
     fun testExpectedMethods() {
-        assertEquals(4, routes.size)
-
         routes["/status/mail"]!!.apply{
             val expectedMethods = setOf(HttpMethod.Post, HttpMethod.Put, HttpMethod.Head, HttpMethod.Get)
             assertEquals(expectedMethods, allowedMethods)
