@@ -32,6 +32,9 @@ import se.zensum.jwt.JWTProvider
 import se.zensum.jwt.isVerified
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
+import se.zensum.leia.config.DefaultConfiguration
+import se.zensum.leia.config.Format
+import se.zensum.leia.config.TopicRouting
 
 fun main(args: Array<String>) {
     val port: Int = Integer.parseInt(getEnv("PORT", "80"))
@@ -97,7 +100,7 @@ fun leia(producer: Producer<String, ByteArray>,
 }
 
 fun server(port: Int) =
-    embeddedServer(Netty, port, module = leia(mkProducer(), getRoutes()))
+    embeddedServer(Netty, port, module = leia(mkProducer(), DefaultConfiguration.getRoutes()))
 
 private fun setGenericHeaders(response: ApplicationResponse) {
     genericHeaders.forEach { key, value -> response.header(key, value) }

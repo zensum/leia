@@ -10,9 +10,11 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import org.junit.Test
 import se.zensum.jwt.JWTProvider
+import se.zensum.leia.config.TomlConfigProvider
+import se.zensum.leia.config.TopicRouting
 import kotlin.test.*
 
-private val routes: Map<String, TopicRouting> = getRoutes("src/test/routes")
+private val routes = TomlConfigProvider.fromPath("src/test/routes").getRoutes()
 private val DUMMY_JWT =
     JWT.decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ")
 

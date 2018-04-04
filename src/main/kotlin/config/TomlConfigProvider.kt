@@ -1,23 +1,33 @@
-package se.zensum.leia
+package se.zensum.leia.config
 
+import java.io.File
 import com.moandjiezana.toml.Toml
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import java.io.File
+import se.zensum.leia.config.TopicRouting
+import se.zensum.leia.getEnv
+import se.zensum.leia.httpMethods
 
 private const val ROUTES_FILE ="/etc/config/routes"
 
-enum class Format { RAW_BODY, PROTOBUF }
+class TomlConfigProvider private constructor(toml: Toml) : ConfigProvider {
+    private val parsed = parseTomlConfig(toml)
+    override fun getRoutes(): Map<String, TopicRouting> = parsed
 
-data class TopicRouting(val path: String,
-                        val topic: String,
-                        val format: Format = Format.PROTOBUF,
-                        val verify: Boolean = false,
-                        val allowedMethods: Collection<HttpMethod>,
-                        val corsHosts: List<String>,
-                        val response: HttpStatusCode)
+    companion object {
+        fun fromPath(path: String) =
+            TomlConfigProvider(readTomlFromFile(path))
 
-fun getRoutes(routesFile: String = getEnv("ROUTES_FILE", ROUTES_FILE)): Map<String, TopicRouting> {
+        fun fromConfiguredPath() =
+            fromPath(getEnv("ROUTES_FILE", ROUTES_FILE))
+
+        fun fromString(tomlStr: String) =
+            TomlConfigProvider(Toml().read(tomlStr))
+
+    }
+}
+
+private fun getRoutes(routesFile: String): Map<String, TopicRouting> {
     val toml = readTomlFromFile(routesFile)
     return parseTomlConfig(toml)
 }
@@ -27,10 +37,10 @@ private fun readTomlFromFile(routesFile: String): Toml {
     return Toml().read(file)
 }
 
-fun parseTomlConfig(toml: Toml): Map<String, TopicRouting> {
+private fun parseTomlConfig(toml: Toml): Map<String, TopicRouting> {
     val routes = toml.getTables("routes")
     return routes.asSequence()
-        .map { TopicRouting(it) }
+        .map { tomlToTopicRouting(it) }
         .map { Pair(it.path, it) }
         .toMap()
 }
@@ -39,7 +49,7 @@ private fun parseCors(routeConfig: Toml) =
     routeConfig.getList<String>("cors", emptyList()).toList()
 
 
-private fun TopicRouting(routeConfig: Toml): TopicRouting {
+private fun tomlToTopicRouting(routeConfig: Toml): TopicRouting {
     val path: String = routeConfig.getString("path")!!
     val topic: String = routeConfig.getString("topic")!!
     val format: Format = when(routeConfig.getString("format", "proto")) {
@@ -62,13 +72,14 @@ private fun parseMethods(toml: Toml): Set<HttpMethod> {
         .toSet()
 }
 
-fun verifyFile(filePath: String): File {
+private fun verifyFile(filePath: String): File {
     return File(filePath).apply {
-        if(!exists()) {
+        if (!exists()) {
             throw IllegalArgumentException("File $this does not exist")
         }
-        if(isDirectory) {
+        if (isDirectory) {
             throw IllegalArgumentException("File $this is a directory")
         }
     }
+
 }
