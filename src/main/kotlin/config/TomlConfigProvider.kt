@@ -48,22 +48,20 @@ private fun parseTomlConfig(toml: Toml): Map<String, TopicRouting> {
 private fun parseCors(routeConfig: Toml) =
     routeConfig.getList<String>("cors", emptyList()).toList()
 
-
-private fun tomlToTopicRouting(routeConfig: Toml): TopicRouting {
-    val path: String = routeConfig.getString("path")!!
-    val topic: String = routeConfig.getString("topic")!!
-    val format: Format = when(routeConfig.getString("format", "proto")) {
-        "raw_body" -> Format.RAW_BODY
-        "proto" -> Format.PROTOBUF
-        else -> throw IllegalArgumentException("Invalid value for config parameter 'format'")
-    }
-    val verify: Boolean = routeConfig.getBoolean("verify", false)
-    val methods: Set<HttpMethod> = parseMethods(routeConfig)
-    val cors = parseCors(routeConfig)
-    val code: Int = routeConfig.getLong("response", 204L).toInt()
-    val responseCode: HttpStatusCode = HttpStatusCode.fromValue(code)
-    return TopicRouting(path, topic, format, verify, methods, cors, responseCode)
+private fun parseFormat(x: String): Format = when(x) {
+    "raw_body" -> Format.RAW_BODY
+    "proto" -> Format.PROTOBUF
+    else -> throw IllegalArgumentException("Invalid value for config parameter 'format'")
 }
+
+private fun tomlToTopicRouting(routeConfig: Toml) = TopicRouting(
+    path = routeConfig.getString("path")!!,
+    topic = routeConfig.getString("topic")!!,
+    format = parseFormat(routeConfig.getString("format", "proto")),
+    verify = routeConfig.getBoolean("verify", false),
+    allowedMethods = parseMethods(routeConfig),
+    response = HttpStatusCode.fromValue(routeConfig.getLong("response", 204L).toInt())
+)
 
 private fun parseMethods(toml: Toml): Set<HttpMethod> {
     val methodsInput: List<String> = toml.getList("methods", null) ?: return httpMethods.verbs
