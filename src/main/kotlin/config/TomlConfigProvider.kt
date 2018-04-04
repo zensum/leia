@@ -58,6 +58,7 @@ private fun tomlToTopicRouting(routeConfig: Toml) = TopicRouting(
     path = routeConfig.getString("path")!!,
     topic = routeConfig.getString("topic")!!,
     format = parseFormat(routeConfig.getString("format", "proto")),
+    corsHosts = parseCors(routeConfig),
     verify = routeConfig.getBoolean("verify", false),
     allowedMethods = parseMethods(routeConfig),
     response = HttpStatusCode.fromValue(routeConfig.getLong("response", 204L).toInt())
