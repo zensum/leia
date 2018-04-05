@@ -1,6 +1,6 @@
 package se.zensum.leia
 
-import org.jetbrains.ktor.http.HttpMethod
+import io.ktor.http.HttpMethod
 
 object httpMethods {
     val verbs: Set<HttpMethod> = setOf(

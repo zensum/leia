@@ -1,18 +1,18 @@
 package se.zensum.leia
 
-import com.moandjiezana.toml.Toml
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.http.HttpStatusCode
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import se.zensum.leia.config.Format
+import se.zensum.leia.config.TomlConfigProvider
 
 class ParseRoutesTest {
-
-    private val routes: Map<String, TopicRouting> = getRoutes("src/test/routes")
+    private val routes = TomlConfigProvider.fromPath("src/test/routes").getRoutes()
 
     @Test
     fun testSize() {
-        assertEquals(4, routes.size)
+        assertEquals(6, routes.size)
     }
 
     @Test
@@ -74,8 +74,6 @@ class ParseRoutesTest {
 
     @Test
     fun testFormat() {
-        assertEquals(4, routes.size)
-
         routes["/status/mail"]!!.apply{
             assertEquals(Format.PROTOBUF, format)
         }
@@ -95,8 +93,6 @@ class ParseRoutesTest {
 
     @Test
     fun testExpectedMethods() {
-        assertEquals(4, routes.size)
-
         routes["/status/mail"]!!.apply{
             val expectedMethods = setOf(HttpMethod.Post, HttpMethod.Put, HttpMethod.Head, HttpMethod.Get)
             assertEquals(expectedMethods, allowedMethods)
@@ -123,8 +119,7 @@ class ParseRoutesTest {
                 [[routes]]
                     topic = 'test'
             """.trimMargin()
-            val toml = Toml().read(conf)
-            parseTomlConfig(toml)
+            TomlConfigProvider.fromString(conf).getRoutes()
         }
     }
 
@@ -135,8 +130,7 @@ class ParseRoutesTest {
                 [[routes]]
                     path = '/test'
             """.trimMargin()
-            val toml = Toml().read(conf)
-            parseTomlConfig(toml)
+            TomlConfigProvider.fromString(conf).getRoutes()
         }
     }
 

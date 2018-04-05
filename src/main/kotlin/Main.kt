@@ -2,32 +2,39 @@ package se.zensum.leia
 
 import franz.ProducerBuilder
 import franz.producer.ProduceResult
+import franz.producer.Producer
+import io.ktor.application.Application
 import ktor_health_check.Health
 import mu.KotlinLogging
 import org.apache.kafka.common.errors.TimeoutException
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.features.CORS
-import org.jetbrains.ktor.features.origin
-import org.jetbrains.ktor.host.embeddedServer
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.http.HttpStatusCode
-import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.request.ApplicationRequest
-import org.jetbrains.ktor.request.host
-import org.jetbrains.ktor.request.httpMethod
-import org.jetbrains.ktor.request.path
-import org.jetbrains.ktor.request.receiveStream
-import org.jetbrains.ktor.response.ApplicationResponse
-import org.jetbrains.ktor.response.ResponseHeaders
-import org.jetbrains.ktor.response.header
-import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.routing.route
-import org.jetbrains.ktor.routing.routing
+import io.ktor.application.ApplicationCall
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.features.CORS
+import io.ktor.features.origin
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.request.ApplicationRequest
+import io.ktor.request.host
+import io.ktor.request.httpMethod
+import io.ktor.request.path
+import io.ktor.request.receiveStream
+import io.ktor.response.ApplicationResponse
+import io.ktor.response.ResponseHeaders
+import io.ktor.response.header
+import io.ktor.response.respondText
+import io.ktor.routing.route
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import se.zensum.jwt.JWTFeature
+import se.zensum.jwt.JWTProvider
 import se.zensum.jwt.isVerified
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
+import se.zensum.leia.config.DefaultConfiguration
+import se.zensum.leia.config.Format
+import se.zensum.leia.config.TopicRouting
 
 fun main(args: Array<String>) {
     val port: Int = Integer.parseInt(getEnv("PORT", "80"))
@@ -36,9 +43,10 @@ fun main(args: Array<String>) {
 
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
-private val producer = ProducerBuilder.ofByteArray
-    .option("client.id", "leia")
-    .create()
+private fun mkProducer() =
+    ProducerBuilder.ofByteArray
+        .option("client.id", "leia")
+        .create()
 
 private val logger = KotlinLogging.logger("process-request")
 
@@ -46,12 +54,20 @@ private val genericHeaders: Map<String, String> = mapOf(
     "Server" to "Zensum/Leia"
 )
 
-fun server(port: Int) = embeddedServer(Netty, port) {
-    val routes: Map<String, TopicRouting> = getRoutes()
+fun leia(producer: Producer<String, ByteArray>,
+         routes: Map<String, TopicRouting>,
+         jwtProvider: JWTProvider? = null,
+         installPrometheus: Boolean = true): Application.() -> Unit = {
     install(SentryFeature)
-    install(PrometheusFeature)
+    if (installPrometheus) {
+        install(PrometheusFeature.Feature)
+    }
+    install(JWTFeature) {
+        jwtProvider?.let {
+            jwtProvider(it)
+        }
+    }
     install(Health)
-    install(JWTFeature)
     routing {
         for((path, topicRouting) in routes) {
             route(path) {
@@ -63,13 +79,13 @@ fun server(port: Int) = embeddedServer(Netty, port) {
                 }
                 handle {
                     setGenericHeaders(call.response)
-                    val method: HttpMethod = call.request.httpMethod
+                    val method = call.request.httpMethod
                     val host: String = call.request.host() ?: "Unknown host"
 
                     logRequest(method, path, host)
 
-                    val response: HttpStatusCode = when(isVerified() || !topicRouting.verify) {
-                        true -> createResponse(call, topicRouting)
+                    val response = when(isVerified() || !topicRouting.verify) {
+                        true -> createResponse(producer, call, topicRouting)
                         false -> {
                             logAccessDenied(path, host)
                             HttpStatusCode.Unauthorized
@@ -82,6 +98,9 @@ fun server(port: Int) = embeddedServer(Netty, port) {
         }
     }
 }
+
+fun server(port: Int) =
+    embeddedServer(Netty, port, module = leia(mkProducer(), DefaultConfiguration.getRoutes()))
 
 private fun setGenericHeaders(response: ApplicationResponse) {
     genericHeaders.forEach { key, value -> response.header(key, value) }
@@ -114,7 +133,7 @@ private fun printHeaders(headers: ResponseHeaders): String {
         .joinToString(separator = "\n"){ "\t\t$it" }
 }
 
-suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
+suspend fun createResponse(producer: Producer<String, ByteArray>,call: ApplicationCall, routing: TopicRouting): HttpStatusCode {
     if(call.request.httpMethod !in routing.allowedMethods) {
         call.response.header("Allow", asHeaderValue(routing.allowedMethods))
         return HttpStatusCode.MethodNotAllowed
@@ -127,7 +146,7 @@ suspend fun createResponse(call: ApplicationCall, routing: TopicRouting): HttpSt
         Format.PROTOBUF -> createPayload(call).toByteArray()
     }
 
-    return writeToKafka(method, path, routing.topic, body, routing.response)
+    return writeToKafka(producer, method, path, routing.topic, body, routing.response)
 }
 
 private fun asHeaderValue(values: Collection<HttpMethod>): String = values.joinToString(separator = ", ", transform = { it.value })
@@ -139,7 +158,7 @@ suspend fun receiveBody(req: ApplicationRequest): ByteArray = when(hasBody(req))
     false -> ByteArray(0)
 }
 
-private suspend fun writeToKafka(method: HttpMethod, path: String, topic: String, data: ByteArray, successResponse: HttpStatusCode): HttpStatusCode {
+private suspend fun writeToKafka(producer: Producer<String, ByteArray>, method: HttpMethod, path: String, topic: String, data: ByteArray, successResponse: HttpStatusCode): HttpStatusCode {
     val summary = "${method.value} $path"
     return try {
         val metaData: ProduceResult = producer.send(topic, data)

@@ -10,9 +10,9 @@ description = 'Receive incoming HTTP requests/webhooks and write them to a Kafka
 defaultTasks 'run'
 
 buildscript {
-    ext.kotlin_version = '1.1.51'
+    ext.kotlin_version = '1.2.30'
     ext.jvm_version = '1.8'
-    ext.junit_platform_version = '1.0.1'
+    ext.junit_platform_version = '1.1.0'
     repositories {
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
@@ -37,29 +37,31 @@ repositories {
 
 dependencies {
     // Kotlin
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.19.3'
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.19.3'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.22.5'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5'
+    testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     
     // Junit
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.1'
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.1.0'
     testRuntime "org.junit.platform:junit-platform-launcher:$junit_platform_version"
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.1'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
     
     // Logging
     compile 'io.github.microutils:kotlin-logging:1.4.6'
-    
+
     // Project specific dependencies (disabled by default)
-    compile 'com.github.zensum:franz:59132b791c'
-    compile 'com.github.zensum:webhook-proto:0.1.1'
-    compile 'com.github.zensum:ktor-prometheus-feature:83baca2ca3'
-    compile 'com.github.zensum:ktor-sentry-feature:master-SNAPSHOT'
-    compile 'com.github.zensum:ktor-jwt:0.1.3'
-    compile 'com.github.zensum:ktor-health-check:master-SNAPSHOT'
-    compile 'org.jetbrains.ktor:ktor-core:0.4.0'
-    compile 'org.jetbrains.ktor:ktor-netty:0.4.0'
+    compile 'com.github.zensum:franz:f1e1d92'
+    compile 'com.github.zensum:webhook-proto:d623675'
+    compile 'com.github.zensum:ktor-prometheus-feature:abaa126'
+    compile 'com.github.zensum:ktor-sentry-feature:eece542'
+    compile 'com.github.zensum:ktor-jwt:5dc52cb'
+    compile 'com.github.zensum:ktor-health-check:94a7b02'
+    compile 'io.ktor:ktor-server-core:0.9.1'
+    compile 'io.ktor:ktor-server-netty:0.9.1'
+    testCompile "io.ktor:ktor-server-test-host:0.9.1"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
-    compile 'com.github.rholder.fauxflake:fauxflake-core:1.1.0'
+    compile 'com.github.jonross:fauxflake:90abbcf5b6'
 }
 
 junitPlatform {

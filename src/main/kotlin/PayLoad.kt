@@ -2,15 +2,19 @@ package se.zensum.leia
 
 import com.github.rholder.fauxflake.IdGenerators
 import com.github.rholder.fauxflake.api.IdGenerator
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.request.httpMethod
-import org.jetbrains.ktor.request.path
-import org.jetbrains.ktor.request.queryString
-import org.jetbrains.ktor.request.receiveText
-import org.jetbrains.ktor.util.ValuesMap
+import io.ktor.application.ApplicationCall
+import io.ktor.request.httpMethod
+import io.ktor.request.path
+import io.ktor.request.queryString
+import io.ktor.request.receiveText
+import io.ktor.util.StringValues
+import io.ktor.request.httpMethod
+import io.ktor.request.path
+import io.ktor.request.queryString
+import io.ktor.request.receiveText
 import se.zensum.webhook.PayloadOuterClass
 import se.zensum.webhook.PayloadOuterClass.Payload
-import org.jetbrains.ktor.http.HttpMethod as KtorHttpMethod
+import io.ktor.http.HttpMethod as KtorHttpMethod
 import se.zensum.webhook.PayloadOuterClass.HttpMethod as HttpMethod
 
 val idGen: IdGenerator = IdGenerators.newSnowflakeIdGenerator()
@@ -18,22 +22,23 @@ fun generateId(): Long = idGen.generateId(10).asLong()
 
 suspend fun createPayload(call: ApplicationCall): Payload  {
     return call.request.run {
-        val requestHeaders: ValuesMap = headers
-        Payload.newBuilder().apply {
-            this.path = path()
-            this.method = convertMethod(httpMethod)
-            this.headers = parseMap(requestHeaders)
-            this.parameters = parseMap(call.parameters)
-            this.queryString = queryString()
-            this.body = call.receiveText()
-            this.flakeId = generateId().also {
+        val requestHeaders = headers
+        Payload.newBuilder().also {
+            it.path = path()
+            it.method = convertMethod(httpMethod)
+            it.headers = parseMap(requestHeaders)
+            it.parameters = parseMap(call.parameters)
+            it.queryString = queryString()
+            it.body = call.receiveText()
+            // This kind of defensive coding would be insane if it weren't for the idGeneration bug
+            it.flakeId = generateId().also {
                 if(it == 0L) throw IllegalStateException("Generated flake id was 0")
             }
         }.build()
     }
 }
 
-fun parseMap(valuesMap: ValuesMap): PayloadOuterClass.MultiMap {
+fun parseMap(valuesMap: StringValues): PayloadOuterClass.MultiMap {
     return PayloadOuterClass.MultiMap.newBuilder().apply {
         valuesMap.entries().asSequence()
             .map { toListOfPair(it.key, it.value) }
