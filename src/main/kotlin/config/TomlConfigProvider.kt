@@ -27,11 +27,6 @@ class TomlConfigProvider private constructor(toml: Toml) : ConfigProvider {
     }
 }
 
-private fun getRoutes(routesFile: String): Map<String, TopicRouting> {
-    val toml = readTomlFromFile(routesFile)
-    return parseTomlConfig(toml)
-}
-
 private fun readTomlFromFile(routesFile: String): Toml {
     val file: File = verifyFile(routesFile)
     return Toml().read(file)
