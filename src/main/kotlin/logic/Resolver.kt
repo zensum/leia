@@ -49,15 +49,15 @@ data class SinkDescription(
 )
 
 data class Receipt(
-    private val status: Int,
-    private val body: String
+    val status: Int,
+    val body: String
 )
 
 // The rule matches and the
 data class LogAppend(
-    private val sinkDescription: SinkDescription,
-    private val acceptedRequest: IncomingRequest,
-    private val receipt: Receipt
+    val sinkDescription: SinkDescription,
+    val request: IncomingRequest,
+    val receipt: Receipt
 ) : Match()
 
 data class IncomingRequest(
