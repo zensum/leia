@@ -87,10 +87,8 @@ class RuleResolver(private val cfg: TopicRouting) : Resolver {
         if (!req.matchCors(cfg.corsHosts)) {
             return CorsNotAllowed
         }
-        // TODO: can we tell Missing vs invalid jwt apart
-        if (!req.hasValidJWT() && cfg.verify) {
+        if (cfg.verify && !req.hasValidJWT()) {
             return NotAuthorzied
-
         }
 
         return LogAppend(
