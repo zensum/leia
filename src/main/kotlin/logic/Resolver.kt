@@ -4,6 +4,7 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.http.HttpMethod
 import se.zensum.leia.config.Format
 import se.zensum.leia.config.TopicRouting
+import se.zensum.leia.generateId
 
 sealed class Result {
     abstract fun combine(other: Result): Result
@@ -43,9 +44,9 @@ object Forbidden: ErrorMatch()
 object CorsNotAllowed : ErrorMatch()
 
 data class SinkDescription(
-    private val topic: String,
-    private val key: String,
-    private val dataFormat: Format
+    val topic: String,
+    val key: String,
+    val dataFormat: Format
 )
 
 data class Receipt(
@@ -61,17 +62,22 @@ data class LogAppend(
 ) : Match()
 
 data class IncomingRequest(
-    private val method: HttpMethod,
+    val method: HttpMethod,
     private val origin: String?,
     private val jwt: DecodedJWT?,
-    private val path: String,
+    val path: String,
     private val host: String?,
-    private val readBody: suspend () -> ByteArray
+    private val readBodyFn: suspend () -> ByteArray
 ) {
+    val requestId = generateId().also {
+        if(it == 0L) throw IllegalStateException("Generated flake id was 0")
+    }
     fun matchPath(otherPath: String?) = otherPath == path
     fun matchCors(origins: List<String>) =
         origins.isEmpty() && origins.contains(origin)
     fun hasValidJWT() = jwt != null
+
+    suspend fun readBody() = readBodyFn()
 }
 
 interface Resolver {
