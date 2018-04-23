@@ -66,6 +66,8 @@ data class IncomingRequest(
     private val origin: String?,
     private val jwt: DecodedJWT?,
     val path: String,
+    val headers: Map<String, List<String>>,
+    val queryString: String,
     private val host: String?,
     private val readBodyFn: suspend () -> ByteArray
 ) {

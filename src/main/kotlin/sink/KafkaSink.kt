@@ -13,23 +13,31 @@ private fun mkProducer() =
         .option("client.id", "leia")
         .create()
 
+fun toProtoPair(pair: Pair<String, String>): PayloadOuterClass.MultiMap.Pair {
+    val (k, v) = pair
+    return PayloadOuterClass.MultiMap.Pair.newBuilder().also {
+        it.key = k
+        it.value = v
+    }.build()
+}
+
+fun parseMap(valuesMap: Map<String, List<String>>): PayloadOuterClass.MultiMap {
+    return PayloadOuterClass.MultiMap.newBuilder().apply {
+        valuesMap.entries.asSequence()
+            .flatMap { (k, vs) -> vs.map { v -> k to v }.asSequence() }
+            .map { toProtoPair(it) }
+            .forEach { addPair(it) }
+    }.build()
+}
+
 suspend fun createPayloadProtobuf(req: IncomingRequest): PayloadOuterClass.Payload =
     req.run {
-
         PayloadOuterClass.Payload.newBuilder().also {
             it.path = path
             it.method = convertMethod(method)
-            // TODO: headers must be saved
-            // it.headers = parseMap(requestHeaders)
-            // TODO: We need to deal with this someone but I have no idea how
-            //it.parameters = parseMap(call.parameters) // Deprecate?
-            // TODO: add to incoming req
-            // it.queryString = queryString()
-            // Shouldn't this be a byteArray
+            it.headers = parseMap(headers)
+            it.queryString = queryString
             it.body = readBody().toString(Charsets.UTF_8)
-
-            // Could we move id stamping to incoming requests
-            // This kind of defensive coding would be insane if it weren't for the idGeneration bug
             it.flakeId = requestId
         }.build()
     }

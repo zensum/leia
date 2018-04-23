@@ -10,10 +10,12 @@ import io.ktor.request.header
 import io.ktor.request.host
 import io.ktor.request.httpMethod
 import io.ktor.request.path
+import io.ktor.request.queryString
 import io.ktor.request.receiveStream
 import io.ktor.response.respondText
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.util.toMap
 import ktor_health_check.Health
 import leia.logic.CorsNotAllowed
 import leia.logic.ErrorMatch
@@ -46,6 +48,8 @@ fun createIncomingRequest(req: ApplicationRequest) =
         req.header("Origin"),
         if (req.call.isVerified()) req.call.token() else null,
         req.path(),
+        req.headers.toMap(),
+        req.queryString(),
         req.host(),
         req.headerInt("Content-Length").let { len ->
             if (len == 0) {
