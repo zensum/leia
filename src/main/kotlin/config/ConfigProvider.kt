@@ -1,6 +1,6 @@
 package se.zensum.leia.config
 
 interface ConfigProvider {
-    fun getRoutes(): Map<String, TopicRouting>
+    fun getRoutes(): List<TopicRouting>
 }
 

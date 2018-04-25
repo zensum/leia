@@ -11,8 +11,11 @@ import se.zensum.leia.httpMethods
 private const val ROUTES_FILE ="/etc/config/routes"
 
 class TomlConfigProvider private constructor(toml: Toml) : ConfigProvider {
-    private val parsed = parseTomlConfig(toml)
-    override fun getRoutes(): Map<String, TopicRouting> = parsed
+    private val routes = toml.getTables("routes")
+        .asSequence()
+        .map { tomlToTopicRouting(it) }
+        .toList()
+    override fun getRoutes(): List<TopicRouting> = routes
 
     companion object {
         fun fromPath(path: String) =
@@ -30,14 +33,6 @@ class TomlConfigProvider private constructor(toml: Toml) : ConfigProvider {
 private fun readTomlFromFile(routesFile: String): Toml {
     val file: File = verifyFile(routesFile)
     return Toml().read(file)
-}
-
-private fun parseTomlConfig(toml: Toml): Map<String, TopicRouting> {
-    val routes = toml.getTables("routes")
-    return routes.asSequence()
-        .map { tomlToTopicRouting(it) }
-        .map { Pair(it.path, it) }
-        .toMap()
 }
 
 private fun parseCors(routeConfig: Toml) =

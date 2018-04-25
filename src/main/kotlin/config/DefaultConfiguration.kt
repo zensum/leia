@@ -5,7 +5,7 @@ object DefaultConfiguration : ConfigProvider {
     private val cfg by lazy {
         TomlConfigProvider.fromConfiguredPath()
     }
-    override fun getRoutes(): Map<String, TopicRouting> =
+    override fun getRoutes(): List<TopicRouting> =
         cfg.getRoutes()
 }
 

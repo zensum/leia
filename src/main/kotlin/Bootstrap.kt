@@ -25,7 +25,7 @@ fun bootstrap() {
 
     run(
         KtorServer,
-            cfg.getRoutes().values
+            cfg.getRoutes()
             .map { RuleResolver(it) }
             .toList()
             .let { DisjunctiveResolver(it) },
