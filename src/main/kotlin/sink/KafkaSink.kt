@@ -5,8 +5,20 @@ import franz.producer.Producer
 import leia.logic.IncomingRequest
 import leia.logic.SinkDescription
 import se.zensum.leia.config.Format
-import se.zensum.leia.convertMethod
+import io.ktor.http.HttpMethod as KtorHttpMethod
 import se.zensum.webhook.PayloadOuterClass
+
+typealias HttpMethod = PayloadOuterClass.HttpMethod
+fun convertMethod(method: KtorHttpMethod): PayloadOuterClass.HttpMethod = when(method) {
+    KtorHttpMethod.Put -> HttpMethod.PUT
+    KtorHttpMethod.Patch -> HttpMethod.PATCH
+    KtorHttpMethod.Delete -> HttpMethod.DELETE
+    KtorHttpMethod.Get -> HttpMethod.GET
+    KtorHttpMethod.Head -> HttpMethod.HEAD
+    KtorHttpMethod.Post -> HttpMethod.POST
+    KtorHttpMethod.Options -> HttpMethod.OPTIONS
+    else -> throw IllegalArgumentException("Method ${method.value} is not supported")
+}
 
 private fun mkProducer() =
     ProducerBuilder.ofByteArray
