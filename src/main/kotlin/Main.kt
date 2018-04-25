@@ -27,6 +27,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import leia.bootstrap
 import se.zensum.jwt.JWTFeature
 import se.zensum.jwt.JWTProvider
 import se.zensum.jwt.isVerified
@@ -37,14 +38,16 @@ import se.zensum.leia.config.Format
 import se.zensum.leia.config.TopicRouting
 
 fun main(args: Array<String>) {
-    val port: Int = Integer.parseInt(getEnv("PORT", "80"))
-    server(port).start(true)
+    //val port: Int = Integer.parseInt(getEnv("PORT", "80"))
+    //server(port).start(true)
+    bootstrap()
 }
 
 fun getEnv(e : String, default: String? = null) : String = System.getenv()[e] ?: default ?: throw RuntimeException("Missing environment variable $e and no default value is given.")
 
 private fun mkProducer() =
     ProducerBuilder.ofByteArray
+        .option("bootstrap.servers", "kafka")
         .option("client.id", "leia")
         .create()
 
