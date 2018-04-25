@@ -2,6 +2,7 @@ package leia.http
 
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
+import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.install
 import io.ktor.http.HttpStatusCode
 import io.ktor.pipeline.PipelineContext
@@ -34,6 +35,7 @@ import se.zensum.jwt.isVerified
 import se.zensum.jwt.token
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
+import se.zensum.leia.getEnv
 
 private val EMPTY_BUF = ByteArray(0)
 private val RETURN_EMPTY_BUF: suspend () -> ByteArray = { EMPTY_BUF }
@@ -128,12 +130,17 @@ class KtorServer private constructor(
     private fun getKtorApplication(): Application.() -> Unit = {
         install(SentryFeature)
         if (installPrometheus) install(PrometheusFeature.Feature)
-        install(JWTFeature) {
-            jwtProvider?.let {
-                jwtProvider(it)
+        if (getEnv("JWK_URL", "").isNotBlank()) {
+            install(JWTFeature) {
+                jwtProvider?.let {
+                    jwtProvider(it)
+                }
             }
         }
         install(Health)
+        intercept(ApplicationCallPipeline.Call) {
+            handleRequest(this)
+        }
     }
 
     companion object : ServerFactory {
