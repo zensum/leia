@@ -20,10 +20,15 @@ fun convertMethod(method: KtorHttpMethod): PayloadOuterClass.HttpMethod = when(m
     else -> throw IllegalArgumentException("Method ${method.value} is not supported")
 }
 
-private fun mkProducer() =
+private fun mkProducer(servers: String?) =
     ProducerBuilder.ofByteArray
         .option("client.id", "leia")
-        .create()
+        .let {
+            if (servers != null) {
+                it.option("boostrap.servers", servers)
+            } else it
+        }.create()
+
 
 fun toProtoPair(pair: Pair<String, String>): PayloadOuterClass.MultiMap.Pair {
     val (k, v) = pair
@@ -75,8 +80,8 @@ private class KafkaSink(
     }
 }
 
-class KafkaSinkProvider : SinkProvider {
-    private val producer = mkProducer()
+class KafkaSinkProvider(private val host: String? = null) : SinkProvider {
+    private val producer = mkProducer(host)
     override fun sinkFor(description: SinkDescription): Sink? =
         KafkaSink(producer, description)
 }

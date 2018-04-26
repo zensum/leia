@@ -7,5 +7,8 @@ object DefaultConfiguration : ConfigProvider {
     }
     override fun getRoutes(): List<TopicRouting> =
         cfg.getRoutes()
+
+    override fun getSinkProviders(): List<SinkProviderSpec> =
+        cfg.getSinkProviders()
 }
 

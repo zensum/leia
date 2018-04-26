@@ -16,7 +16,7 @@ class RuleResolver(private val cfg: TopicRouting) : Resolver {
         }
 
         return LogAppend(
-            SinkDescription(cfg.topic, cfg.topic, cfg.format),
+            SinkDescription(cfg.topic, cfg.topic, cfg.format, cfg.sink),
             req,
             Receipt(cfg.response.value, "")
         )

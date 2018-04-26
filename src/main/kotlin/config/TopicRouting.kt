@@ -11,5 +11,6 @@ data class TopicRouting(val path: String,
                         val verify: Boolean = false,
                         val allowedMethods: Collection<HttpMethod>,
                         val corsHosts: List<String>,
-                        val response: HttpStatusCode)
+                        val response: HttpStatusCode,
+                        val sink: String? = null)
 

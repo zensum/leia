@@ -10,12 +10,31 @@ import se.zensum.leia.httpMethods
 
 private const val ROUTES_FILE ="/etc/config/routes"
 
+private fun Toml.getStringOrError(k: String) =
+    getString(k) ?: throw RuntimeException("Key $k, required but not in $this")
+
 class TomlConfigProvider private constructor(toml: Toml) : ConfigProvider {
     private val routes = toml.getTables("routes")
         .asSequence()
         .map { tomlToTopicRouting(it) }
         .toList()
     override fun getRoutes(): List<TopicRouting> = routes
+
+    private val sinkProviders = toml.getTables("sink-providers")
+        .asSequence()
+        .map {
+            SinkProviderSpec(
+                it.getStringOrError("name"),
+                it.getBoolean("default", false),
+                it.getString("type", "kafka"),
+                it.getTable("options")
+                    ?.toMap()
+                    ?.mapValues { it.value.toString() }
+                    ?: emptyMap()
+            )
+        }.toList()
+
+    override fun getSinkProviders(): List<SinkProviderSpec> = sinkProviders
 
     companion object {
         fun fromPath(path: String) =
