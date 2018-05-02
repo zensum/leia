@@ -22,10 +22,4 @@ class SpecSinkProvider(
         delegateTo(description)?.sinkFor(description)
 }
 
-class SinkProviderAtom(private var cur: SinkProvider) : SinkProvider by cur {
-    fun set(newCur: SinkProvider) {
-        cur = newCur
-    }
-}
-
 
