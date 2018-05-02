@@ -4,7 +4,6 @@ import java.io.File
 import com.moandjiezana.toml.Toml
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import se.zensum.leia.config.TopicRouting
 import se.zensum.leia.getEnv
 import se.zensum.leia.httpMethods
 
@@ -16,9 +15,9 @@ private fun Toml.getStringOrError(k: String) =
 class TomlConfigProvider private constructor(toml: Toml) : ConfigProvider {
     private val routes = toml.getTables("routes")
         .asSequence()
-        .map { tomlToTopicRouting(it) }
+        .map { tomlToSourceSpec(it) }
         .toList()
-    override fun getRoutes(): List<TopicRouting> = routes
+    override fun getRoutes(): List<SourceSpec> = routes
 
     private val sinkProviders = toml.getTables("sink-providers")
         .asSequence()
@@ -63,7 +62,7 @@ private fun parseFormat(x: String): Format = when(x) {
     else -> throw IllegalArgumentException("Invalid value for config parameter 'format'")
 }
 
-private fun tomlToTopicRouting(routeConfig: Toml) = TopicRouting(
+private fun tomlToSourceSpec(routeConfig: Toml) = SourceSpec(
     path = routeConfig.getString("path")!!,
     topic = routeConfig.getString("topic")!!,
     format = parseFormat(routeConfig.getString("format", "proto")),

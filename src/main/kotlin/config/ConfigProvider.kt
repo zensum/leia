@@ -1,7 +1,7 @@
 package se.zensum.leia.config
 
 interface ConfigProvider {
-    fun getRoutes(): List<TopicRouting>
+    fun getRoutes(): List<SourceSpec>
     fun getSinkProviders(): List<SinkProviderSpec>
 }
 

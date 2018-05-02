@@ -5,13 +5,11 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import frans.producer.mock.MockProducer
 import frans.producer.mock.MockProducerFactory
 import franz.ProducerBuilder
-import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import org.junit.Test
 import se.zensum.jwt.JWTProvider
 import se.zensum.leia.config.TomlConfigProvider
-import se.zensum.leia.config.TopicRouting
 import kotlin.test.*
 
 private val routes = TomlConfigProvider.fromPath("src/test/routes").getRoutes()

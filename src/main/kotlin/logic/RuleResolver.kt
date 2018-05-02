@@ -1,8 +1,8 @@
 package leia.logic
 
-import se.zensum.leia.config.TopicRouting
+import se.zensum.leia.config.SourceSpec
 
-class RuleResolver(private val cfg: TopicRouting) : Resolver {
+class RuleResolver(private val cfg: SourceSpec) : Resolver {
     override fun resolve(req: IncomingRequest) : Result {
         // TODO: Add hostname restriction here
         if (!req.matchPath(cfg.path)) {
