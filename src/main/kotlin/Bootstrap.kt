@@ -2,26 +2,22 @@ package leia
 
 import leia.http.KtorServer
 import leia.http.ServerFactory
-import leia.logic.DisjunctiveResolver
 import leia.logic.Resolver
 import leia.logic.ResolverAtom
-import leia.logic.RuleResolver
+import leia.logic.SourceSpecsResolver
+import leia.registry.TomlRegistry
 import leia.sink.CachedSinkProviderFactory
 import leia.sink.DefaultSinkProviderFactory
 import leia.sink.SinkProvider
 import leia.sink.SinkProviderAtom
 import leia.sink.SpecSinkProvider
-import se.zensum.leia.config.TomlConfigProvider
+import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
+import se.zensum.leia.config.TomlConfigProvider
 
 fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) {
     val res = sf.create(resolver, sinkProvider)
 }
-
-private fun createResolver(trs: List<SourceSpec>) = trs
-    .map { RuleResolver(it) }
-    .toList()
-    .let { DisjunctiveResolver(it) }
 
 fun bootstrap() {
     val cfg = TomlConfigProvider.fromString("""
@@ -36,9 +32,24 @@ fun bootstrap() {
             topic = 'rhee'
         """.trimMargin())
 
+    val reg = TomlRegistry(".")
+
+
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
     val sp = SinkProviderAtom(SpecSinkProvider(spf, cfg.getSinkProviders()))
-    val resolver = ResolverAtom(createResolver(cfg.getRoutes()))
+    reg.watch("sink-providers", { SinkProviderSpec.fromMap(it) }) {
+        sp.set(SpecSinkProvider(spf, it + SinkProviderSpec(
+            "foo",
+            true,
+            "null",
+            emptyMap()
+        )))
+    }
+    val resolver = ResolverAtom(SourceSpecsResolver(cfg.getRoutes()))
+    reg.watch("routes", { SourceSpec.fromMap(it) }) {
+        resolver.set(SourceSpecsResolver(it))
+    }
+
 
     run(
         KtorServer,

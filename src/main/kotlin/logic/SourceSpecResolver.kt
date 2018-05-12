@@ -2,7 +2,7 @@ package leia.logic
 
 import se.zensum.leia.config.SourceSpec
 
-class RuleResolver(private val cfg: SourceSpec) : Resolver {
+class SourceSpecResolver(private val cfg: SourceSpec) : Resolver {
     override fun resolve(req: IncomingRequest) : Result {
         // TODO: Add hostname restriction here
         if (!req.matchPath(cfg.path)) {
