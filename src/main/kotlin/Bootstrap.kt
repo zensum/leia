@@ -20,20 +20,7 @@ fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) {
 }
 
 fun bootstrap() {
-    val cfg = TomlConfigProvider.fromString("""
-        title = 'Config'
-        [[sink-providers]]
-          name = 'null'
-          type = 'null'
-          default = true
-
-        [[routes]]
-            path = '/test'
-            topic = 'rhee'
-        """.trimMargin())
-
     val reg = TomlRegistry(".")
-
 
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
     val sp = SinkProviderAtom(SpecSinkProvider(spf, emptyList()))
@@ -51,6 +38,7 @@ fun bootstrap() {
         resolver.set(SourceSpecsResolver(it))
     }
 
+    reg.forceUpdate()
 
     run(
         KtorServer,
