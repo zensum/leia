@@ -51,6 +51,7 @@ dependencies {
     compile 'io.github.microutils:kotlin-logging:1.4.6'
 
     // Project specific dependencies (disabled by default)
+    compile 'ch.vorburger:fswatch:1.1.0'
     compile 'com.github.zensum:franz:f1e1d92'
     compile 'com.github.zensum:webhook-proto:d623675'
     compile 'com.github.zensum:ktor-prometheus-feature:abaa126'

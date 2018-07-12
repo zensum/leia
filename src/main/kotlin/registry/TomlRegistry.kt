@@ -1,6 +1,8 @@
 package leia.registry
 
+import ch.vorburger.fswatch.DirectoryWatcherBuilder
 import com.moandjiezana.toml.Toml
+import io.ktor.util.extension
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
@@ -10,50 +12,6 @@ private fun pathToBaseName(p: Path) =
     if (p.toFile().isFile)
         p.parent
     else p
-
-private class Watcher(private val toWatch: Path, onChange: (Collection<Path>) -> Unit) {
-    private val ws = FileSystems.getDefault().newWatchService()
-    // If the path is a file, find its parent for watching
-    private val watchingFileOnly = toWatch.toFile().let {
-        !it.exists() || it.isFile
-    }
-    private val watchPath = pathToBaseName(toWatch.toAbsolutePath())
-
-    // Watch for all file changes
-    private val wk = watchPath.register(ws,
-        StandardWatchEventKinds.ENTRY_CREATE,
-        StandardWatchEventKinds.ENTRY_DELETE,
-        StandardWatchEventKinds.ENTRY_MODIFY
-    )
-
-    private val th = Thread {
-        while(true) {
-            // Catch interrupted?
-            val eventKey = try {
-                ws.take()
-            } catch (ex: InterruptedException) {
-                break
-            }
-
-            val evts = eventKey
-                .pollEvents()
-                .asSequence()
-                .filter {
-                    it.kind() != StandardWatchEventKinds.OVERFLOW
-                }.map { it.context() as Path }
-                .filterNot { it.toFile().isHidden }
-                .let {
-                    if (watchingFileOnly) {
-                        it.filter { it == toWatch }
-                    } else it
-                }.toSet()
-            onChange(evts)
-        }
-    }
-
-    fun start() = th.start()
-    fun stop() = th.interrupt()
-}
 
 class ResourceHolder<K, out V>(private val parser: (K) -> V) {
     private val entriesA = AtomicReference(mapOf<K, V>())
@@ -66,8 +24,6 @@ class ResourceHolder<K, out V>(private val parser: (K) -> V) {
     fun getData(): Map<K, V> = entriesA.get()
 }
 
-
-
 class TomlRegistry(configPath: String): Registry {
     private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any,(List<*>) -> Unit>>()
     private val holder = ResourceHolder<Path, Toml>({ path ->
@@ -77,8 +33,25 @@ class TomlRegistry(configPath: String): Registry {
             }
         }
     })
-    private val watcher = Watcher(FileSystems.getDefault().getPath(configPath), {
-        holder.onChange(it)
+
+    private val configP = FileSystems.getDefault().getPath(configPath)
+
+    val w = DirectoryWatcherBuilder().fileFilter {
+        !it.isHidden
+    }
+        .path(configP)
+        .quietPeriodInMS(100)
+        .listener { path, chng ->
+            val p = path.toFile()
+            println("$path ${chng.name}")
+            if (!p.isHidden &&p.isFile && p.extension.toLowerCase() == "toml") {
+                onUpdate(listOf(path))
+            }
+        }
+        .build()
+
+    private fun onUpdate(paths: List<Path>) {
+        holder.onChange(paths)
         val s = computeCurrentState()
         watchers.forEach { (table, fn, handler) ->
             val m = if (s.containsTableArray(table)) {
@@ -86,10 +59,15 @@ class TomlRegistry(configPath: String): Registry {
             } else emptyList()
             handler(m)
         }
-    })
+    }
 
-    init {
-        watcher.start()
+    fun forceUpdate() {
+        configP
+            .toFile()
+            .listFiles()
+            .filter { it.isFile && !it.isHidden && it.extension.toLowerCase() == "toml"}
+            .map { it.toPath() }
+            .let(this::onUpdate)
     }
 
     private fun computeCurrentState(): Toml {
