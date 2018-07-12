@@ -15,6 +15,10 @@ class SourceSpecResolver(private val cfg: SourceSpec) : Resolver {
             return NotAuthorzied
         }
 
+        if (!cfg.allowedMethodsSet.contains(req.method)) {
+            return NoMatch
+        }
+
         return LogAppend(
             SinkDescription(cfg.topic, cfg.topic, cfg.format, cfg.sink),
             req,

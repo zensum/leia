@@ -10,10 +10,11 @@ data class SourceSpec(val path: String,
                       val topic: String,
                       val format: Format = Format.PROTOBUF,
                       val verify: Boolean = false,
-                      val allowedMethods: Collection<HttpMethod>,
+                      private val allowedMethods: Collection<HttpMethod>,
                       val corsHosts: List<String>,
                       val response: HttpStatusCode,
                       val sink: String? = null) {
+    val allowedMethodsSet = allowedMethods.toSet()
     companion object {
         private inline fun <reified T> uneraseType(xs: Iterable<*>): List<T> =
             xs.map {
@@ -56,9 +57,10 @@ data class SourceSpec(val path: String,
                 topic = m["topic"] as String,
                 format = parseFormat(m["format"]),
                 corsHosts = parseCors(m["cors"]),
-                verify = m["verify"] as Boolean,
+                verify = (m["verify"] ?: false) as Boolean,
                 allowedMethods = parseMethods(m["methods"]),
-                response = HttpStatusCode.fromValue(parseResponse(m["response"]))
+                response = HttpStatusCode.fromValue(parseResponse(m["response"])),
+                sink = m["sink"]?.toString()
         )
 
     }
