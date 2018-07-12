@@ -36,7 +36,7 @@ fun bootstrap() {
 
 
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
-    val sp = SinkProviderAtom(SpecSinkProvider(spf, cfg.getSinkProviders()))
+    val sp = SinkProviderAtom(SpecSinkProvider(spf, emptyList()))
     reg.watch("sink-providers", { SinkProviderSpec.fromMap(it) }) {
         sp.set(SpecSinkProvider(spf, it + SinkProviderSpec(
             "foo",
@@ -45,7 +45,8 @@ fun bootstrap() {
             emptyMap()
         )))
     }
-    val resolver = ResolverAtom(SourceSpecsResolver(cfg.getRoutes()))
+
+    val resolver = ResolverAtom(SourceSpecsResolver(listOf()))
     reg.watch("routes", { SourceSpec.fromMap(it) }) {
         resolver.set(SourceSpecsResolver(it))
     }
