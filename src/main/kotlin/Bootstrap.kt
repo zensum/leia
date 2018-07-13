@@ -16,10 +16,13 @@ import leia.sink.SpecSinkProvider
 import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.config.TomlConfigProvider
+import se.zensum.leia.getEnv
 
 fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) {
     val res = sf.create(resolver, sinkProvider)
 }
+
+private const val DEFAULT_CONFIG_DIRECTORY ="/etc/config"
 
 fun setupSinkProvider(reg: Registry): SinkProvider {
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
@@ -54,7 +57,7 @@ fun <T, U> registryUpdated(
     return atom
 }
 fun bootstrap() {
-    val reg = TomlRegistry(".")
+    val reg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
 
     run(
         KtorServer,

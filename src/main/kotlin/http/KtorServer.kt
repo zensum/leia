@@ -152,7 +152,7 @@ class KtorServer private constructor(
                 null
             ).also {
                 // do we need a server spec here
-                val port = 80
+                val port = Integer.parseInt(getEnv("PORT", "80"))
                 val module = it.getKtorApplication()
                 embeddedServer(Netty, port, module = module).start()
             }
