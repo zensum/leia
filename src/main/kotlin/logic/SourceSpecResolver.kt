@@ -2,6 +2,8 @@ package leia.logic
 
 import se.zensum.leia.config.SourceSpec
 
+// A resolver that resolves an incoming request against a single source-spec
+// object.
 class SourceSpecResolver(private val cfg: SourceSpec) : Resolver {
     override fun resolve(req: IncomingRequest) : Result {
         // TODO: Add hostname restriction here

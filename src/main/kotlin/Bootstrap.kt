@@ -18,12 +18,12 @@ import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.config.TomlConfigProvider
 import se.zensum.leia.getEnv
 
-fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) {
-    val res = sf.create(resolver, sinkProvider)
-}
+fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) =
+    sf.create(resolver, sinkProvider)
 
 private const val DEFAULT_CONFIG_DIRECTORY ="/etc/config"
 
+// Sets up a sink provider using the passed in registry
 fun setupSinkProvider(reg: Registry): SinkProvider {
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
     return registryUpdated(
@@ -34,6 +34,8 @@ fun setupSinkProvider(reg: Registry): SinkProvider {
         reg
     ) as SinkProvider
 }
+
+// Sets up a resolver configured using the passed in registry
 fun setupResolver(reg: Registry): Resolver {
     return registryUpdated(
         { ResolverAtom(SourceSpecsResolver(listOf())) },
@@ -49,13 +51,12 @@ fun <T, U> registryUpdated(
     mapper: (Map<String, Any>) -> U,
     combiner: (List<U>) -> T,
     key: String,
-    reg: Registry) : Atom<T> {
-    val atom = zero()
+    reg: Registry) : Atom<T> = zero().also { atom ->
     reg.watch(key, mapper) {
         atom.set(combiner(it))
     }
-    return atom
 }
+
 fun bootstrap() {
     val reg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
 

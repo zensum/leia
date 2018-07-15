@@ -8,6 +8,8 @@ import io.ktor.http.HttpMethod
 private val idGen: IdGenerator = IdGenerators.newSnowflakeIdGenerator()
 private fun generateId(): Long = idGen.generateId(10).asLong()
 
+// Data-class representing an incoming http-request. It is created by the server
+// front-end so as to provide a unitary representation between different servers
 data class IncomingRequest(
     val method: HttpMethod,
     private val origin: String?,

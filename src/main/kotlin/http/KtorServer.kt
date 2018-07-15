@@ -44,7 +44,7 @@ private fun ApplicationRequest.headerInt(name: String): Int =
     header(name)?.toIntOrNull() ?: 0
 
 
-fun createIncomingRequest(req: ApplicationRequest) =
+private fun createIncomingRequest(req: ApplicationRequest) =
     IncomingRequest(
         req.httpMethod,
         req.header("Origin"),
@@ -100,6 +100,7 @@ private suspend fun sendSuccessResponse(call: ApplicationCall,
     }
 }
 
+// A server-frontend for the Ktor framework.
 class KtorServer private constructor(
     private val resolver: Resolver,
     private val appender: suspend (LogAppend) -> SinkResult,

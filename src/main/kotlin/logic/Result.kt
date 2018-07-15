@@ -16,7 +16,7 @@ object NoMatch : Result() {
     override fun combine(other: Result): Result = other
 }
 
-// The incoming request did match this rule
+// A match is a result that matches all the rules. It dominates all other rules
 sealed class Match : Result() {
     // Match + Match = Undefined
     // Match + NoMatch = Match
@@ -27,7 +27,8 @@ sealed class Match : Result() {
         } else this
 }
 
-// There is a match but it doesn't satisify the full rules engine
+// An error match would have matched if some additional criteria had been met,
+// such as the presence of authentication headers.
 sealed class ErrorMatch : Match() {
     override fun combine(other: Result): Match =
         when(other) {
@@ -40,5 +41,5 @@ sealed class ErrorMatch : Match() {
 object NotAuthorzied: ErrorMatch()
 // The rule matches but authorization presented is invalid
 object Forbidden: ErrorMatch()
-
+// The rule matches but CORS is not allowed for that host.
 object CorsNotAllowed : ErrorMatch()

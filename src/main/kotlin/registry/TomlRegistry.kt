@@ -2,17 +2,15 @@ package leia.registry
 
 import ch.vorburger.fswatch.DirectoryWatcherBuilder
 import com.moandjiezana.toml.Toml
-import io.ktor.util.extension
 import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.nio.file.StandardWatchEventKinds
 import java.util.concurrent.atomic.AtomicReference
 
-private fun pathToBaseName(p: Path) =
-    if (p.toFile().isFile)
-        p.parent
-    else p
 
+// Combination of a Map of K,V and a function from K to V. Instead of
+// supplying full pairs of K, V. We supply only Ks and the function finds
+// a proper value of K. Adding the same K multiple time replaces the current
+// value with a new value.
 class ResourceHolder<K, out V>(private val parser: (K) -> V) {
     private val entriesA = AtomicReference(mapOf<K, V>())
     fun onChange(ks: Collection<K>) {
@@ -24,15 +22,16 @@ class ResourceHolder<K, out V>(private val parser: (K) -> V) {
     fun getData(): Map<K, V> = entriesA.get()
 }
 
+// Auto-watching registry for a directory of Toml-files.
 class TomlRegistry(configPath: String): Registry {
     private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any,(List<*>) -> Unit>>()
-    private val holder = ResourceHolder<Path, Toml>({ path ->
+    private val holder = ResourceHolder<Path, Toml> { path ->
         Toml().also {
             if (path.toFile().exists()) {
                 it.read(path.toFile())
             }
         }
-    })
+    }
 
     private val configP = FileSystems.getDefault().getPath(configPath)
 
