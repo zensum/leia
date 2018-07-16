@@ -15,7 +15,6 @@ import leia.sink.SinkProviderAtom
 import leia.sink.SpecSinkProvider
 import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
-import se.zensum.leia.config.TomlConfigProvider
 import se.zensum.leia.getEnv
 
 fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) =
