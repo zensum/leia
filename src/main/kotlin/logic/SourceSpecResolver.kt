@@ -22,7 +22,7 @@ class SourceSpecResolver(private val cfg: SourceSpec) : Resolver {
         }
 
         return LogAppend(
-            SinkDescription(cfg.topic, cfg.topic, cfg.format, cfg.sink),
+            SinkDescription(cfg.topic, req.requestId.toString(), cfg.format, cfg.sink),
             req,
             Receipt(cfg.response.value, "")
         )
