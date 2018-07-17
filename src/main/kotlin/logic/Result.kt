@@ -21,10 +21,11 @@ sealed class Match : Result() {
     // Match + Match = Undefined
     // Match + NoMatch = Match
     // Match + ErrorMatch = Match
-    override fun combine(other: Result) =
-        if (other is Match) {
-            throw UnsupportedOperationException("we cant handle this yet")
-        } else this
+    override fun combine(other: Result) = when(other) {
+        is ErrorMatch -> this
+        is Match -> throw UnsupportedOperationException("we cant handle this yet")
+        else -> this
+    }
 }
 
 // An error match would have matched if some additional criteria had been met,
