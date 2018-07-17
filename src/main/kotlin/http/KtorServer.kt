@@ -29,6 +29,8 @@ import leia.logic.Receipt
 import leia.logic.Resolver
 import leia.sink.SinkProvider
 import leia.sink.SinkResult
+import mu.KotlinLogging
+
 import se.zensum.jwt.JWTFeature
 import se.zensum.jwt.JWTProvider
 import se.zensum.jwt.isVerified
@@ -43,6 +45,7 @@ private val RETURN_EMPTY_BUF: suspend () -> ByteArray = { EMPTY_BUF }
 private fun ApplicationRequest.headerInt(name: String): Int =
     header(name)?.toIntOrNull() ?: 0
 
+private val logger = KotlinLogging.logger {}
 
 private fun createIncomingRequest(req: ApplicationRequest) =
     IncomingRequest(
@@ -86,12 +89,13 @@ private suspend fun sendSuccessResponse(call: ApplicationCall,
                                         sr: SinkResult,
                                         receipt: Receipt) {
     when (sr) {
-        is SinkResult.WritingFailed ->
-            // todo: log res.exc
+        is SinkResult.WritingFailed -> {
+            logger.error(sr.exc) { "Writing to sink failed" }
             call.respondText(
                 "Something went wrong",
                 status = HttpStatusCode.InternalServerError
             )
+        }
         is SinkResult.SuccessfullyWritten ->
             call.respondText(
                 receipt.body,
