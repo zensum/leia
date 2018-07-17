@@ -14,6 +14,7 @@ import io.ktor.request.path
 import io.ktor.request.queryString
 import io.ktor.request.receiveStream
 import io.ktor.response.respondText
+import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.toMap
@@ -38,6 +39,7 @@ import se.zensum.jwt.token
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
 import se.zensum.leia.getEnv
+import java.util.concurrent.TimeUnit
 
 private val EMPTY_BUF = ByteArray(0)
 private val RETURN_EMPTY_BUF: suspend () -> ByteArray = { EMPTY_BUF }
@@ -148,6 +150,25 @@ class KtorServer private constructor(
         }
     }
 
+    private fun getPort() : Int = Integer.parseInt(getEnv("PORT", "80"))
+
+    private var ktorServer: ApplicationEngine? = null
+    private fun getKtorServer(): ApplicationEngine {
+        if (ktorServer == null) {
+            ktorServer = embeddedServer(Netty, getPort(), module = getKtorApplication())
+            return ktorServer!!
+        }
+        return ktorServer!!
+    }
+
+    override fun start() {
+        getKtorServer().start(wait = false)
+    }
+
+    override fun stop() {
+        getKtorServer().stop(5000, 15, TimeUnit.SECONDS)
+    }
+
     companion object : ServerFactory {
         override fun create(resolver: Resolver, sinkProvider: SinkProvider) : Server =
             KtorServer(
@@ -155,12 +176,7 @@ class KtorServer private constructor(
                 { sinkProvider.handle(it.sinkDescription, it.request) },
                 true,
                 null
-            ).also {
-                // do we need a server spec here
-                val port = Integer.parseInt(getEnv("PORT", "80"))
-                val module = it.getKtorApplication()
-                embeddedServer(Netty, port, module = module).start()
-            }
+            )
     }
 }
 

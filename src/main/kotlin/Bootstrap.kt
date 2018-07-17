@@ -58,13 +58,12 @@ fun <T, U> registryUpdated(
 fun bootstrap() {
     val reg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
 
-    run(
+    val server = run(
         KtorServer,
         setupResolver(reg),
         setupSinkProvider(reg)
-            .also {
-                reg.forceUpdate()
-            }
     )
+    reg.forceUpdate()
+    server.start()
 }
 
