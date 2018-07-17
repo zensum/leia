@@ -9,7 +9,6 @@ import leia.registry.Registry
 import leia.registry.TomlRegistry
 import leia.sink.CachedSinkProviderFactory
 import leia.sink.DefaultSinkProviderFactory
-import leia.sink.Sink
 import leia.sink.SinkProvider
 import leia.sink.SinkProviderAtom
 import leia.sink.SpecSinkProvider
