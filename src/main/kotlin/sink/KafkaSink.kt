@@ -11,7 +11,7 @@ private fun mkProducer(servers: String?) =
         .option("client.id", "leia")
         .let {
             if (servers != null) {
-                it.option("boostrap.servers", servers)
+                it.option("bootstrap.servers", servers)
             } else it
         }.create()
 

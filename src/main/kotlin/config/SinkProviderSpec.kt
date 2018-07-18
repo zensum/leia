@@ -13,7 +13,7 @@ data class SinkProviderSpec(
                 name = m["name"] as String,
                 isDefault = m.getOrDefault("default", false) as Boolean,
                 type = m.getOrDefault("type", "kafka") as String,
-                options = (m.getOrDefault("", emptyOptions) as MutableMap<String, Any>).toMap()
+                options = (m.getOrDefault("options", emptyOptions) as MutableMap<String, Any>).toMap()
             )
     }
 }
