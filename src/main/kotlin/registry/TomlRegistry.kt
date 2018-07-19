@@ -2,8 +2,13 @@ package leia.registry
 
 import ch.vorburger.fswatch.DirectoryWatcherBuilder
 import com.moandjiezana.toml.Toml
+import mu.KLogging
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 
@@ -33,6 +38,11 @@ class TomlRegistry(configPath: String): Registry {
         }
     }
 
+    private val scheduler = Executors.newScheduledThreadPool(1)
+    init {
+        scheduler.scheduleAtFixedRate({ this.forceUpdate() }, 1, 1, TimeUnit.MINUTES)
+    }
+
     private val configP = FileSystems.getDefault().getPath(configPath)
 
     val w = DirectoryWatcherBuilder().fileFilter {
@@ -42,7 +52,7 @@ class TomlRegistry(configPath: String): Registry {
         .quietPeriodInMS(100)
         .listener { path, chng ->
             val p = path.toFile()
-            println("$path ${chng.name}")
+            logger.info { "Detected file change $path (${chng.name})" }
             if (!p.isHidden &&p.isFile && p.extension.toLowerCase() == "toml") {
                 onUpdate(listOf(path))
             }
@@ -58,9 +68,11 @@ class TomlRegistry(configPath: String): Registry {
             } else emptyList()
             handler(m)
         }
+        logger.info { "Updated ${paths.count()} files" }
     }
 
     fun forceUpdate() {
+        logger.info("Polling all config files")
         configP
             .toFile()
             .listFiles()
@@ -86,5 +98,7 @@ class TomlRegistry(configPath: String): Registry {
         )
         watchers.add(t)
     }
+
+    companion object : KLogging()
 }
 
