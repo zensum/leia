@@ -1,0 +1,14 @@
+createIngress: true
+replicaCount: 2
+image:
+  repository: zensum/leia
+  tag: feature-webengine
+  pullPolicy: IfNotPresent
+env: {}
+resources:
+  limits:
+    cpu: 100m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi

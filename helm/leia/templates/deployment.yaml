@@ -1,0 +1,67 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "fullname" . }}
+    spec:
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cfg-{{ template "fullname" . }}
+
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        livenessProbe:
+          initialDelaySeconds: 30
+          httpGet:
+            path: /healthz
+            port: 80
+        readinessProbe:
+          initialDelaySeconds: 30
+          httpGet:
+            path: /readyz
+            port: 80
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/config
+        ports:
+        - containerPort: 80
+        env:
+        {{- if .Values.env.kafkaHost }}
+        - name: KAFKA_HOST
+          value: {{ .Values.env.kafkaHost }}
+        {{- end}}
+
+        {{- if .Values.env.jwkUrl }}
+        - name: JWK_URL
+          value: {{ .Values.env.jwkUrl }}
+        {{- end}}
+
+        {{- if .Values.env.jwkKeyId }}
+        - name: JWT_KEY_ID
+          value: {{ .Values.env.jwkKeyId }}
+        {{- end}}
+
+        {{- if .Values.env.jwkIssuer }}
+        - name: JWT_ISSUER
+          value: {{ .Values.env.jwkIssuer }}
+        {{- end}}
+
+        {{- if .Values.env.LOGBACK_LOGGING_LEVEL }}
+        - name: LOGBACK_LOGGING_LEVEL
+          value: {{ .Values.env.LOGBACK_LOGGING_LEVEL }}
+        {{- end}}
+
+        - name: JAVA_OPTS
+          value: "-Xms200m -Xmx200m"
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
