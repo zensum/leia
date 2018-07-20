@@ -6,6 +6,8 @@ import kotlin.test.*
 
 class CachedSinkProviderTest {
     private val dummySpec = SinkProviderSpec("foo", true, "kafka", emptyMap())
+    private val dummySpec2 = SinkProviderSpec("foo", true, "kafka", emptyMap())
+
     private fun dummy() = object : SinkProviderFactory {
         var ctr = 0
         override fun create(spec: SinkProviderSpec): SinkProvider? {
@@ -37,5 +39,13 @@ class CachedSinkProviderTest {
         spf.create(dummySpec.copy(name = "lol"))
         spf.create(dummySpec)
         assertEquals(2, bck.ctr, "Backing factory should only called once!")
+    }
+
+    @Test fun createsSpecOnceEvenForDupes() {
+        val bck = dummy()
+        val spf = CachedSinkProviderFactory(bck)
+        spf.create(dummySpec)
+        spf.create(dummySpec2)
+        assertEquals(1, bck.ctr, "Backing factory should only called once!")
     }
 }
