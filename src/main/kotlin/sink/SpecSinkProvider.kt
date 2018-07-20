@@ -10,12 +10,13 @@ class SpecSinkProvider(
     private val fallbackDefaultSpec =
         SinkProviderSpec("\$default", true, "always-error", mapOf("message" to "No default sink configured"))
     private val providers = specs.zip(specs.map(sinkProviderFactory::create)).toMap()
-    private val defaultProvider = specs.firstOrNull { it.isDefault }
+    private val defaultProviderSpec = specs.firstOrNull { it.isDefault }
+    private val defaultProvider = providers[defaultProviderSpec] ?: sinkProviderFactory.create(fallbackDefaultSpec)
     private val nameToSpecs = specs.map { it.name }.zip(specs).toMap()
 
     private fun delegateTo(description: SinkDescription): SinkProvider? =
         if(description.name == null) {
-            providers[defaultProvider] ?: sinkProviderFactory.create(fallbackDefaultSpec)
+            defaultProvider
         } else {
             providers[nameToSpecs[description.name]]
         }
