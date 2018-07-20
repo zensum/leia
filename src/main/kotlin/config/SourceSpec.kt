@@ -60,7 +60,7 @@ data class SourceSpec(val path: String,
                 verify = (m["verify"] ?: false) as Boolean,
                 allowedMethods = parseMethods(m["methods"]),
                 response = HttpStatusCode.fromValue(parseResponse(m["response"])),
-                sink = m["sink"]?.toString()
+                sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() }
         )
 
     }
