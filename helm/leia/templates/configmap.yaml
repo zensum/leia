@@ -8,4 +8,4 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     app: {{ template "name" . }}
 data:
-  routes: {{ .Values.routes | quote }}
+  routes.toml: {{ .Values.routes | quote }}
