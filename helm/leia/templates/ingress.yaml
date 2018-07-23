@@ -1,0 +1,19 @@
+{{- if eq .Values.createIngress true }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    heritage: "{{ .Release.Service }}"
+    release: "{{ .Release.Name }}"
+  name: ing-{{ template "fullname" . }}
+spec:
+  {{- if .Values.ingressTLSSecret }}
+  tls:
+    - secretName: {{ .Values.ingressTLSSecret }}
+  {{- end}}
+  backend:
+    serviceName: svc-{{ template "fullname" . }}
+    servicePort: 80
+{{- end}}

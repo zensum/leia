@@ -1,0 +1,19 @@
+title = "Routes config"
+
+[[routes]]
+	path = "/"
+	topic = "test"
+	verify = false
+	format = "proto"
+	methods = [ "POST", "GET", "HEAD" ]
+
+[[sink-providers]]
+    name = "kafka"
+    type = "kafka"
+    default = true
+    [sink-providers.options]
+        host = "kafka:9092"
+
+
+
+
