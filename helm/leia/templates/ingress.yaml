@@ -7,6 +7,10 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     heritage: "{{ .Release.Service }}"
     release: "{{ .Release.Name }}"
+  annotations:
+    {{- if .Values.ingressClass }}
+    kubernetes.io/ingress.class: {{ .Values.ingressClass }}
+    {{- end }}
   name: ing-{{ template "fullname" . }}
 spec:
   {{- if .Values.ingressTLSSecret }}

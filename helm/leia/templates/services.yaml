@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: svc-{{ template "fullname" . }}
 spec:
+  type: {{ .Values.serviceType }}
   selector:
     app: {{ template "fullname" . }}
   ports:
