@@ -2,7 +2,7 @@ createIngress: true
 replicaCount: 2
 image:
   repository: zensum/leia
-  tag: feature-webengine
+  tag: latest
   pullPolicy: IfNotPresent
 env: {}
 resources:
