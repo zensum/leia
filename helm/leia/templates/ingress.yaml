@@ -9,8 +9,10 @@ metadata:
     release: "{{ .Release.Name }}"
   name: ing-{{ template "fullname" . }}
 spec:
+  {{-if .Values.ingressTLSSecret }}
   tls:
-    - secretName: 5z-inbound-tls
+    - secretName: {{ .Values.ingressTLSSecret }}
+  {{- end}}
   backend:
     serviceName: svc-{{ template "fullname" . }}
     servicePort: 80
