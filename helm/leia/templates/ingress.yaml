@@ -9,7 +9,7 @@ metadata:
     release: "{{ .Release.Name }}"
   name: ing-{{ template "fullname" . }}
 spec:
-  {{-if .Values.ingressTLSSecret }}
+  {{- if .Values.ingressTLSSecret }}
   tls:
     - secretName: {{ .Values.ingressTLSSecret }}
   {{- end}}
