@@ -81,6 +81,8 @@ private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) 
             "forbidden" to HttpStatusCode.Forbidden
         CorsNotAllowed ->
             "cors not allowed" to HttpStatusCode.Forbidden
+        CorsPreflightAllowed ->
+            throw RuntimeException("ASSERT FAILED CORS handled elsewhere")
     }
     call.respondText(text, status = status)
 }
