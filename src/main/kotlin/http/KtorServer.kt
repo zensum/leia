@@ -95,6 +95,10 @@ private suspend fun sendNotFoundResponse(call: ApplicationCall) {
 private suspend fun sendSuccessResponse(call: ApplicationCall,
                                         sr: SinkResult,
                                         receipt: Receipt) {
+    // If CORS is not allowed the Sink would have ignored it.
+    call.request.headers[HttpHeaders.Origin]?.let {
+        call.response.header(HttpHeaders.AccessControlAllowOrigin, it)
+    }
     when (sr) {
         is SinkResult.WritingFailed -> {
             logger.error(sr.exc) { "Writing to sink failed" }
