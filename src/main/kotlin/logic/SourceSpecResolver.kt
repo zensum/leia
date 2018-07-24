@@ -1,5 +1,6 @@
 package leia.logic
 
+import io.ktor.http.HttpMethod
 import se.zensum.leia.config.SourceSpec
 
 // A resolver that resolves an incoming request against a single source-spec
@@ -12,6 +13,11 @@ class SourceSpecResolver(private val cfg: SourceSpec) : Resolver {
         }
         if (!req.matchCors(cfg.corsHosts)) {
             return CorsNotAllowed
+        }
+        // TODO: We need to be able to tell this apart from explicitly allowed
+        // OPTIONS.
+        if (cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options) {
+            return CorsPreflightAllowed
         }
         if (cfg.verify && !req.hasValidJWT()) {
             return NotAuthorzied

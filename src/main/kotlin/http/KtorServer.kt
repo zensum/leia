@@ -4,6 +4,9 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.install
+import io.ktor.features.origin
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.pipeline.PipelineContext
 import io.ktor.request.ApplicationRequest
@@ -13,6 +16,7 @@ import io.ktor.request.httpMethod
 import io.ktor.request.path
 import io.ktor.request.queryString
 import io.ktor.request.receiveStream
+import io.ktor.response.header
 import io.ktor.response.respondText
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
@@ -20,6 +24,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.util.toMap
 import ktor_health_check.Health
 import leia.logic.CorsNotAllowed
+import leia.logic.CorsPreflightAllowed
 import leia.logic.ErrorMatch
 import leia.logic.Forbidden
 import leia.logic.IncomingRequest
@@ -106,6 +111,15 @@ private suspend fun sendSuccessResponse(call: ApplicationCall,
     }
 }
 
+private suspend fun sendCorsPreflight(call: ApplicationCall) {
+    val req = call.request
+    val res = call.response
+    req.headers[HttpHeaders.Origin]?.let {
+        res.header(HttpHeaders.AccessControlAllowOrigin, it)
+    }
+    call.respondText("Allowed!")
+}
+
 // A server-frontend for the Ktor framework.
 class KtorServer private constructor(
     private val resolver: Resolver,
@@ -129,6 +143,7 @@ class KtorServer private constructor(
                 appender(resolveResult),
                 ctx.context
             )
+            CorsPreflightAllowed -> sendCorsPreflight(ctx.context)
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
             is NoMatch -> sendNotFoundResponse(ctx.context)
         }
