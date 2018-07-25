@@ -16,7 +16,7 @@ jobs:
       - run: gradle build
       - run: gradle test
       - setup_remote_docker
-      - deploy: gradle jib
+      - run: gradle jib
 
 workflows:
   version: 2
