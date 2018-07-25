@@ -16,7 +16,9 @@ jobs:
       - run: gradle build
       - run: gradle test
       - setup_remote_docker
-      - run: gradle jib
+      - run: |
+          docker login -u $HUB_USERNAME -p $HUB_PASSWORD
+          gradle jib
 
 workflows:
   version: 2
