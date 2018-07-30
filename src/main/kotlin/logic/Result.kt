@@ -44,3 +44,7 @@ object NotAuthorzied: ErrorMatch()
 object Forbidden: ErrorMatch()
 // The rule matches but CORS is not allowed for that host.
 object CorsNotAllowed : ErrorMatch()
+
+// A CorsPreflight alllowed is actually an error match as it is overridden by
+// actual matches event if it results in a 200
+object CorsPreflightAllowed: ErrorMatch()
