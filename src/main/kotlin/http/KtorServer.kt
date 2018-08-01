@@ -122,6 +122,7 @@ private suspend fun sendCorsPreflight(call: ApplicationCall) {
     val res = call.response
     req.headers[HttpHeaders.Origin]?.let {
         res.header(HttpHeaders.AccessControlAllowOrigin, it)
+        res.header(HttpHeaders.AccessControlAllowHeaders, HttpHeaders.ContentType)
     }
     call.respondText("Allowed!")
 }
@@ -200,4 +201,3 @@ class KtorServer private constructor(
             )
     }
 }
-

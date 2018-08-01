@@ -25,9 +25,8 @@ data class IncomingRequest(
     }
     fun matchPath(otherPath: String?) = otherPath == path
     fun matchCors(origins: List<String>) =
-        origin == null || origins.isEmpty() || origins.contains(origin)
+        origin == null || origins.isEmpty() || origins.contains(origin) || origins.contains("*")
     fun hasValidJWT() = jwt != null
 
     suspend fun readBody() = readBodyFn()
 }
-

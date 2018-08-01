@@ -1,14 +1,3 @@
-apply plugin: 'kotlin'
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'idea'
-
-group = 'se.zensum'
-version = '1.0-SNAPSHOT'
-description = 'Receive incoming HTTP requests/webhooks and write them to a Kafka topic'
-
-defaultTasks 'run'
-
 buildscript {
     ext.kotlin_version = '1.2.30'
     ext.jvm_version = '1.8'
@@ -22,6 +11,27 @@ buildscript {
         classpath "org.junit.platform:junit-platform-gradle-plugin:$junit_platform_version"
         classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.0'
     }
+}
+
+plugins {
+      id 'com.google.cloud.tools.jib' version '0.9.7'
+    }
+
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'idea'
+
+group = 'se.zensum'
+version = '1.0-SNAPSHOT'
+description = 'Receive incoming HTTP requests/webhooks and write them to a Kafka topic'
+
+defaultTasks 'run'
+
+jib {
+  to {
+    image = "zensum/leia:" + System.getenv("CIRCLE_SHA1")
+  }
 }
 
 apply plugin: "org.junit.platform.gradle.plugin"
@@ -130,5 +140,5 @@ task debug(type: JavaExec) {
 
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts for faster execution'
-    gradleVersion = '4.2'
+    gradleVersion = '4.6'
 }
