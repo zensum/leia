@@ -143,6 +143,7 @@ class KtorServer private constructor(
 
     suspend fun handleRequest(ctx: PipelineContext<Unit, ApplicationCall>) {
         val req = createIncomingRequest(ctx.context.request)
+        logRequest(ctx.context.request)
         val resolveResult = resolver.resolve(req)
         when (resolveResult) {
             is LogAppend -> performLogAppend(
@@ -153,6 +154,12 @@ class KtorServer private constructor(
             CorsPreflightAllowed -> sendCorsPreflight(ctx.context)
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
             is NoMatch -> sendNotFoundResponse(ctx.context)
+        }
+    }
+
+    private fun logRequest(request: ApplicationRequest) {
+        request.apply {
+            logger.info("${httpMethod.value} ${path()} from ${host()}")
         }
     }
 
