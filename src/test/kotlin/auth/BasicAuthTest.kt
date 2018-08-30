@@ -1,8 +1,5 @@
 package auth
 
-import com.mantono.pyttipanna.HashAlgorithm
-import com.mantono.pyttipanna.hash
-import io.ktor.util.encodeBase64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

@@ -1,0 +1,5 @@
+package auth
+
+interface AuthProviderFactory
+{
+}

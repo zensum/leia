@@ -9,7 +9,7 @@ import java.util.*
 
 private val log = KotlinLogging.logger("basic-auth")
 
-class BasicAuth(credentials: Map<String, String>): AuthProvider<String> {
+class BasicAuth(credentials: Map<String, String>): AuthProvider {
 
     private val credentials: Map<String, ByteArray> = credentials.mapValues {
         Hex.decodeHex(it.value)
@@ -27,7 +27,7 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider<String> {
      * @param credential the base64 encoded version of the username and password, as
      * it is provided in the header
      */
-    override fun verify(credential: String): AuthResult<String> {
+    override fun verify(credential: String): AuthResult {
         return try {
             val credentialDecoded = String(decodeBase64(credential))
             val (user: String, password: String) = credentialDecoded.split(":")
