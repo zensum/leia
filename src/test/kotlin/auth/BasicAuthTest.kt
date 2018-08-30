@@ -39,22 +39,22 @@ class BasicAuthTest {
 
     @Test
     fun testVerifyingCredentialsAsValid() {
-        val auth: AuthProvider<String> = BasicAuth(hashedCredentials)
+        val auth: AuthProvider = BasicAuth(hashedCredentials)
         val b64BasicAuth: String = base64Credentials["Luke"]!!
-        val result: AuthResult<String> = auth.verify(b64BasicAuth)
+        val result: AuthResult = auth.verify(b64BasicAuth)
 
         assertTrue(result is AuthResult.Valid)
-        result as AuthResult.Valid<String>
+        result as AuthResult.Valid
         assertEquals("Luke", result.identifier)
     }
 
     @Test
     fun testVerifyingCredentialsAsInvalid() {
-        val auth: AuthProvider<String> = BasicAuth(hashedCredentials)
+        val auth: AuthProvider = BasicAuth(hashedCredentials)
         val unauthorizedUser: String = "Vader:Rebel scum"
             .toByteArray()
             .toBase64()
-        val result: AuthResult<String> = auth.verify(unauthorizedUser)
+        val result: AuthResult = auth.verify(unauthorizedUser)
         assertEquals(AuthResult.Invalid, result)
     }
 
