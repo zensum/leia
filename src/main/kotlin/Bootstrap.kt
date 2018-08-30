@@ -12,11 +12,12 @@ import leia.sink.DefaultSinkProviderFactory
 import leia.sink.SinkProvider
 import leia.sink.SinkProviderAtom
 import leia.sink.SpecSinkProvider
+import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.getEnv
 
-fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) =
+fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, authProvider: AuthProvider) =
     sf.create(resolver, sinkProvider)
 
 private const val DEFAULT_CONFIG_DIRECTORY ="/etc/config"
@@ -44,6 +45,10 @@ fun setupResolver(reg: Registry): Resolver {
     ) as Resolver
 }
 
+fun setupAuthProvider(reg: Registry): AuthProvider {
+    TODO()
+}
+
 fun <T, U> registryUpdated(
     zero: () -> Atom<T>,
     mapper: (Map<String, Any>) -> U,
@@ -61,7 +66,8 @@ fun bootstrap() {
     val server = run(
         KtorServer,
         setupResolver(reg),
-        setupSinkProvider(reg)
+        setupSinkProvider(reg),
+        setupAuthProvider(reg)
     )
     reg.forceUpdate()
     server.start()
