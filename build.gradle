@@ -73,6 +73,7 @@ dependencies {
     testCompile "io.ktor:ktor-server-test-host:0.9.1"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile 'com.github.jonross:fauxflake:90abbcf5b6'
+    implementation "com.github.mantono:pyttipanna:0.2.0"
 }
 
 junitPlatform {
