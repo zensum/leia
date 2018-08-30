@@ -45,4 +45,10 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
         }
     }
 
+    companion object {
+    	fun fromOptions(options: Map<String, Any>): BasicAuth {
+            println(options)
+            TODO()
+        }
+    }
 }
