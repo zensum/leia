@@ -13,7 +13,8 @@ data class SourceSpec(val path: String,
                       private val allowedMethods: Collection<HttpMethod>,
                       val corsHosts: List<String>,
                       val response: HttpStatusCode,
-                      val sink: String? = null) {
+                      val sink: String? = null,
+                      val authenticateUsing: List<String>) {
     val allowedMethodsSet = allowedMethods.toSet()
     companion object {
         private inline fun <reified T> uneraseType(xs: Iterable<*>): List<T> =
@@ -60,7 +61,10 @@ data class SourceSpec(val path: String,
                 verify = (m["verify"] ?: false) as Boolean,
                 allowedMethods = parseMethods(m["methods"]),
                 response = HttpStatusCode.fromValue(parseResponse(m["response"])),
-                sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() }
+                sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() },
+                authenticateUsing = (m["auth-providers"] as List<Map<String, Any>>)
+                    .map { it["name"].toString() }
+                    .toList()
         )
 
     }

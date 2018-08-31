@@ -15,6 +15,11 @@ private fun mkProducer(servers: String?) =
             } else it
         }.create()
 
+private fun <K, V> Map<K, V>.with(addend: Pair<K, V?>?): Map<K, V> =
+    if(addend?.second != null)
+        plus(addend.first to addend.second!!).toMap()
+    else this
+
 private class KafkaSink(
     private val producer: Producer<String, ByteArray>,
     private val description: SinkDescription
@@ -22,7 +27,9 @@ private class KafkaSink(
     override suspend fun handle(incomingRequest: IncomingRequest): SinkResult {
         val body = description.dataFormat.generateBody(incomingRequest)
         val key = incomingRequest.requestId
-        val headers = emptyMap<String, ByteArray>()
+        val headers: Map<String, ByteArray> = emptyMap<String, ByteArray>()
+            .with("leia/user" to description.authorizedAs?.toByteArray())
+
         return try {
             producer.send(description.topic, key.toString(), body, headers)
             SinkResult.SuccessfullyWritten

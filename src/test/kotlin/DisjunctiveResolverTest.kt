@@ -27,7 +27,7 @@ class DisjunctiveResolverTest {
 
     @Test fun testOneIdentity() {
         val la = LogAppend(
-            SinkDescription("foo", "bar", Format.RAW_BODY, "baz"),
+            SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
             exampleIR,
             Receipt(200, "foo")
         )
@@ -38,7 +38,7 @@ class DisjunctiveResolverTest {
 
     @Test fun testTwoTakesFirst() {
         val la = LogAppend(
-            SinkDescription("foo", "bar", Format.RAW_BODY, "baz"),
+            SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
             exampleIR,
             Receipt(200, "foo")
         )
@@ -57,7 +57,7 @@ class DisjunctiveResolverTest {
 
     @Test fun testTwoTakesFirstMatching() {
         val la = LogAppend(
-            SinkDescription("foo", "bar", Format.RAW_BODY, "baz"),
+            SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
             exampleIR,
             Receipt(200, "foo")
         )

@@ -8,7 +8,7 @@ import kotlin.test.*
 
 class SpecSinkProviderTest {
     private val baseSpec = SinkProviderSpec("name", false, "foo", emptyMap())
-    private val sd = SinkDescription("foo", "foo", Format.RAW_BODY, "name")
+    private val sd = SinkDescription("foo", "foo", Format.RAW_BODY, "name", null)
     @Test
     fun testRouteToNamed() {
         val sink = object : Sink {

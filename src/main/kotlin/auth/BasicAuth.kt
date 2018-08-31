@@ -1,6 +1,5 @@
 package se.zensum.leia.auth
 
-import auth.AuthResult
 import com.mantono.pyttipanna.HashAlgorithm
 import com.mantono.pyttipanna.hash
 import io.ktor.util.decodeBase64
@@ -74,6 +73,6 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
 /**
  * Always set as [AuthResult.NotAuthorized]
  */
-object NoAuth: AuthProvider {
+object NoCheck: AuthProvider {
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = AuthResult.NotAuthorized
 }

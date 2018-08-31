@@ -16,14 +16,14 @@ import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthProviderAtom
 import se.zensum.leia.auth.AuthProviderSpec
 import se.zensum.leia.auth.DefaultAuthProviderFactory
-import se.zensum.leia.auth.NoAuth
+import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.auth.SpecsAuthProvider
 import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.getEnv
 
-fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, authProvider: AuthProvider) =
-    sf.create(resolver, sinkProvider, authProvider)
+fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) =
+    sf.create(resolver, sinkProvider)
 
 private const val DEFAULT_CONFIG_DIRECTORY ="/etc/config"
 
@@ -40,11 +40,11 @@ fun setupSinkProvider(reg: Registry): SinkProvider {
 }
 
 // Sets up a resolver configured using the passed in registry
-fun setupResolver(reg: Registry): Resolver {
+fun setupResolver(reg: Registry, auth: AuthProvider): Resolver {
     return registryUpdated(
-        { ResolverAtom(SourceSpecsResolver(listOf())) },
+        { ResolverAtom(SourceSpecsResolver(auth, listOf())) },
         { SourceSpec.fromMap(it) },
-        { SourceSpecsResolver(it) },
+        { SourceSpecsResolver(auth, it) },
         "routes",
         reg
     ) as Resolver
@@ -52,7 +52,7 @@ fun setupResolver(reg: Registry): Resolver {
 
 fun setupAuthProvider(reg: Registry): AuthProvider {
     val authFactory = DefaultAuthProviderFactory
-    val atom: Atom<AuthProvider> = AuthProviderAtom(NoAuth)
+    val atom: Atom<AuthProvider> = AuthProviderAtom(NoCheck)
     val mapper: (Map<String, Any>) -> AuthProviderSpec = { AuthProviderSpec.fromMap(it) }
     val combiner: (List<AuthProviderSpec>) -> AuthProvider = { specs -> SpecsAuthProvider(specs, authFactory) }
     return registryUpdated<AuthProvider, AuthProviderSpec>(
@@ -78,11 +78,11 @@ fun <T, U> registryUpdated(
 fun bootstrap() {
     val reg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
 
+    val auth = setupAuthProvider(reg)
     val server = run(
         KtorServer,
-        setupResolver(reg),
-        setupSinkProvider(reg),
-        setupAuthProvider(reg)
+        setupResolver(reg, auth),
+        setupSinkProvider(reg)
     )
     reg.forceUpdate()
     server.start()

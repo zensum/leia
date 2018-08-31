@@ -9,6 +9,7 @@ import leia.logic.LogAppend
 import leia.logic.NoMatch
 import leia.logic.NotAuthorzied
 import leia.logic.SourceSpecResolver
+import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
 import kotlin.test.*
 
@@ -16,14 +17,14 @@ import kotlin.test.*
 private typealias SSR = SourceSpecResolver
 private typealias Sp = SourceSpec
 private typealias IR = IncomingRequest
-fun Sp.ssr() = SSR(this)
-
+fun Sp.ssr() = SSR(this, NoCheck)
 
 private fun pathIR(path: String) = IR(HttpMethod.Get, null, null, path, emptyMap(), "", null, { ByteArray(0 )})
 
 class SourceSpecResolverTest {
     val goodPath = "this_is_the_path"
-    val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList())
+    val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
+        authenticateUsing = emptyList())
     @Test
     fun rejectsImproperPath() {
         val re = defaultSp.copy(path = "not_good_path").ssr()
