@@ -1,12 +1,9 @@
-package auth
+package se.zensum.leia.auth
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import se.zensum.leia.auth.AuthProvider
-import se.zensum.leia.auth.AuthResult
-import se.zensum.leia.auth.BasicAuth
 import toBase64
 
 class BasicAuthTest {
@@ -39,23 +36,23 @@ class BasicAuthTest {
 
     @Test
     fun testVerifyingCredentialsAsValid() {
-        val auth: AuthProvider = BasicAuth(hashedCredentials)
+        val auth: BasicAuth = BasicAuth(hashedCredentials)
         val b64BasicAuth: String = base64Credentials["Luke"]!!
         val result: AuthResult = auth.verify(b64BasicAuth)
 
-        assertTrue(result is AuthResult.Valid)
-        result as AuthResult.Valid
+        assertTrue(result is AuthResult.Authorized)
+        result as AuthResult.Authorized
         assertEquals("Luke", result.identifier)
     }
 
     @Test
     fun testVerifyingCredentialsAsInvalid() {
-        val auth: AuthProvider = BasicAuth(hashedCredentials)
+        val auth: BasicAuth = BasicAuth(hashedCredentials)
         val unauthorizedUser: String = "Vader:Rebel scum"
             .toByteArray()
             .toBase64()
         val result: AuthResult = auth.verify(unauthorizedUser)
-        assertEquals(AuthResult.Invalid, result)
+        assertEquals(AuthResult.Denied, result)
     }
 
     @Test

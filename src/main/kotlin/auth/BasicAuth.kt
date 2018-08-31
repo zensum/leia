@@ -1,13 +1,17 @@
 package se.zensum.leia.auth
 
+import auth.AuthResult
 import com.mantono.pyttipanna.HashAlgorithm
 import com.mantono.pyttipanna.hash
 import io.ktor.util.decodeBase64
+import leia.logic.IncomingRequest
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
 import java.util.*
 
 private val log = KotlinLogging.logger("basic-auth")
+
+private const val HEADER = "Authorization"
 
 class BasicAuth(credentials: Map<String, String>): AuthProvider {
 
@@ -23,32 +27,53 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
         }
     }
 
+
+
+    override fun verify(matching: List<String>, incomingRequest: IncomingRequest) : AuthResult {
+        if(!incomingRequest.headers.containsKey(HEADER))
+            return AuthResult.Denied
+
+        val credential: String = incomingRequest.headers[HEADER]!!
+            .first()
+            .removePrefix("Basic")
+            .trim()
+
+        return verify(credential)
+    }
+
     /**
      * @param credential the base64 encoded version of the username and password, as
-     * it is provided in the header
+     * it is provided in the header without the "Basic" prefix
      */
-    override fun verify(credential: String): AuthResult {
+    fun verify(credential: String): AuthResult {
         return try {
             val credentialDecoded = String(decodeBase64(credential))
             val (user: String, password: String) = credentialDecoded.split(":")
             val hashedPass: ByteArray = hash(password, HashAlgorithm.SHA256)
             if(Arrays.equals(credentials[user], hashedPass)) {
-                AuthResult.Valid(user)
+                AuthResult.Authorized(user)
             }
             else {
-                AuthResult.Invalid
+                AuthResult.Denied
             }
         }
         catch(e: IllegalArgumentException) {
             log.warn("Credentials for basic authentication with invalid base64 was used: ${e.message}")
-            AuthResult.Invalid
+            AuthResult.Denied
         }
     }
 
     companion object {
     	fun fromOptions(options: Map<String, Any>): BasicAuth {
-            println(options)
-            TODO()
+            val map = options["basic_auth_users"] as Map<String, String>
+            return BasicAuth(map)
         }
     }
+}
+
+/**
+ * Always set as [AuthResult.NotAuthorized]
+ */
+object NoAuth: AuthProvider {
+    override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = AuthResult.NotAuthorized
 }

@@ -27,7 +27,7 @@ data class SourceSpec(val path: String,
             "raw_body" -> Format.RAW_BODY
             "proto" -> Format.PROTOBUF
             null -> Format.PROTOBUF
-            else -> throw IllegalArgumentException("Invalid value for config parameter 'format'")
+            else -> throw IllegalArgumentException("Denied value for config parameter 'format'")
         }
 
         private fun parseCors(cors: Any?): List<String> = when(cors) {

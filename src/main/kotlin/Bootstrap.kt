@@ -13,12 +13,17 @@ import leia.sink.SinkProvider
 import leia.sink.SinkProviderAtom
 import leia.sink.SpecSinkProvider
 import se.zensum.leia.auth.AuthProvider
+import se.zensum.leia.auth.AuthProviderAtom
+import se.zensum.leia.auth.AuthProviderSpec
+import se.zensum.leia.auth.DefaultAuthProviderFactory
+import se.zensum.leia.auth.NoAuth
+import se.zensum.leia.auth.SpecsAuthProvider
 import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.getEnv
 
 fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, authProvider: AuthProvider) =
-    sf.create(resolver, sinkProvider)
+    sf.create(resolver, sinkProvider, authProvider)
 
 private const val DEFAULT_CONFIG_DIRECTORY ="/etc/config"
 
@@ -46,7 +51,17 @@ fun setupResolver(reg: Registry): Resolver {
 }
 
 fun setupAuthProvider(reg: Registry): AuthProvider {
-    TODO()
+    val authFactory = DefaultAuthProviderFactory
+    val atom: Atom<AuthProvider> = AuthProviderAtom(NoAuth)
+    val mapper: (Map<String, Any>) -> AuthProviderSpec = { AuthProviderSpec.fromMap(it) }
+    val combiner: (List<AuthProviderSpec>) -> AuthProvider = { specs -> SpecsAuthProvider(specs, authFactory) }
+    return registryUpdated<AuthProvider, AuthProviderSpec>(
+        zero = { atom },
+        mapper = mapper,
+        combiner = combiner,
+        key = "auth-providers",
+        reg = reg
+    ) as AuthProvider
 }
 
 fun <T, U> registryUpdated(
@@ -72,4 +87,3 @@ fun bootstrap() {
     reg.forceUpdate()
     server.start()
 }
-
