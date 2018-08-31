@@ -31,15 +31,15 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             ?.let { authenticateUsing ->
                 val authResult = auth.verify(authenticateUsing, req)
                 when (authResult) {
-                    is AuthResult.Denied -> return NotAuthorzied
-                    is AuthResult.NotAuthorized -> return NotAuthorzied
+                    is AuthResult.Denied -> return NotAuthorized
+                    is AuthResult.NoAuthorizationCheck -> throw IllegalStateException("Willy says this should not happen")
                     is AuthResult.Authorized -> authResult.identifier
                 }
             }
 
         /* TODO: Handling of legacy property "verify" should be moved to the source spec parser and removed
         if (cfg.verify && !req.hasValidJWT()) {
-            return NotAuthorzied
+            return NotAuthorized
         }*/
 
         // TODO: Carry user identifier in the log-append or sink-description and modify data-formats/kafka headers so as to include the

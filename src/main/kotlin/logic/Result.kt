@@ -39,7 +39,7 @@ sealed class ErrorMatch : Match() {
         }
 }
 // The rule matches but authorization is missing but is required
-object NotAuthorzied: ErrorMatch()
+object NotAuthorized: ErrorMatch()
 // The rule matches but authorization presented is invalid
 object Forbidden: ErrorMatch()
 // The rule matches but CORS is not allowed for that host.

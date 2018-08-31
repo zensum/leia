@@ -37,7 +37,7 @@ sealed class AuthResult {
      */
     object Denied: AuthResult() {
         override fun combine(other: AuthResult): AuthResult = when(other) {
-            NotAuthorized -> this
+            NoAuthorizationCheck -> this
             else -> other
         }
     }
@@ -45,7 +45,7 @@ sealed class AuthResult {
     /**
      * No authorization was done
      */
-    object NotAuthorized: AuthResult() {
+    object NoAuthorizationCheck: AuthResult() {
         override fun combine(other: AuthResult): AuthResult = other
     }
 }

@@ -1,11 +1,10 @@
 package leia
 
 import io.ktor.http.HttpMethod
-import leia.logic.ErrorMatch
 import leia.logic.IncomingRequest
 import leia.logic.LogAppend
 import leia.logic.NoMatch
-import leia.logic.NotAuthorzied
+import leia.logic.NotAuthorized
 import leia.logic.Receipt
 import leia.logic.SinkDescription
 import se.zensum.leia.config.Format
@@ -17,7 +16,7 @@ class ResultTest {
         IncomingRequest(HttpMethod.Get, null, null, "pleb", emptyMap(), "", null, { ByteArray(0) }),
         Receipt(200, "foo")
     )
-    val em = NotAuthorzied
+    val em = NotAuthorized
     @Test fun noMatchOverriddenByAll() {
         NoMatch.combine(la).let {
             assertEquals(la, it, "Overridden by LogAppend")

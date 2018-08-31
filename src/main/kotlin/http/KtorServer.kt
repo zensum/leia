@@ -4,9 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.install
-import io.ktor.features.origin
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.pipeline.PipelineContext
 import io.ktor.request.ApplicationRequest
@@ -30,7 +28,7 @@ import leia.logic.Forbidden
 import leia.logic.IncomingRequest
 import leia.logic.LogAppend
 import leia.logic.NoMatch
-import leia.logic.NotAuthorzied
+import leia.logic.NotAuthorized
 import leia.logic.Receipt
 import leia.logic.Resolver
 import leia.sink.SinkProvider
@@ -75,7 +73,7 @@ private fun createIncomingRequest(req: ApplicationRequest) =
 
 private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) {
     val (text, status) = when(error) {
-        NotAuthorzied ->
+        NotAuthorized ->
             "unauthorized" to HttpStatusCode.Unauthorized
         Forbidden ->
             "forbidden" to HttpStatusCode.Forbidden
@@ -91,6 +89,14 @@ private suspend fun sendNotFoundResponse(call: ApplicationCall) {
     call.respondText(
         "404 - Not found!",
         status = HttpStatusCode.NotFound
+    )
+}
+
+private suspend fun sendNotAuthorized(call: ApplicationCall, realm: String) {
+    call.response.header("WWW-Authenticate", "Basic realm=\"$realm\", charset=\"UTF-8\"")
+    call.respondText(
+        "401 - Authorization required!",
+        status = HttpStatusCode.Unauthorized
     )
 }
 
@@ -154,6 +160,7 @@ class KtorServer private constructor(
             CorsPreflightAllowed -> sendCorsPreflight(ctx.context)
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
             is NoMatch -> sendNotFoundResponse(ctx.context)
+            is NotAuthorized -> sendNotAuthorized(ctx.context, "Auth")
         }
     }
 

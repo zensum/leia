@@ -7,7 +7,7 @@ import leia.logic.IncomingRequest
 import leia.logic.LogAppend
 
 import leia.logic.NoMatch
-import leia.logic.NotAuthorzied
+import leia.logic.NotAuthorized
 import leia.logic.SourceSpecResolver
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
@@ -45,7 +45,7 @@ class SourceSpecResolverTest {
         val re = defaultSp.copy(verify = true).ssr()
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)
-        assertTrue(res is NotAuthorzied, "should give error match")
+        assertTrue(res is NotAuthorized, "should give error match")
     }
 
     @Test
