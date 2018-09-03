@@ -142,3 +142,9 @@ task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts for faster execution'
     gradleVersion = '4.9'
 }
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
