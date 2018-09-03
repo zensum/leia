@@ -62,7 +62,7 @@ data class SourceSpec(val path: String,
                 allowedMethods = parseMethods(m["methods"]),
                 response = HttpStatusCode.fromValue(parseResponse(m["response"])),
                 sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() },
-                authenticateUsing = m["auth-providers"]
+                authenticateUsing = m["auth_providers"]
                     ?.let { it as List<Map<String, Any>> }
                     ?.map { it["name"].toString() }
                     ?.toList()

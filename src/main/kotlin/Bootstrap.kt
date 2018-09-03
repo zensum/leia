@@ -59,7 +59,7 @@ fun setupAuthProvider(reg: Registry): AuthProvider {
         zero = { atom },
         mapper = mapper,
         combiner = combiner,
-        key = "auth-providers",
+        key = "auth_providers",
         reg = reg
     ) as AuthProvider
 }
