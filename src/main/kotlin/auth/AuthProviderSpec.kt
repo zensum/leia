@@ -28,8 +28,7 @@ data class AuthProviderSpec(
     companion object {
     	fun fromMap(config: Map<String, Any>): AuthProviderSpec {
             val options: Map<String, Any> = config
-                .filterKeys { it.startsWith("auth-providers.") }
-                .mapKeys { it.key.replace("auth-providers.", "") }
+                .filterKeys { it !in listOf("type", "name") }
 
             return AuthProviderSpec(
                 name = config["name"].toString(),
