@@ -1,5 +1,7 @@
 package se.zensum.leia.auth
 
+import auth.JwkAuth
+
 interface AuthProviderFactory {
     fun create(spec: AuthProviderSpec): AuthProvider?
 }
@@ -9,7 +11,7 @@ object DefaultAuthProviderFactory: AuthProviderFactory {
         when(spec.type.toLowerCase()) {
             "basic_auth" -> BasicAuth.fromOptions(spec.options)
             "no_auth" -> NoCheck
-            "jwk" -> TODO("Make me later...")
+            "jwk" -> JwkAuth.fromOptions(spec.options)
             else -> throw RuntimeException("No AuthProvider matching type ${spec.type}")
     }
 
