@@ -46,13 +46,10 @@ class DisjunctiveResolverTest {
             resolverReturning(la),
             resolverReturning(la.copy(receipt = Receipt(500, "bar")))
         ))
-        var didThrow = false
-        try {
+
+        assertThrows<UnsupportedOperationException>("Should throw because matches are not supported") {
             r.resolve(exampleIR)
-        } catch(ex: Exception) {
-            didThrow = true
         }
-        assertTrue(didThrow, "Should throw because matches are not supported")
     }
 
     @Test fun testTwoTakesFirstMatching() {
