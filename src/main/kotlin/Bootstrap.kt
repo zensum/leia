@@ -1,7 +1,9 @@
 package leia
 
+import auth.JwkAuth
 import leia.http.KtorServer
 import leia.http.ServerFactory
+import leia.logic.IncomingRequest
 import leia.logic.Resolver
 import leia.logic.ResolverAtom
 import leia.logic.SourceSpecsResolver
@@ -15,6 +17,7 @@ import leia.sink.SpecSinkProvider
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthProviderAtom
 import se.zensum.leia.auth.AuthProviderSpec
+import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.DefaultAuthProviderFactory
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.auth.SpecsAuthProvider
@@ -75,10 +78,11 @@ fun <T, U> registryUpdated(
     }
 }
 
+private const val DEFAULT_JWK_PROVIDER_NAME = "\$default_jwk_provider"
+
 fun bootstrap() {
     val reg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
-
-    val auth = setupAuthProvider(reg)
+    val auth = setupAuthProvider(reg).addJwkProvider()
     val server = run(
         KtorServer,
         setupResolver(reg, auth),
@@ -86,4 +90,24 @@ fun bootstrap() {
     )
     reg.forceUpdate()
     server.start()
+}
+
+private fun AuthProvider.addJwkProvider(): AuthProvider {
+    val envVars: Map<String, String> = sequenceOf("JWK_URL", "JWK_ISSUER")
+        .map { it to getEnv(it, "") }
+        .toMap()
+        .mapKeys { it.value.toLowerCase() }
+        .filterValues { it.isBlank() }
+
+    if(envVars.size != 2)
+        return this
+
+    val jwkAuth = JwkAuth.fromOptions(mapOf("jwk_config" to envVars))
+    return object : AuthProvider {
+        override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult =
+            if (matching.contains(DEFAULT_JWK_PROVIDER_NAME))
+                jwkAuth.verify(matching, incomingRequest).combine(this.verify(matching, incomingRequest))
+            else
+                this.verify(matching, incomingRequest)
+    }
 }

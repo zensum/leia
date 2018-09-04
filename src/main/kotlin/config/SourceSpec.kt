@@ -73,7 +73,8 @@ data class SourceSpec(val path: String,
                     ?.let { it as List<String> }
                     ?: if (m["verify"] as Boolean? == true) listOf("\$default_jwk_provider") else emptyList()
         ).also {
-            require(!((m["auth_providers"] as List<String>).isNotEmpty() && m["verify"] as Boolean? == true)) {
+            val providers: List<String> = m["auth_providers"] as? List<String> ?: emptyList()
+            require(!(providers.isNotEmpty() && m["verify"] as Boolean? == true)) {
                 "Config parameter 'verify' cannot be true when an 'auth_provider' is " +
                     "also configured, these two options are mutually exclusive"
             }
