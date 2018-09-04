@@ -10,15 +10,17 @@ class SourceSpecTest {
     @Test
     fun `check that verify and auth-provider are not present at the same time`() {
         assertThrows<IllegalArgumentException> {
-            SourceSpec(
-                path = "/",
-                topic = "topic",
-                format = Format.PROTOBUF,
-                verify = true,
-                allowedMethods = listOf(HttpMethod.Post),
-                corsHosts = emptyList(),
-                response = HttpStatusCode.Accepted,
-                authenticateUsing = listOf("no_auth")
+            SourceSpec.fromMap(
+                mapOf<String, Any>(
+                    "path" to "/",
+                    "topic" to "topic",
+                    "format" to Format.PROTOBUF,
+                    "verify" to true,
+                    "allowedMethods" to listOf(HttpMethod.Post),
+                    "corsHosts" to emptyList<String>(),
+                    "response" to HttpStatusCode.Accepted,
+                    "authenticateUsing" to listOf("no_auth")
+                )
             )
         }
     }

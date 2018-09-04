@@ -42,8 +42,6 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             return NotAuthorized
         }*/
 
-        // TODO: Carry user identifier in the log-append or sink-description and modify data-formats/kafka headers so as to include the
-        // identifier
         return LogAppend(
             SinkDescription(cfg.topic, req.requestId.toString(), cfg.format, cfg.sink, userId),
             req,

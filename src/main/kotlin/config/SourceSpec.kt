@@ -9,7 +9,6 @@ enum class Format { RAW_BODY, PROTOBUF }
 data class SourceSpec(val path: String,
                       val topic: String,
                       val format: Format = Format.PROTOBUF,
-                      val verify: Boolean = false,
                       private val allowedMethods: Collection<HttpMethod>,
                       val corsHosts: List<String>,
                       val response: HttpStatusCode,
@@ -18,10 +17,7 @@ data class SourceSpec(val path: String,
     val allowedMethodsSet = allowedMethods.toSet()
 
     init {
-        require(!(verify && authenticateUsing.isNotEmpty())) {
-            "Config parameter 'verify' cannot be true when an 'auth_provider' is " +
-                "also configured, these two options are mutually exclusive"
-        }
+
     }
 
     companion object {
@@ -66,14 +62,22 @@ data class SourceSpec(val path: String,
                 topic = m["topic"] as String,
                 format = parseFormat(m["format"]),
                 corsHosts = parseCors(m["cors"]),
-                verify = (m["verify"] ?: false) as Boolean,
                 allowedMethods = parseMethods(m["methods"]),
                 response = HttpStatusCode.fromValue(parseResponse(m["response"])),
                 sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() },
+                // IF verify is true and auth_providers is empty authenticateUsing is assigned the value ["$default_jwk_provider"]
+                // This in conjunction with the rule that if JWK_URL is set a JWK auth-provider with the name $default_jwk_provider is
+            // created, means that backward compat breaking changes were introduced for authenticateUsing...This fallback functionality
+            // will be removed in a future version of the software.
                 authenticateUsing = m["auth_providers"]
                     ?.let { it as List<String> }
-                    ?: emptyList()
-        )
+                    ?: if (m["verify"] as Boolean? == true) listOf("\$default_jwk_provider") else emptyList()
+        ).also {
+            require(!((m["auth_providers"] as List<String>).isNotEmpty() && m["verify"] as Boolean? == true)) {
+                "Config parameter 'verify' cannot be true when an 'auth_provider' is " +
+                    "also configured, these two options are mutually exclusive"
+            }
+        }
 
     }
 }

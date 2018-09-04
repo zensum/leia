@@ -42,7 +42,7 @@ class SourceSpecResolverTest {
 
     @Test
     fun rejectsMissingJWT() {
-        val re = defaultSp.copy(verify = true).ssr()
+        val re = defaultSp.copy(authenticateUsing = listOf("jwk_auth")).ssr()
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)
         assertTrue(res is NotAuthorized, "should give error match")
@@ -66,12 +66,7 @@ class SourceSpecResolverTest {
         val ir = pathIR(goodPath)
             .copy(origin = "http://example.com", method = HttpMethod.Post)
 
-        var res = re.resolve(ir)
-
-        if (res !is LogAppend) {
-            fail("Res must be log-append")
-            return
-        }
+        val res = re.resolve(ir) as? LogAppend ?: fail("Res must be log-append")
 
         val (sinkDes, req, rec)  = res
 
