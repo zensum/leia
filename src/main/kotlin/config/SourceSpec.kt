@@ -16,6 +16,14 @@ data class SourceSpec(val path: String,
                       val sink: String? = null,
                       val authenticateUsing: List<String>) {
     val allowedMethodsSet = allowedMethods.toSet()
+
+    init {
+        require(!(verify && authenticateUsing.isNotEmpty())) {
+            "Config parameter 'verify' cannot be true when an 'auth_provider' is " +
+                "also configured, these two options are mutually exclusive"
+        }
+    }
+
     companion object {
         private inline fun <reified T> uneraseType(xs: Iterable<*>): List<T> =
             xs.map {
