@@ -33,19 +33,26 @@ class JwkAuth(
 
     companion object {
         fun fromOptions(options: Map<String, Any>): JwkAuth {
+            val jwkConfig = validateConfig(options)
+            val verifier: JWTVerifier = createVerifier(jwkConfig)
+            val provider: JWTProvider = JWTProviderImpl(verifier)
+            return JwkAuth(provider)
+        }
+
+        private fun validateConfig(options: Map<String, Any>): Map<String, String> {
             require(options.containsKey("jwk_config")) { "Found no config for JWK" }
             val jwkConfig: Map<String, String> = options["jwk_config"] as Map<String, String>
             require(jwkConfig.containsKey("jwk_url")) { "Missing required config key 'jwk_url'" }
             require(jwkConfig.containsKey("jwk_issuer")) { "Missing required config key 'jwk_issuer'" }
-
-            val url: String = jwkConfig["jwk_url"].toString()
-            val issuer: String = jwkConfig["jwk_issuer"].toString()
-            val verifier: JWTVerifier = createVerifier(url, issuer)
-
-            val provider: JWTProvider = JWTProviderImpl(verifier)
-            return JwkAuth(provider)
+            return jwkConfig
         }
     }
+}
+
+fun createVerifier(config: Map<String, String>): JWTVerifier {
+    val url: String = config["jwk_url"].toString()
+    val issuer: String = config["jwk_issuer"].toString()
+    return createVerifier(url, issuer)
 }
 
 fun createVerifier(
