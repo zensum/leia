@@ -12,13 +12,6 @@ data class AuthProviderSpec(
      * as "jwt", "basic_auth" or other supported auth module.
      */
     val type: String,
-
-    /**
-     * True if this is specified in the config as the default
-     * spec for Auth-Provider
-     */
-    val isDefault: Boolean,
-
     /**
      * Module specific options or config that is needed for the [AuthProvider]
      */
@@ -33,7 +26,6 @@ data class AuthProviderSpec(
             return AuthProviderSpec(
                 name = config["name"].toString(),
                 type = config.getOrDefault("type", "no_auth").toString(),
-                isDefault = config.getOrDefault("default", false).toString().toBoolean(),
                 options = options
             )
         }

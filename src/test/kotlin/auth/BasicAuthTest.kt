@@ -130,7 +130,7 @@ internal fun basicAuthProviderSpecWithCredentials(name: String = "some_auth"): A
             "user-z" to "594e519ae499312b29433b7dd8a97ff068defcba9755b6d5d00e84c524d67b06" // "z
         )
     )
-    return AuthProviderSpec(name, "basic_auth", true, options)
+    return AuthProviderSpec(name, "basic_auth", options)
 }
 
 private fun basicAuthFromSpec(): AuthProvider {

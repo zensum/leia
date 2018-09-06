@@ -12,7 +12,7 @@ class SpecsAuthProviderTest {
     fun `test combiner with one Successful auth`() {
         val authProviders: List<AuthProviderSpec> = listOf(
             basicAuthProviderSpecWithCredentials("spec1"),
-            AuthProviderSpec("spec2", "jwk", false, mapOf(
+            AuthProviderSpec("spec2", "jwk", mapOf(
                 "jwk_config" to mapOf<String, String>(
                     "jwk_url" to "https://klira.io",
                     "jwk_issuer" to "my-issuer"
@@ -33,7 +33,7 @@ class SpecsAuthProviderTest {
     fun `test combiner with one Denied auth`() {
         val authProviders: List<AuthProviderSpec> = listOf(
             basicAuthProviderSpecWithCredentials("spec1"),
-            AuthProviderSpec("spec2", "jwk", false, mapOf(
+            AuthProviderSpec("spec2", "jwk", mapOf(
                 "jwk_config" to mapOf<String, String>(
                     "jwk_url" to "https://klira.io",
                     "jwk_issuer" to "my-issuer"
@@ -66,7 +66,7 @@ class SpecsAuthProviderTest {
     @Test
     fun `test combiner with no auth`() {
         val authProviders: List<AuthProviderSpec> = listOf(
-            AuthProviderSpec("spec1", "no_auth", false)
+            AuthProviderSpec("spec1", "no_auth")
         )
         val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
         val request = genericRequest()

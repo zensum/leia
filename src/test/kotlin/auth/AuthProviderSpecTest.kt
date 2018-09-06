@@ -10,7 +10,6 @@ class AuthProviderSpecTest {
         val spec = AuthProviderSpec(
             name = "internal",
             type = "basic_auth",
-            isDefault = false,
             options = mapOf(
                 "basic_auth_users" to mapOf(
                     "alice" to "3df8232404be55d2d6b85be79b99316e028676b69efa2ce91d9094dd18dd3502",

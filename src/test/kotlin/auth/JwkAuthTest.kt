@@ -12,7 +12,7 @@ class JwkAuthTest {
                 "jwk_url" to "https://xx.yy"
             )
         )
-        val spec = AuthProviderSpec("some_auth", "jwk", true, options)
+        val spec = AuthProviderSpec("some_auth", "jwk", options)
 
         return DefaultAuthProviderFactory.create(spec)
     }
