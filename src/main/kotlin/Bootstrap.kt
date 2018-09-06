@@ -102,7 +102,11 @@ private fun AuthProvider.addJwkProvider(): AuthProvider {
     if(envVars.size != 2)
         return this
 
-    val jwkAuth = JwkAuth.fromOptions(mapOf("jwk_config" to envVars))
+    return createJwkAuth(envVars)
+}
+
+private fun createJwkAuth(configs: Map<String, String>): AuthProvider {
+    val jwkAuth = JwkAuth.fromOptions(mapOf("jwk_config" to configs))
     return object : AuthProvider {
         override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult =
             if (matching.contains(DEFAULT_JWK_PROVIDER_NAME))
