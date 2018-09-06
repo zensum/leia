@@ -38,6 +38,16 @@ class BasicAuthTest {
         .mapValues { it.value.toByteArray().toBase64() }
 
     @Test
+    fun testDeniedOnBearerInsteadOfBasicInHeader() {
+        val auth: BasicAuth = BasicAuth(hashedCredentials)
+        val req: IncomingRequest = genericRequest(mapOf(
+            "Authorization" to listOf("Bearer Vader:Rebel scum")
+        ))
+        val result: AuthResult = auth.verify(emptyList(), req)
+        assertTrue(result is AuthResult.Denied)
+    }
+
+    @Test
     fun testVerifyingCredentialsAsValid() {
         val auth: BasicAuth = BasicAuth(hashedCredentials)
         val b64BasicAuth: String = base64Credentials["Luke"]!!
