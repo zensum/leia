@@ -2,12 +2,7 @@ package se.zensum.leia
 
 import io.ktor.http.HttpMethod
 
-@Deprecated(
-    "Use ktor DefaultMethods instead",
-    replaceWith = ReplaceWith("HttpMethod.DefaultMethods", "io.ktor.http.HttpMethod"),
-    level = DeprecationLevel.WARNING
-)
-object httpMethods {
+object HttpMethods {
     val verbs: Set<HttpMethod> = setOf(
         HttpMethod.Get,
         HttpMethod.Post,

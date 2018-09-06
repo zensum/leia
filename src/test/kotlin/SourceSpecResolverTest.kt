@@ -10,6 +10,7 @@ import leia.logic.LogAppend
 import leia.logic.NoMatch
 import leia.logic.NotAuthorized
 import leia.logic.SourceSpecResolver
+import se.zensum.leia.HttpMethods
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.NoCheck
@@ -47,7 +48,7 @@ class SourceSpecResolverTest {
     fun rejectsMissingJWT() {
         val re = defaultSp.copy(
             authenticateUsing = listOf("jwk"),
-            allowedMethods = HttpMethod.DefaultMethods
+            allowedMethods = HttpMethods.verbs
         ).ssr(object : AuthProvider {
             override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult
             = AuthResult.Denied
