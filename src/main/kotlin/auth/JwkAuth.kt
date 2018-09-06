@@ -1,4 +1,4 @@
-package auth
+package se.zensum.leia.auth
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
@@ -10,8 +10,6 @@ import com.auth0.jwt.interfaces.RSAKeyProvider
 import leia.logic.IncomingRequest
 import se.zensum.jwt.JWTProvider
 import se.zensum.jwt.JWTProviderImpl
-import se.zensum.leia.auth.AuthProvider
-import se.zensum.leia.auth.AuthResult
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 

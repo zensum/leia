@@ -1,16 +1,9 @@
-package auth
+package se.zensum.leia.auth
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import se.zensum.leia.auth.AuthProviderSpec
-import se.zensum.leia.auth.AuthResult
-import se.zensum.leia.auth.DefaultAuthProviderFactory
-import se.zensum.leia.auth.SpecsAuthProvider
-import se.zensum.leia.auth.basicAuthHeaderValue
-import se.zensum.leia.auth.basicAuthProviderSpecWithCredentials
-import se.zensum.leia.auth.genericRequest
 import kotlin.test.assertNull
 
 class SpecsAuthProviderTest {

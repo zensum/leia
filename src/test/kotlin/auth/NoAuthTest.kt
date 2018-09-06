@@ -1,10 +1,7 @@
-package auth
+package se.zensum.leia.auth
 
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import se.zensum.leia.auth.AuthResult
-import se.zensum.leia.auth.NoCheck
-import se.zensum.leia.auth.genericRequest
 import kotlin.test.assertNull
 
 class NoAuthTest {

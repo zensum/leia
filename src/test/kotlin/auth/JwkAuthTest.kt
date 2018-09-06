@@ -1,10 +1,7 @@
-package auth
+package se.zensum.leia.auth
 
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import se.zensum.leia.auth.AuthProvider
-import se.zensum.leia.auth.AuthProviderSpec
-import se.zensum.leia.auth.DefaultAuthProviderFactory
 
 class JwkAuthTest {
 
