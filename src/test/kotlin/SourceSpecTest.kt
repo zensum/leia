@@ -1,17 +1,9 @@
-import auth.JwkAuth
-import io.ktor.http.HttpMethod
+
 import io.ktor.http.HttpStatusCode
-import leia.ssr
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import se.zensum.leia.auth.AuthProvider
-import se.zensum.leia.auth.AuthProviderFactory
-import se.zensum.leia.auth.AuthProviderSpec
-import se.zensum.leia.auth.BasicAuth
-import se.zensum.leia.auth.DefaultAuthProviderFactory
-import se.zensum.leia.config.Format
 import se.zensum.leia.config.SourceSpec
 
 class SourceSpecTest {

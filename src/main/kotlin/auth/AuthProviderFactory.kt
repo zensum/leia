@@ -1,6 +1,5 @@
 package se.zensum.leia.auth
 
-import auth.JwkAuth
 
 interface AuthProviderFactory {
     fun create(spec: AuthProviderSpec): AuthProvider?

@@ -1,6 +1,5 @@
 package leia
 
-import auth.JwkAuth
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import leia.logic.CorsNotAllowed

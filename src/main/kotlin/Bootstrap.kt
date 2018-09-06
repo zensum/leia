@@ -1,6 +1,5 @@
 package leia
 
-import auth.JwkAuth
 import leia.http.KtorServer
 import leia.http.ServerFactory
 import leia.logic.IncomingRequest
@@ -19,6 +18,7 @@ import se.zensum.leia.auth.AuthProviderAtom
 import se.zensum.leia.auth.AuthProviderSpec
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.DefaultAuthProviderFactory
+import se.zensum.leia.auth.JwkAuth
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.auth.SpecsAuthProvider
 import se.zensum.leia.config.SinkProviderSpec
