@@ -1,5 +1,6 @@
 package leia
 
+import auth.JwkAuth
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import leia.logic.CorsNotAllowed
@@ -9,6 +10,8 @@ import leia.logic.LogAppend
 import leia.logic.NoMatch
 import leia.logic.NotAuthorized
 import leia.logic.SourceSpecResolver
+import se.zensum.leia.auth.AuthProvider
+import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
 import kotlin.test.*
@@ -17,7 +20,7 @@ import kotlin.test.*
 private typealias SSR = SourceSpecResolver
 private typealias Sp = SourceSpec
 private typealias IR = IncomingRequest
-fun Sp.ssr() = SSR(this, NoCheck)
+fun Sp.ssr(auth: AuthProvider = NoCheck) = SSR(this, auth)
 
 private fun pathIR(path: String) = IR(HttpMethod.Get, null, null, path, emptyMap(), "", null, { ByteArray(0 )})
 
@@ -42,10 +45,16 @@ class SourceSpecResolverTest {
 
     @Test
     fun rejectsMissingJWT() {
-        val re = defaultSp.copy(authenticateUsing = listOf("jwk_auth")).ssr()
+        val re = defaultSp.copy(
+            authenticateUsing = listOf("jwk"),
+            allowedMethods = HttpMethod.DefaultMethods
+        ).ssr(object : AuthProvider {
+            override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult
+            = AuthResult.Denied
+        })
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)
-        assertTrue(res is NotAuthorized, "should give error match")
+        assertEquals(NotAuthorized, res, "should give error match")
     }
 
     @Test

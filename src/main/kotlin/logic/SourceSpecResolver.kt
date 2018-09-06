@@ -37,11 +37,6 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
                 }
             }
 
-        /* TODO: Handling of legacy property "verify" should be moved to the source spec parser and removed
-        if (cfg.verify && !req.hasValidJWT()) {
-            return NotAuthorized
-        }*/
-
         return LogAppend(
             SinkDescription(cfg.topic, req.requestId.toString(), cfg.format, cfg.sink, userId),
             req,

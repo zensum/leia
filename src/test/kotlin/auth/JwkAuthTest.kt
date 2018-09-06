@@ -1,0 +1,5 @@
+package auth
+
+class JwkAuthTest
+{
+}

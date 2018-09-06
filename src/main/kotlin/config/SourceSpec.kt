@@ -2,14 +2,13 @@ package se.zensum.leia.config
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import se.zensum.leia.httpMethods
 
 enum class Format { RAW_BODY, PROTOBUF }
 
 data class SourceSpec(val path: String,
                       val topic: String,
                       val format: Format = Format.PROTOBUF,
-                      private val allowedMethods: Collection<HttpMethod>,
+                      private val allowedMethods: Collection<HttpMethod> = HttpMethod.DefaultMethods,
                       val corsHosts: List<String>,
                       val response: HttpStatusCode,
                       val sink: String? = null,
@@ -23,9 +22,7 @@ data class SourceSpec(val path: String,
     companion object {
         private inline fun <reified T> uneraseType(xs: Iterable<*>): List<T> =
             xs.map {
-              if (it is T) {
-                  it as T
-              } else throw RuntimeException("rhee")
+                it as? T ?: throw RuntimeException("Could not cast as ${T::class}")
             }.toList()
 
         private fun parseFormat(x: Any?): Format = when(x) {
@@ -42,12 +39,12 @@ data class SourceSpec(val path: String,
         }
 
         private fun parseMethods(methods: Any?): Set<HttpMethod> = when(methods) {
-            null -> httpMethods.verbs
+            null -> emptySet()
             is Iterable<*> ->
                 uneraseType<String>(methods)
                     .map { HttpMethod.parse(it) }
                     .toSet()
-            else -> throw RuntimeException("rhee")
+            else -> throw RuntimeException("Invalid method(s): $methods")
         }
 
         private fun parseResponse(response: Any?): Int = when(response) {
