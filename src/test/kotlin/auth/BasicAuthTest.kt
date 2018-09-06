@@ -80,7 +80,7 @@ class BasicAuthTest {
     }
 
     @Test
-    fun `allow request without proper credentials`() {
+    fun `allow request with proper credentials`() {
         val basicAuth: AuthProvider = basicAuthFromSpec()
         val req = genericRequest(mapOf<String, List<String>>(
             "Authorization" to listOf(basicAuthHeaderValue("bank-x", "x"))
@@ -91,7 +91,7 @@ class BasicAuthTest {
 
 
     @Test
-    fun `deny request without invalid credentials`() {
+    fun `deny request with invalid credentials`() {
         val basicAuth: AuthProvider = basicAuthFromSpec()
         val req = genericRequest(mapOf<String, List<String>>(
             "Authorization" to listOf(basicAuthHeaderValue("bank-x", "wrong secret!"))
