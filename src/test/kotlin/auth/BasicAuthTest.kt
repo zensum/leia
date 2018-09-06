@@ -80,7 +80,7 @@ class BasicAuthTest {
     fun `allow request with proper credentials`() {
         val basicAuth: AuthProvider = basicAuthFromSpec()
         val req = genericRequest(mapOf<String, List<String>>(
-            "Authorization" to listOf(basicAuthHeaderValue("bank-x", "x"))
+            "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
         val result: AuthResult = basicAuth.verify(listOf("some_auth"), req)
         assertTrue(result is AuthResult.Authorized)
@@ -91,7 +91,7 @@ class BasicAuthTest {
     fun `deny request with invalid credentials`() {
         val basicAuth: AuthProvider = basicAuthFromSpec()
         val req = genericRequest(mapOf<String, List<String>>(
-            "Authorization" to listOf(basicAuthHeaderValue("bank-x", "wrong secret!"))
+            "Authorization" to listOf(basicAuthHeaderValue("user-x", "wrong secret!"))
         ))
         val result: AuthResult = basicAuth.verify(listOf("some_auth"), req)
         assertTrue(result is AuthResult.Denied)
@@ -125,9 +125,9 @@ internal fun basicAuthHeaderValue(user: String, password: String): String = Base
 internal fun basicAuthProviderSpecWithCredentials(name: String = "some_auth"): AuthProviderSpec {
     val options = mapOf<String, Any>(
         "basic_auth_users" to mapOf<String, String>(
-            "bank-x" to "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881", // "x"
-            "bank-y" to "a1fce4363854ff888cff4b8e7875d600c2682390412a8cf79b37d0b11148b0fa", // "y"
-            "bank-z" to "594e519ae499312b29433b7dd8a97ff068defcba9755b6d5d00e84c524d67b06" // "z
+            "user-x" to "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881", // "x"
+            "user-y" to "a1fce4363854ff888cff4b8e7875d600c2682390412a8cf79b37d0b11148b0fa", // "y"
+            "user-z" to "594e519ae499312b29433b7dd8a97ff068defcba9755b6d5d00e84c524d67b06" // "z
         )
     )
     return AuthProviderSpec(name, "basic_auth", true, options)

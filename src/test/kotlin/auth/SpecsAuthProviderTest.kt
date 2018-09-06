@@ -28,12 +28,12 @@ class SpecsAuthProviderTest {
         )
         val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
         val request = genericRequest(mapOf<String, List<String>>(
-            "Authorization" to listOf(basicAuthHeaderValue("bank-x", "x"))
+            "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
         val result: AuthResult = sap.verify(listOf("spec1", "spec2"), request)
         assertTrue(result is AuthResult.Authorized, result::class.toString())
         result as AuthResult.Authorized
-        assertEquals("bank-x", result.identifier)
+        assertEquals("user-x", result.identifier)
     }
 
     @Test
@@ -49,7 +49,7 @@ class SpecsAuthProviderTest {
         )
         val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
         val request = genericRequest(mapOf<String, List<String>>(
-            "Authorization" to listOf(basicAuthHeaderValue("bank-x", "!!wrong secret!!"))
+            "Authorization" to listOf(basicAuthHeaderValue("user-x", "!!wrong secret!!"))
         ))
         val result: AuthResult = sap.verify(listOf("spec1", "spec2"), request)
         assertTrue(result is AuthResult.Denied, result::class.toString())
@@ -63,7 +63,7 @@ class SpecsAuthProviderTest {
         )
         val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
         val request = genericRequest(mapOf<String, List<String>>(
-            "Authorization" to listOf(basicAuthHeaderValue("bank-x", "x"))
+            "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
         assertThrows<UnsupportedOperationException> {
             sap.verify(listOf("spec1", "spec2"), request)
