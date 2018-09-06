@@ -9,24 +9,19 @@ import se.zensum.leia.config.SourceSpec
 // object.
 class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProvider) : Resolver {
     override fun resolve(req: IncomingRequest) : Result {
-        // TODO: Add hostname restriction here
-        if (!req.matchPath(cfg.path)) {
-            return NoMatch
+        return when {
+            // TODO: Add hostname restriction here
+            !req.matchPath(cfg.path) -> NoMatch
+            !req.matchCors(cfg.corsHosts) -> CorsNotAllowed
+            // TODO: We need to be able to tell this apart from explicitly allowed
+            cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options -> CorsPreflightAllowed
+            !cfg.allowedMethodsSet.contains(req.method) -> NoMatch
+            else -> authAndAppendToLog(req)
         }
-        if (!req.matchCors(cfg.corsHosts)) {
-            return CorsNotAllowed
-        }
-        // TODO: We need to be able to tell this apart from explicitly allowed
-        // OPTIONS.
-        if (cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options) {
-            return CorsPreflightAllowed
-        }
+    }
 
-        if (!cfg.allowedMethodsSet.contains(req.method)) {
-            return NoMatch
-        }
-
-        val userId = cfg.authenticateUsing
+    private fun authAndAppendToLog(req: IncomingRequest): Result {
+        val userId: String? = cfg.authenticateUsing
             .takeIf { it.isNotEmpty() }
             ?.let { authenticateUsing ->
                 val authResult = auth.verify(authenticateUsing, req)
