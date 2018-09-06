@@ -11,6 +11,7 @@ import se.zensum.leia.auth.SpecsAuthProvider
 import se.zensum.leia.auth.basicAuthHeaderValue
 import se.zensum.leia.auth.basicAuthProviderSpecWithCredentials
 import se.zensum.leia.auth.genericRequest
+import kotlin.test.assertNull
 
 class SpecsAuthProviderTest {
 
@@ -18,8 +19,7 @@ class SpecsAuthProviderTest {
     fun `test combiner with one Successful auth`() {
         val authProviders: List<AuthProviderSpec> = listOf(
             basicAuthProviderSpecWithCredentials("spec1"),
-            AuthProviderSpec("spec2", "no_auth", false),
-            AuthProviderSpec("spec3", "jwk", false, mapOf(
+            AuthProviderSpec("spec2", "jwk", false, mapOf(
                 "jwk_config" to mapOf<String, String>(
                     "jwk_url" to "https://klira.io",
                     "jwk_issuer" to "my-issuer"
@@ -30,7 +30,7 @@ class SpecsAuthProviderTest {
         val request = genericRequest(mapOf<String, List<String>>(
             "Authorization" to listOf(basicAuthHeaderValue("bank-x", "x"))
         ))
-        val result: AuthResult = sap.verify(listOf("spec1", "spec2", "spec3"), request)
+        val result: AuthResult = sap.verify(listOf("spec1", "spec2"), request)
         assertTrue(result is AuthResult.Authorized, result::class.toString())
         result as AuthResult.Authorized
         assertEquals("bank-x", result.identifier)
@@ -40,8 +40,7 @@ class SpecsAuthProviderTest {
     fun `test combiner with one Denied auth`() {
         val authProviders: List<AuthProviderSpec> = listOf(
             basicAuthProviderSpecWithCredentials("spec1"),
-            AuthProviderSpec("spec2", "no_auth", false),
-            AuthProviderSpec("spec3", "jwk", false, mapOf(
+            AuthProviderSpec("spec2", "jwk", false, mapOf(
                 "jwk_config" to mapOf<String, String>(
                     "jwk_url" to "https://klira.io",
                     "jwk_issuer" to "my-issuer"
@@ -52,7 +51,7 @@ class SpecsAuthProviderTest {
         val request = genericRequest(mapOf<String, List<String>>(
             "Authorization" to listOf(basicAuthHeaderValue("bank-x", "!!wrong secret!!"))
         ))
-        val result: AuthResult = sap.verify(listOf("spec1", "spec2", "spec3"), request)
+        val result: AuthResult = sap.verify(listOf("spec1", "spec2"), request)
         assertTrue(result is AuthResult.Denied, result::class.toString())
     }
 
@@ -74,12 +73,13 @@ class SpecsAuthProviderTest {
     @Test
     fun `test combiner with no auth`() {
         val authProviders: List<AuthProviderSpec> = listOf(
-            AuthProviderSpec("spec1", "no_auth", false),
-            AuthProviderSpec("spec2", "no_auth", false)
+            AuthProviderSpec("spec1", "no_auth", false)
         )
         val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
         val request = genericRequest()
-        val result = sap.verify(listOf("spec1", "spec2"), request)
-        assertTrue(result is AuthResult.NoAuthorizationCheck)
+        val result = sap.verify(listOf("spec1"), request)
+        assertTrue(result is AuthResult.Authorized)
+        result as AuthResult.Authorized
+        assertNull(result.identifier)
     }
 }

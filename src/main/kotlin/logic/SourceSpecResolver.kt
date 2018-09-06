@@ -27,7 +27,6 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
                 val authResult = auth.verify(authenticateUsing, req)
                 when (authResult) {
                     is AuthResult.Denied -> return NotAuthorized
-                    is AuthResult.NoAuthorizationCheck -> throw IllegalStateException("Willy says this should not happen")
                     is AuthResult.Authorized -> authResult.identifier
                 }
             }

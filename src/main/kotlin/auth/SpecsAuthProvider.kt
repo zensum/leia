@@ -22,9 +22,9 @@ class SpecsAuthProvider(val specs: List<AuthProviderSpec>, val apf: AuthProvider
 sealed class AuthResult {
     abstract fun combine(other: AuthResult): AuthResult
     /**
-     * Authorized was required and successful
+     * Authorization was successful (if required)
      */
-    data class Authorized(val identifier: String): AuthResult() {
+    data class Authorized(val identifier: String?): AuthResult() {
         override fun combine(other: AuthResult): AuthResult = when(other) {
             is Authorized ->
                 throw UnsupportedOperationException("Only one means of authorization is allowed")
@@ -36,16 +36,6 @@ sealed class AuthResult {
      * Authorized was required but not successful
      */
     object Denied: AuthResult() {
-        override fun combine(other: AuthResult): AuthResult = when(other) {
-            NoAuthorizationCheck -> this
-            else -> other
-        }
-    }
-
-    /**
-     * No authorization was done
-     */
-    object NoAuthorizationCheck: AuthResult() {
         override fun combine(other: AuthResult): AuthResult = other
     }
 }

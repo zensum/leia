@@ -74,5 +74,5 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
  * Always set as [AuthResult.NoAuthorizationCheck]
  */
 object NoCheck: AuthProvider {
-    override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = AuthResult.NoAuthorizationCheck
+    override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = AuthResult.Authorized(null)
 }
