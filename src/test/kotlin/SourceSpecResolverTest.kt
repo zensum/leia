@@ -22,7 +22,7 @@ private typealias Sp = SourceSpec
 private typealias IR = IncomingRequest
 fun Sp.ssr(auth: AuthProvider = NoCheck) = SSR(this, auth)
 
-private fun pathIR(path: String) = IR(HttpMethod.Get, null, null, path, emptyMap(), "", null, { ByteArray(0 )})
+private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), "", null, { ByteArray(0 )})
 
 class SourceSpecResolverTest {
     val goodPath = "this_is_the_path"

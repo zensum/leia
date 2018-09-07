@@ -109,7 +109,6 @@ class BasicAuthTest {
 internal fun genericRequest(headers: Map<String, List<String>> = emptyMap()) = IncomingRequest(
     method = HttpMethod.Post,
     origin = null,
-    jwt = null,
     path = "/",
     headers = headers,
     queryString = "",

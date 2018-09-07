@@ -56,7 +56,6 @@ private fun createIncomingRequest(req: ApplicationRequest) =
     IncomingRequest(
         req.httpMethod,
         req.header("Origin"),
-        if (req.call.isVerified()) req.call.token() else null,
         req.path(),
         req.headers.toMap(),
         req.queryString(),
