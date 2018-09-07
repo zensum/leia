@@ -6,6 +6,7 @@ import io.ktor.util.decodeBase64
 import leia.logic.IncomingRequest
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
+import java.security.MessageDigest
 import java.util.*
 
 private val log = KotlinLogging.logger("basic-auth")
@@ -51,7 +52,7 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
                 return AuthResult.Denied
             val (user: String, password: String) = credentialDecoded.split(":")
             val hashedPass: ByteArray = hash(password, HashAlgorithm.SHA256)
-            if(Arrays.equals(credentials[user], hashedPass)) {
+            if(MessageDigest.isEqual(credentials[user], hashedPass)) {
                 AuthResult.Authorized(user)
             }
             else {
