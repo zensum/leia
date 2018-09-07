@@ -137,8 +137,7 @@ private suspend fun sendCorsPreflight(call: ApplicationCall) {
 class KtorServer private constructor(
     private val resolver: Resolver,
     private val appender: suspend (LogAppend) -> SinkResult,
-    private val installPrometheus: Boolean,
-    private val jwtProvider: JWTProvider?
+    private val installPrometheus: Boolean
 ) : Server {
 
     private suspend fun performLogAppend(logAppend: LogAppend,
@@ -173,13 +172,6 @@ class KtorServer private constructor(
     private fun getKtorApplication(): Application.() -> Unit = {
         install(SentryFeature)
         if (installPrometheus) install(PrometheusFeature.Feature)
-        if (getEnv("JWK_URL", "").isNotBlank()) {
-            install(JWTFeature) {
-                jwtProvider?.let {
-                    jwtProvider(it)
-                }
-            }
-        }
         install(Health)
         intercept(ApplicationCallPipeline.Call) {
             handleRequest(this)
@@ -210,8 +202,7 @@ class KtorServer private constructor(
             KtorServer(
                 resolver,
                 { sinkProvider.handle(it.sinkDescription, it.request) },
-                true,
-                null
+                true
             )
     }
 }
