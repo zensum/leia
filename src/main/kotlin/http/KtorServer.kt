@@ -91,8 +91,8 @@ private suspend fun sendNotFoundResponse(call: ApplicationCall) {
     )
 }
 
-private suspend fun sendNotAuthorized(call: ApplicationCall, realm: String) {
-    call.response.header("WWW-Authenticate", "Basic realm=\"$realm\", charset=\"UTF-8\"")
+private suspend fun sendNotAuthorized(call: ApplicationCall, realm: String? = null) {
+    realm?.let { call.response.header("WWW-Authenticate", "Basic realm=\"$it\", charset=\"UTF-8\"") }
     call.respondText(
         "401 - Authorization required!",
         status = HttpStatusCode.Unauthorized

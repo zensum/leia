@@ -18,9 +18,9 @@ import se.zensum.leia.auth.AuthProviderAtom
 import se.zensum.leia.auth.AuthProviderSpec
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.DefaultAuthProviderFactory
-import se.zensum.leia.auth.JwkAuth
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.auth.SpecsAuthProvider
+import se.zensum.leia.auth.jwk.JwkAuth
 import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.getEnv

@@ -2,6 +2,7 @@ package se.zensum.leia.auth
 
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import se.zensum.leia.auth.jwk.JwkAuth
 
 class JwkAuthTest {
 

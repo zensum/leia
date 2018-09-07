@@ -1,7 +1,5 @@
 package se.zensum.leia.auth
 
-import se.zensum.leia.auth.AuthProvider
-
 data class AuthProviderSpec(
     /**
      *

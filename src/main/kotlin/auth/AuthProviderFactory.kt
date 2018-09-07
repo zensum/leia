@@ -1,5 +1,7 @@
 package se.zensum.leia.auth
 
+import se.zensum.leia.auth.jwk.JwkAuth
+
 
 interface AuthProviderFactory {
     fun create(spec: AuthProviderSpec): AuthProvider?
@@ -13,5 +15,4 @@ object DefaultAuthProviderFactory: AuthProviderFactory {
             "jwk" -> JwkAuth.fromOptions(spec.options)
             else -> throw RuntimeException("No AuthProvider matching type ${spec.type}")
     }
-
 }

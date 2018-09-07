@@ -1,19 +1,25 @@
-package se.zensum.leia.auth
+package se.zensum.leia.auth.jwk
 
 import com.auth0.jwk.JwkProvider
-import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.RSAKeyProvider
 import leia.logic.IncomingRequest
-import se.zensum.jwt.JWTProvider
-import se.zensum.jwt.JWTProviderImpl
+import se.zensum.leia.auth.AuthProvider
+import se.zensum.leia.auth.AuthResult
 import java.net.URL
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
+typealias JWTDecoderCreator = (JwkConfig) -> JWTDecoder
+
 class JwkAuth(
-    private val provider: JWTProvider
+    private val decode: JWTDecoder
 ): AuthProvider {
+
+    constructor(
+        config: JwkConfig
+    ): this(JwtValidator(config))
+
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult {
         val token: String = incomingRequest.headers["Authorization"]
             ?.first()
@@ -21,7 +27,7 @@ class JwkAuth(
             ?.trim()
             ?: return AuthResult.Denied
 
-        val jwt: DecodedJWT = provider.verifyJWT(token) ?: return  AuthResult.Denied
+        val jwt: DecodedJWT = decode.verifyToken(token) ?: return AuthResult.Denied
         val subject: String = jwt.claims["sub"]?.asString() ?: return AuthResult.Denied
 
         return AuthResult.Authorized(subject)
@@ -30,12 +36,12 @@ class JwkAuth(
     companion object {
         fun fromOptions(
             options: Map<String, Any>,
-            jwtVerifierFactory: JWTVerifierFactory = MemoizedJWTVerifierFactory
+            jwtDecoderCreator: JWTDecoderCreator = { config ->
+                JwtValidator(config)
+            }
         ): JwkAuth {
             val jwkConfig: JwkConfig = validateConfig(options)
-            val verifier: JWTVerifier = jwtVerifierFactory.createVerifier(jwkConfig)
-            val provider: JWTProvider = JWTProviderImpl(verifier)
-            return JwkAuth(provider)
+            return JwkAuth(jwtDecoderCreator(jwkConfig))
         }
 
         private fun validateConfig(options: Map<String, Any>): JwkConfig {

@@ -1,19 +1,28 @@
-package se.zensum.leia.auth
+package se.zensum.leia.auth.jwk
 
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import java.net.URL
+import com.auth0.jwt.interfaces.DecodedJWT
 
-interface JWTVerifierFactory {
-    fun createVerifier(config: JwkConfig): JWTVerifier
+class JwtValidator(
+    config: JwkConfig
+): JWTDecoder {
+    private val verifier: JWTVerifier = MemoizedJWTVerifierFactory.createVerifier(config)
+    override fun verifyToken(token: String): DecodedJWT? = verifier.verify(token)
 }
 
-object MemoizedJWTVerifierFactory: JWTVerifierFactory {
+/**
+ * "Memoized" factory object for instances of [JWTVerifier], so a
+ * new instance will not be created upon each request. Instead each created
+ * verifies will be saves and reused for next use when a verifier is requested
+ * for an identical [JwkConfig].
+ */
+private object MemoizedJWTVerifierFactory {
     private val verifiers: MutableMap<JwkConfig, JWTVerifier> = HashMap()
 
-    override fun createVerifier(config: JwkConfig): JWTVerifier {
+    fun createVerifier(config: JwkConfig): JWTVerifier {
         return if(config in verifiers)
             verifiers[config]!!
         else {
@@ -30,5 +39,3 @@ object MemoizedJWTVerifierFactory: JWTVerifierFactory {
         .withIssuer(config.issuer)
         .build()
 }
-
-data class JwkConfig(val jwkUrl: URL, val issuer: String)
