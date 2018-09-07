@@ -159,8 +159,8 @@ class KtorServer private constructor(
             )
             CorsPreflightAllowed -> sendCorsPreflight(ctx.context)
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
-            is NoMatch -> sendNotFoundResponse(ctx.context)
-            is NotAuthorized -> sendNotAuthorized(ctx.context, "Auth")
+            NoMatch -> sendNotFoundResponse(ctx.context)
+            NotAuthorized -> sendNotAuthorized(ctx.context, "Auth")
         }
     }
 
