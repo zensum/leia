@@ -1,5 +1,6 @@
 package se.zensum.leia.auth
 
+import auth.MockAuthProviderFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -19,7 +20,7 @@ class SpecsAuthProviderTest {
                 )
             ))
         )
-        val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
+        val sap = SpecsAuthProvider(authProviders, MockAuthProviderFactory)
         val request = genericRequest(mapOf<String, List<String>>(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
@@ -40,7 +41,7 @@ class SpecsAuthProviderTest {
                 )
             ))
         )
-        val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
+        val sap = SpecsAuthProvider(authProviders, MockAuthProviderFactory)
         val request = genericRequest(mapOf<String, List<String>>(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "!!wrong secret!!"))
         ))
@@ -54,7 +55,7 @@ class SpecsAuthProviderTest {
             basicAuthProviderSpecWithCredentials("spec1"),
             basicAuthProviderSpecWithCredentials("spec2")
         )
-        val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
+        val sap = SpecsAuthProvider(authProviders, MockAuthProviderFactory)
         val request = genericRequest(mapOf<String, List<String>>(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
@@ -68,7 +69,7 @@ class SpecsAuthProviderTest {
         val authProviders: List<AuthProviderSpec> = listOf(
             AuthProviderSpec("spec1", "no_auth")
         )
-        val sap = SpecsAuthProvider(authProviders, DefaultAuthProviderFactory)
+        val sap = SpecsAuthProvider(authProviders, MockAuthProviderFactory)
         val request = genericRequest()
         val result = sap.verify(listOf("spec1"), request)
         assertTrue(result is AuthResult.Authorized)
