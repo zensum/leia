@@ -22,13 +22,13 @@ class JwkAuth(
 
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult {
         val token: String = incomingRequest.headers["Authorization"]
-            ?.first()
+            ?.firstOrNull { it.startsWith("Bearer") }
             ?.removePrefix("Bearer")
             ?.trim()
             ?: return AuthResult.Denied
 
         val jwt: DecodedJWT = decode.verifyToken(token) ?: return AuthResult.Denied
-        val subject: String = jwt.claims["sub"]?.asString() ?: return AuthResult.Denied
+        val subject: String = jwt.subject ?: return AuthResult.Denied
 
         return AuthResult.Authorized(subject)
     }
