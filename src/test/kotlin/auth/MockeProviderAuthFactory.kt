@@ -19,7 +19,7 @@ object MockAuthProviderFactory: AuthProviderFactory {
 
 /**
  * Mock version of a [JWTDecoder] for testing purpose only, which unlike a
- * real JWTDecode does not verification of signature or claims.
+ * real JWTDecoder does no verification of signature or claims.
  */
 internal object MockJWTDecoder: JWTDecoder {
     override fun verifyToken(token: String): DecodedJWT = JsonWebToken(token)
