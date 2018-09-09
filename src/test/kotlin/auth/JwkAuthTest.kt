@@ -1,6 +1,5 @@
 package se.zensum.leia.auth
 
-import auth.MockJWTDecoder
 import leia.logic.IncomingRequest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -32,7 +31,7 @@ class JwkAuthTest {
 
     @Test
     fun `missing Authorization headers results in Denied`() {
-        val auth = JwkAuth(MockJWTDecoder.Valid)
+        val auth = JwkAuth(MockJWTDecoder)
         val requestWithNoHeaders: IncomingRequest = genericRequest()
         val result: AuthResult = auth.verify(emptyList(), requestWithNoHeaders)
         assertTrue(result is AuthResult.Denied)
@@ -40,7 +39,7 @@ class JwkAuthTest {
 
     @Test
     fun `present Authorization headers results in Authorized`() {
-        val auth = JwkAuth(MockJWTDecoder.Valid)
+        val auth = JwkAuth(MockJWTDecoder)
         val requestWithHeaders: IncomingRequest
             = genericRequest(mapOf("Authorization" to listOf("Bearer $EXAMPLE_JWT")))
         val result: AuthResult = auth.verify(emptyList(), requestWithHeaders)

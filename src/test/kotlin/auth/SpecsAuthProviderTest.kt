@@ -1,6 +1,5 @@
 package se.zensum.leia.auth
 
-import auth.MockAuthProviderFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
