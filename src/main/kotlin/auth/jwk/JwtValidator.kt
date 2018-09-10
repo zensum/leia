@@ -34,8 +34,16 @@ private object MemoizedJWTVerifierFactory {
 
     private fun buildVerifier(
         config: JwkConfig,
-        algorithm: Algorithm = Algorithm.RSA256(JWKKeyProvider(JwkProviderBuilder(config.jwkUrl.toString()).cached(true).build()))
+        algorithm: Algorithm = configToAlgorithm(config)
     ): JWTVerifier = JWT.require(algorithm)
         .withIssuer(config.issuer)
         .build()
+
+    private fun configToAlgorithm(config: JwkConfig): Algorithm = Algorithm.RSA256(
+        JWKKeyProvider(
+            JwkProviderBuilder(config.jwkUrl.toString())
+                .cached(true)
+                .build()
+        )
+    )
 }
