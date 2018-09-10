@@ -69,6 +69,14 @@ class BasicAuthTest {
     }
 
     @Test
+    fun testDenyCredentialsWithNonBase64() {
+        val auth: BasicAuth = BasicAuth(hashedCredentials)
+        val unauthorizedUser: String = "Vader:Rebel scum"
+        val result: AuthResult = auth.verify(unauthorizedUser)
+        assertEquals(AuthResult.Denied, result)
+    }
+
+    @Test
     fun testRequire256BitCheckSum() {
         assertThrows<IllegalArgumentException> {
             val badCredentials = mapOf("Vader" to "f472d02c7d9470429d5a2b49b9c5fbe3699f1722")
