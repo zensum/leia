@@ -2,7 +2,7 @@ package se.zensum.leia
 
 import io.ktor.http.HttpMethod
 
-object httpMethods {
+object HttpMethods {
     val verbs: Set<HttpMethod> = setOf(
         HttpMethod.Get,
         HttpMethod.Post,

@@ -27,3 +27,4 @@ build
 
 # Environment variables for Docker
 .env
+out/

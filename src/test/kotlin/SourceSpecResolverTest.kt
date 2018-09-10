@@ -1,29 +1,34 @@
-package leia
+package se.zensum.leia
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import leia.logic.CorsNotAllowed
 import leia.logic.IncomingRequest
 import leia.logic.LogAppend
-
 import leia.logic.NoMatch
-import leia.logic.NotAuthorzied
+import leia.logic.NotAuthorized
 import leia.logic.SourceSpecResolver
+import se.zensum.leia.auth.AuthProvider
+import se.zensum.leia.auth.AuthResult
+import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 
 private typealias SSR = SourceSpecResolver
 private typealias Sp = SourceSpec
 private typealias IR = IncomingRequest
-fun Sp.ssr() = SSR(this)
+fun Sp.ssr(auth: AuthProvider = NoCheck) = SSR(this, auth)
 
-
-private fun pathIR(path: String) = IR(HttpMethod.Get, null, null, path, emptyMap(), "", null, { ByteArray(0 )})
+private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), "", null, { ByteArray(0 )})
 
 class SourceSpecResolverTest {
     val goodPath = "this_is_the_path"
-    val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList())
+    val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
+        authenticateUsing = emptyList())
     @Test
     fun rejectsImproperPath() {
         val re = defaultSp.copy(path = "not_good_path").ssr()
@@ -41,10 +46,16 @@ class SourceSpecResolverTest {
 
     @Test
     fun rejectsMissingJWT() {
-        val re = defaultSp.copy(verify = true).ssr()
+        val re = defaultSp.copy(
+            authenticateUsing = listOf("jwk"),
+            allowedMethods = HttpMethods.verbs
+        ).ssr(object : AuthProvider {
+            override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult
+            = AuthResult.Denied.NoCredentials
+        })
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)
-        assertTrue(res is NotAuthorzied, "should give error match")
+        assertEquals(NotAuthorized(listOf("jwk")), res, "should give error match")
     }
 
     @Test
@@ -65,12 +76,7 @@ class SourceSpecResolverTest {
         val ir = pathIR(goodPath)
             .copy(origin = "http://example.com", method = HttpMethod.Post)
 
-        var res = re.resolve(ir)
-
-        if (res !is LogAppend) {
-            fail("Res must be log-append")
-            return
-        }
+        val res = re.resolve(ir) as? LogAppend ?: fail("Res must be log-append")
 
         val (sinkDes, req, rec)  = res
 

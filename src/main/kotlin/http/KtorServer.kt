@@ -4,9 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.install
-import io.ktor.features.origin
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.pipeline.PipelineContext
 import io.ktor.request.ApplicationRequest
@@ -30,17 +28,12 @@ import leia.logic.Forbidden
 import leia.logic.IncomingRequest
 import leia.logic.LogAppend
 import leia.logic.NoMatch
-import leia.logic.NotAuthorzied
+import leia.logic.NotAuthorized
 import leia.logic.Receipt
 import leia.logic.Resolver
 import leia.sink.SinkProvider
 import leia.sink.SinkResult
 import mu.KotlinLogging
-
-import se.zensum.jwt.JWTFeature
-import se.zensum.jwt.JWTProvider
-import se.zensum.jwt.isVerified
-import se.zensum.jwt.token
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
 import se.zensum.leia.getEnv
@@ -58,7 +51,6 @@ private fun createIncomingRequest(req: ApplicationRequest) =
     IncomingRequest(
         req.httpMethod,
         req.header("Origin"),
-        if (req.call.isVerified()) req.call.token() else null,
         req.path(),
         req.headers.toMap(),
         req.queryString(),
@@ -75,8 +67,8 @@ private fun createIncomingRequest(req: ApplicationRequest) =
 
 private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) {
     val (text, status) = when(error) {
-        NotAuthorzied ->
-            "unauthorized" to HttpStatusCode.Unauthorized
+        is NotAuthorized ->
+            sendNotAuthorized(error, call)
         Forbidden ->
             "forbidden" to HttpStatusCode.Forbidden
         CorsNotAllowed ->
@@ -92,6 +84,16 @@ private suspend fun sendNotFoundResponse(call: ApplicationCall) {
         "404 - Not found!",
         status = HttpStatusCode.NotFound
     )
+}
+
+private fun sendNotAuthorized(
+    error: NotAuthorized,
+    call: ApplicationCall
+): Pair<String, HttpStatusCode> {
+    if("basic_auth" in error.triedAuthMethods) {
+        call.response.header("WWW-Authenticate", "Basic")
+    }
+    return "unauthorized" to HttpStatusCode.Unauthorized
 }
 
 private suspend fun sendSuccessResponse(call: ApplicationCall,
@@ -131,8 +133,7 @@ private suspend fun sendCorsPreflight(call: ApplicationCall) {
 class KtorServer private constructor(
     private val resolver: Resolver,
     private val appender: suspend (LogAppend) -> SinkResult,
-    private val installPrometheus: Boolean,
-    private val jwtProvider: JWTProvider?
+    private val installPrometheus: Boolean
 ) : Server {
 
     private suspend fun performLogAppend(logAppend: LogAppend,
@@ -153,7 +154,7 @@ class KtorServer private constructor(
             )
             CorsPreflightAllowed -> sendCorsPreflight(ctx.context)
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
-            is NoMatch -> sendNotFoundResponse(ctx.context)
+            NoMatch -> sendNotFoundResponse(ctx.context)
         }
     }
 
@@ -166,13 +167,6 @@ class KtorServer private constructor(
     private fun getKtorApplication(): Application.() -> Unit = {
         install(SentryFeature)
         if (installPrometheus) install(PrometheusFeature.Feature)
-        if (getEnv("JWK_URL", "").isNotBlank()) {
-            install(JWTFeature) {
-                jwtProvider?.let {
-                    jwtProvider(it)
-                }
-            }
-        }
         install(Health)
         intercept(ApplicationCallPipeline.Call) {
             handleRequest(this)
@@ -203,8 +197,7 @@ class KtorServer private constructor(
             KtorServer(
                 resolver,
                 { sinkProvider.handle(it.sinkDescription, it.request) },
-                true,
-                null
+                true
             )
     }
 }

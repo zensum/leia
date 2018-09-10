@@ -1,6 +1,5 @@
 package leia.logic
 
-import com.auth0.jwt.interfaces.DecodedJWT
 import com.github.rholder.fauxflake.IdGenerators
 import com.github.rholder.fauxflake.api.IdGenerator
 import io.ktor.http.HttpMethod
@@ -13,7 +12,6 @@ private fun generateId(): Long = idGen.generateId(10).asLong()
 data class IncomingRequest(
     val method: HttpMethod,
     private val origin: String?,
-    private val jwt: DecodedJWT?,
     val path: String,
     val headers: Map<String, List<String>>,
     val queryString: String,
@@ -26,7 +24,6 @@ data class IncomingRequest(
     fun matchPath(otherPath: String?) = otherPath == path
     fun matchCors(origins: List<String>) =
         origin == null || origins.isEmpty() || origins.contains(origin) || origins.contains("*")
-    fun hasValidJWT() = jwt != null
 
     suspend fun readBody() = readBodyFn()
 }
