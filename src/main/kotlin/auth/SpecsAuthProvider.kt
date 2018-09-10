@@ -35,7 +35,26 @@ sealed class AuthResult {
     /**
      * Authorized was required but not successful
      */
-    object Denied: AuthResult() {
-        override fun combine(other: AuthResult): AuthResult = other
+    sealed class Denied: AuthResult() {
+
+        /**
+         * No credentials were found for authorization
+         */
+        object NoCredentials: AuthResult.Denied() {
+            override fun combine(other: AuthResult): AuthResult = when(other) {
+                is Authorized -> other
+                else -> other
+            }
+        }
+
+        /**
+         * Credentials were found but they were not valid for this resource
+         */
+        object InvalidCredentials: AuthResult.Denied() {
+            override fun combine(other: AuthResult): AuthResult = when(other) {
+                is Authorized -> other
+                else -> this
+            }
+        }
     }
 }

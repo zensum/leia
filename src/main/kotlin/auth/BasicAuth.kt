@@ -30,7 +30,7 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
 
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest) : AuthResult {
         if(!incomingRequest.headers.containsKey(HEADER))
-            return AuthResult.Denied
+            return AuthResult.Denied.NoCredentials
 
         val credential: String = incomingRequest.headers[HEADER]!!
             .first()
@@ -48,19 +48,19 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
         return try {
             val credentialDecoded = String(decodeBase64(credential))
             if(credentialDecoded.count { it == ':' } != 1)
-                return AuthResult.Denied
+                return AuthResult.Denied.InvalidCredentials
             val (user: String, password: String) = credentialDecoded.split(":")
             val hashedPass: ByteArray = hash(password, HashAlgorithm.SHA256)
             if(MessageDigest.isEqual(credentials[user], hashedPass)) {
                 AuthResult.Authorized(user)
             }
             else {
-                AuthResult.Denied
+                AuthResult.Denied.InvalidCredentials
             }
         }
         catch(e: IllegalArgumentException) {
             log.warn("Credentials for basic authentication with invalid base64 was used: ${e.message}")
-            AuthResult.Denied
+            AuthResult.Denied.InvalidCredentials
         }
     }
 

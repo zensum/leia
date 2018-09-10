@@ -65,7 +65,7 @@ class BasicAuthTest {
             .toByteArray()
             .toBase64()
         val result: AuthResult = auth.verify(unauthorizedUser)
-        assertEquals(AuthResult.Denied, result)
+        assertEquals(AuthResult.Denied.InvalidCredentials, result)
     }
 
     @Test
@@ -73,7 +73,7 @@ class BasicAuthTest {
         val auth: BasicAuth = BasicAuth(hashedCredentials)
         val unauthorizedUser: String = "Vader:Rebel scum"
         val result: AuthResult = auth.verify(unauthorizedUser)
-        assertEquals(AuthResult.Denied, result)
+        assertEquals(AuthResult.Denied.InvalidCredentials, result)
     }
 
     @Test

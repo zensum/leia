@@ -51,7 +51,7 @@ class SourceSpecResolverTest {
             allowedMethods = HttpMethods.verbs
         ).ssr(object : AuthProvider {
             override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult
-            = AuthResult.Denied
+            = AuthResult.Denied.NoCredentials
         })
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)

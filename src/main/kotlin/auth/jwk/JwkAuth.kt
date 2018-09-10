@@ -25,10 +25,10 @@ class JwkAuth(
             ?.firstOrNull { it.startsWith("Bearer") }
             ?.removePrefix("Bearer")
             ?.trim()
-            ?: return AuthResult.Denied
+            ?: return AuthResult.Denied.NoCredentials
 
-        val jwt: DecodedJWT = decode.verifyToken(token) ?: return AuthResult.Denied
-        val subject: String = jwt.subject ?: return AuthResult.Denied
+        val jwt: DecodedJWT = decode.verifyToken(token) ?: return AuthResult.Denied.InvalidCredentials
+        val subject: String = jwt.subject ?: return AuthResult.Denied.InvalidCredentials
 
         return AuthResult.Authorized(subject)
     }
