@@ -96,7 +96,7 @@ private fun randomDelay(
 }
 
 /**
- * Always set as [AuthResult.NoAuthorizationCheck]
+ * Always set as [AuthResult.Authorized]
  */
 object NoCheck: AuthProvider {
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = AuthResult.Authorized(null)
