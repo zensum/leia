@@ -20,7 +20,7 @@ class JwtValidator(
  * for an identical [JwkConfig].
  */
 private object MemoizedJWTVerifierFactory {
-    private val verifiers: MutableMap<JwkConfig, JWTVerifier> = HashMap()
+    private val verifiers: MutableMap<JwkConfig, JWTVerifier> = mutableMapOf()
 
     fun createVerifier(config: JwkConfig): JWTVerifier {
         return if(config in verifiers)
