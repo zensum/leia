@@ -1,20 +1,21 @@
-package leia
+package se.zensum.leia
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import leia.logic.CorsNotAllowed
 import leia.logic.IncomingRequest
 import leia.logic.LogAppend
-
 import leia.logic.NoMatch
 import leia.logic.NotAuthorized
 import leia.logic.SourceSpecResolver
-import se.zensum.leia.HttpMethods
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 
 private typealias SSR = SourceSpecResolver

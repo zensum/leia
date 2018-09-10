@@ -1,6 +1,5 @@
 package leia.logic
 
-import com.auth0.jwt.interfaces.DecodedJWT
 import com.github.rholder.fauxflake.IdGenerators
 import com.github.rholder.fauxflake.api.IdGenerator
 import io.ktor.http.HttpMethod

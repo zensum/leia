@@ -1,6 +1,5 @@
 package leia.logic
 
-import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.config.Format
 
 // A description representing the destination to which the message is to be

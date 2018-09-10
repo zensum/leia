@@ -34,11 +34,6 @@ import leia.logic.Resolver
 import leia.sink.SinkProvider
 import leia.sink.SinkResult
 import mu.KotlinLogging
-
-import se.zensum.jwt.JWTFeature
-import se.zensum.jwt.JWTProvider
-import se.zensum.jwt.isVerified
-import se.zensum.jwt.token
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
 import se.zensum.leia.getEnv
