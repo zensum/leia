@@ -55,7 +55,7 @@ class SourceSpecResolverTest {
         })
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)
-        assertEquals(NotAuthorized(listOf("jwk"), ir.path), res, "should give error match")
+        assertEquals(NotAuthorized(listOf("jwk")), res, "should give error match")
     }
 
     @Test

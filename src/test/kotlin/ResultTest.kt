@@ -16,7 +16,7 @@ class ResultTest {
         IncomingRequest(HttpMethod.Get, null, "pleb", emptyMap(), "", null, { ByteArray(0) }),
         Receipt(200, "foo")
     )
-    val em = NotAuthorized(emptyList(), "")
+    val em = NotAuthorized(emptyList())
     @Test fun noMatchOverriddenByAll() {
         NoMatch.combine(la).let {
             assertEquals(la, it, "Overridden by LogAppend")

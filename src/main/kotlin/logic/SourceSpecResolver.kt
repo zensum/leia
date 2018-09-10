@@ -26,7 +26,7 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             ?.let { authenticateUsing ->
                 val authResult = auth.verify(authenticateUsing, req)
                 when (authResult) {
-                    is AuthResult.Denied.NoCredentials -> return NotAuthorized(authenticateUsing, cfg.path)
+                    is AuthResult.Denied.NoCredentials -> return NotAuthorized(authenticateUsing)
                     is AuthResult.Denied.InvalidCredentials -> return Forbidden
                     is AuthResult.Authorized -> authResult.identifier
                 }
