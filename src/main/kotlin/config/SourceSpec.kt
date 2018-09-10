@@ -63,21 +63,26 @@ data class SourceSpec(val path: String,
                     "also configured, these two options are mutually exclusive"
             }
 
-            return SourceSpec(
-                // name = m["name"] as String,
-                path = m["path"] as String,
-                topic = m["topic"] as String,
-                format = parseFormat(m["format"]),
-                corsHosts = parseCors(m["cors"]),
-                allowedMethods = parseMethods(m["methods"]),
-                response = HttpStatusCode.fromValue(parseResponse(m["response"])),
-                sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() },
-                // IF verify is true and auth_providers is empty authenticateUsing is assigned the value ["$default_jwk_provider"]
-                // This in conjunction with the rule that if JWK_URL is set a JWK auth-provider with the name $default_jwk_provider is
-                // created, means that backward compat breaking changes were introduced for authenticateUsing...This fallback functionality
-                // will be removed in a future version of the software.
-                authenticateUsing = authProviders
-            )
+            return specFromValidatedMap(m, authProviders)
         }
+
+        private fun specFromValidatedMap(
+            m: Map<String, Any>,
+            authProviders: List<String>
+        ): SourceSpec = SourceSpec(
+            // name = m["name"] as String,
+            path = m["path"] as String,
+            topic = m["topic"] as String,
+            format = parseFormat(m["format"]),
+            corsHosts = parseCors(m["cors"]),
+            allowedMethods = parseMethods(m["methods"]),
+            response = HttpStatusCode.fromValue(parseResponse(m["response"])),
+            sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() },
+            // IF verify is true and auth_providers is empty authenticateUsing is assigned the value ["$default_jwk_provider"]
+            // This in conjunction with the rule that if JWK_URL is set a JWK auth-provider with the name $default_jwk_provider is
+            // created, means that backward compat breaking changes were introduced for authenticateUsing...This fallback functionality
+            // will be removed in a future version of the software.
+            authenticateUsing = authProviders
+        )
     }
 }
