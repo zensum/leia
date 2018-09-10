@@ -1,7 +1,9 @@
 package se.zensum.leia.auth
 
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
 
 class AuthProviderSpecTest {
 
@@ -21,5 +23,18 @@ class AuthProviderSpecTest {
 
         val provider: AuthProvider? = DefaultAuthProviderFactory.create(spec)
         assertNotNull(provider)
+    }
+
+    @Test
+    fun testAuthProviderSpecFromMap() {
+        val spec = AuthProviderSpec.fromMap(
+            mapOf(
+                "name" to "foo",
+                "type" to "basic_auth"
+            )
+        )
+        assertEquals("foo", spec.name)
+        assertEquals("basic_auth", spec.type)
+        assertTrue(spec.options.isEmpty())
     }
 }

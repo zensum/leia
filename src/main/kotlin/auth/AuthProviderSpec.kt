@@ -7,7 +7,7 @@ data class AuthProviderSpec(
     val name: String,
     /**
      * Key to identify the auth module type in the configuration, such
-     * as "jwt", "basic_auth" or other supported auth module.
+     * as "jwk", "basic_auth" or other supported auth module.
      */
     val type: String,
     /**
