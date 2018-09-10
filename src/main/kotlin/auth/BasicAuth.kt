@@ -3,15 +3,10 @@ package se.zensum.leia.auth
 import com.mantono.pyttipanna.HashAlgorithm
 import com.mantono.pyttipanna.hash
 import io.ktor.util.decodeBase64
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
 import leia.logic.IncomingRequest
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
 import java.security.MessageDigest
-import java.util.*
-import java.util.concurrent.TimeUnit
-import kotlin.math.absoluteValue
 
 private val log = KotlinLogging.logger("basic-auth")
 
@@ -56,7 +51,6 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
                 return AuthResult.Denied
             val (user: String, password: String) = credentialDecoded.split(":")
             val hashedPass: ByteArray = hash(password, HashAlgorithm.SHA256)
-            randomDelay()
             if(MessageDigest.isEqual(credentials[user], hashedPass)) {
                 AuthResult.Authorized(user)
             }
@@ -76,23 +70,6 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
             return BasicAuth(map)
         }
     }
-}
-
-private val random = Random()
-
-/**
- * Block the thread for a random period of time.
- * This is used so it will be harder to determine if the user supplied in
- * the basic auth credentials exists among the saved users that are accepted
- * by the [BasicAuth] provider.
- */
-private fun randomDelay(
-    maxDelay: Long = 2000,
-    unit: TimeUnit = TimeUnit.NANOSECONDS
-): Long {
-    val time: Long = random.nextLong().absoluteValue % maxDelay
-    runBlocking { delay(time, unit) }
-    return time
 }
 
 /**
