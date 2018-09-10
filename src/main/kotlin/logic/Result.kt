@@ -39,7 +39,7 @@ sealed class ErrorMatch : Match() {
         }
 }
 // The rule matches but authorization is missing but is required
-data class NotAuthorized(val triedAuthMethods: List<String>, val realm: String): ErrorMatch()
+data class NotAuthorized(val triedAuthMethods: List<String>): ErrorMatch()
 // The rule matches but authorization presented is invalid
 object Forbidden: ErrorMatch()
 // The rule matches but CORS is not allowed for that host.

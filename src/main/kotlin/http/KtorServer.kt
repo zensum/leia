@@ -91,7 +91,7 @@ private fun sendNotAuthorized(
     call: ApplicationCall
 ): Pair<String, HttpStatusCode> {
     if("basic_auth" in error.triedAuthMethods) {
-        call.response.header("WWW-Authenticate", "Basic realm=\"${error.realm}\", charset=\"UTF-8\"")
+        call.response.header("WWW-Authenticate", "Basic")
     }
     return "unauthorized" to HttpStatusCode.Unauthorized
 }
