@@ -73,7 +73,7 @@ private fun createIncomingRequest(req: ApplicationRequest) =
 private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) {
     val (text, status) = when(error) {
         NotAuthorized ->
-            "unauthorized" to HttpStatusCode.Unauthorized
+            sendNotAuthorized(call)
         Forbidden ->
             "forbidden" to HttpStatusCode.Forbidden
         CorsNotAllowed ->
@@ -91,12 +91,9 @@ private suspend fun sendNotFoundResponse(call: ApplicationCall) {
     )
 }
 
-private suspend fun sendNotAuthorized(call: ApplicationCall, realm: String? = null) {
+private fun sendNotAuthorized(call: ApplicationCall, realm: String? = null): Pair<String, HttpStatusCode> {
     realm?.let { call.response.header("WWW-Authenticate", "Basic realm=\"$it\", charset=\"UTF-8\"") }
-    call.respondText(
-        "401 - Authorization required!",
-        status = HttpStatusCode.Unauthorized
-    )
+    return "unauthorized" to HttpStatusCode.Unauthorized
 }
 
 private suspend fun sendSuccessResponse(call: ApplicationCall,
@@ -158,7 +155,6 @@ class KtorServer private constructor(
             CorsPreflightAllowed -> sendCorsPreflight(ctx.context)
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
             NoMatch -> sendNotFoundResponse(ctx.context)
-            NotAuthorized -> sendNotAuthorized(ctx.context, "Auth")
         }
     }
 
