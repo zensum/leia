@@ -67,8 +67,8 @@ private fun createIncomingRequest(req: ApplicationRequest) =
 
 private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) {
     val (text, status) = when(error) {
-        NotAuthorized ->
-            sendNotAuthorized(call)
+        is NotAuthorized ->
+            sendNotAuthorized(error, call)
         Forbidden ->
             "forbidden" to HttpStatusCode.Forbidden
         CorsNotAllowed ->
@@ -86,8 +86,13 @@ private suspend fun sendNotFoundResponse(call: ApplicationCall) {
     )
 }
 
-private fun sendNotAuthorized(call: ApplicationCall, realm: String? = null): Pair<String, HttpStatusCode> {
-    realm?.let { call.response.header("WWW-Authenticate", "Basic realm=\"$it\", charset=\"UTF-8\"") }
+private fun sendNotAuthorized(
+    error: NotAuthorized,
+    call: ApplicationCall
+): Pair<String, HttpStatusCode> {
+    if("basic_auth" in error.triedAuthMethods) {
+        call.response.header("WWW-Authenticate", "Basic realm=\"${error.realm}\", charset=\"UTF-8\"")
+    }
     return "unauthorized" to HttpStatusCode.Unauthorized
 }
 
