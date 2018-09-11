@@ -74,7 +74,7 @@ fun <T, U> registryUpdated(
     key: String,
     reg: Registry) : Atom<T> = zero().also { atom ->
     reg.watch(key, mapper) {
-        atom.set(combiner(it))
+        atom.reference.set(combiner(it))
     }
 }
 
