@@ -70,7 +70,7 @@ dependencies {
     compile 'com.github.zensum:ktor-health-check:94a7b02'
     compile 'io.ktor:ktor-server-core:0.9.1'
     compile 'io.ktor:ktor-server-netty:0.9.1'
-    testCompile "io.ktor:ktor-server-test-host:0.9.1"
+    testCompile "io.ktor:ktor-server-test-host:0.9.5"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile 'com.github.jonross:fauxflake:90abbcf5b6'
     implementation "com.github.mantono:pyttipanna:0.2.0"
