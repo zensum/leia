@@ -53,7 +53,7 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     
     // Junit
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testRuntime "org.junit.platform:junit-platform-launcher:$junit_platform_version"
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
     
