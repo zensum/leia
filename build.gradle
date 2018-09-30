@@ -68,7 +68,7 @@ dependencies {
     compile 'com.github.zensum:ktor-sentry-feature:eece542'
     compile 'com.github.zensum:ktor-jwt:5dc52cb'
     compile 'com.github.zensum:ktor-health-check:94a7b02'
-    compile 'io.ktor:ktor-server-core:0.9.1'
+    compile 'io.ktor:ktor-server-core:0.9.5'
     compile 'io.ktor:ktor-server-netty:0.9.5'
     testCompile "io.ktor:ktor-server-test-host:0.9.5"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
