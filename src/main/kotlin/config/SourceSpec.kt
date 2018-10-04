@@ -39,7 +39,7 @@ data class SourceSpec(val path: String,
         }
 
         private fun parseMethods(methods: Any?): Set<HttpMethod> = when(methods) {
-            null -> emptySet()
+            null -> HttpMethod.DefaultMethods.toSet()
             is Iterable<*> ->
                 uneraseType<String>(methods)
                     .map { HttpMethod.parse(it) }
