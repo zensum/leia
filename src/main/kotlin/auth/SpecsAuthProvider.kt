@@ -16,7 +16,7 @@ class SpecsAuthProvider(val specs: List<AuthProviderSpec>, val apf: AuthProvider
             mapping[match].also { if(it == null) log.warn { "Found no mapping for $match" } }
         }
         .map { it.verify(matching, incomingRequest) }
-        .reduce { a: AuthResult, b: AuthResult -> a.combine(b) }
+        .fold(AuthResult.Denied.InvalidCredentials) { a: AuthResult, b: AuthResult -> a.combine(b) }
 }
 
 sealed class AuthResult {
