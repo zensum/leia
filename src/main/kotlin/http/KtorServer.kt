@@ -196,7 +196,7 @@ class KtorServer private constructor(
             KtorServer(
                 resolver,
                 { sinkProvider.handle(it.sinkDescription, it.request) },
-                true
+                false
             )
     }
 }
