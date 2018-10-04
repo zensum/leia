@@ -35,7 +35,6 @@ import leia.sink.SinkProvider
 import leia.sink.SinkResult
 import mu.KotlinLogging
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
-import se.zensum.ktorSentry.SentryFeature
 import se.zensum.leia.getEnv
 import java.util.concurrent.TimeUnit
 
@@ -165,7 +164,7 @@ class KtorServer private constructor(
     }
 
     private fun getKtorApplication(): Application.() -> Unit = {
-        install(SentryFeature)
+        //install(SentryFeature)
         if (installPrometheus) install(PrometheusFeature.Feature)
         install(Health)
         intercept(ApplicationCallPipeline.Call) {
