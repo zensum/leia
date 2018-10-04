@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.30'
+    ext.kotlin_version = '1.2.71'
     ext.jvm_version = '1.8'
     ext.junit_platform_version = '1.1.0'
     repositories {
@@ -48,8 +48,8 @@ repositories {
 dependencies {
     // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.22.5'
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.5'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.30.0'
+    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.30.0'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     
     // Junit
@@ -68,9 +68,9 @@ dependencies {
     compile 'com.github.zensum:ktor-sentry-feature:eece542'
     compile 'com.github.zensum:ktor-jwt:5dc52cb'
     compile 'com.github.zensum:ktor-health-check:94a7b02'
-    compile 'io.ktor:ktor-server-core:0.9.1'
-    compile 'io.ktor:ktor-server-netty:0.9.1'
-    testCompile "io.ktor:ktor-server-test-host:0.9.1"
+    compile 'io.ktor:ktor-server-core:0.9.5'
+    compile 'io.ktor:ktor-server-netty:0.9.5'
+    testCompile "io.ktor:ktor-server-test-host:0.9.3"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile 'com.github.jonross:fauxflake:90abbcf5b6'
     implementation "com.github.mantono:pyttipanna:0.2.0"
