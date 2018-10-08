@@ -51,12 +51,12 @@ dependencies {
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:0.22.5'
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.27.0'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    
+
     // Junit
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testRuntime "org.junit.platform:junit-platform-launcher:$junit_platform_version"
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
-    
+
     // Logging
     compile 'io.github.microutils:kotlin-logging:1.6.10'
 
@@ -64,7 +64,8 @@ dependencies {
     compile 'ch.vorburger:fswatch:1.1.0'
     compile 'com.github.zensum:franz:f1e1d92'
     compile 'com.github.zensum:webhook-proto:0.1.2'
-    compile 'com.github.zensum:ktor-prometheus-feature:abaa126'
+    compile 'com.github.zensum:ktor-prometheus-feature:06cd2a8'
+    compile 'com.github.zensum:ktor-sentry-feature:c7bccbfe'
     compile 'com.github.zensum:ktor-jwt:5dc52cb'
     compile 'com.github.zensum:ktor-health-check:e7365fd'
     compile 'io.ktor:ktor-server-core:0.9.5'

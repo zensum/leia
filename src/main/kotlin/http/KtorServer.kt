@@ -164,7 +164,7 @@ class KtorServer private constructor(
     }
 
     private fun getKtorApplication(): Application.() -> Unit = {
-        //install(SentryFeature)
+        install(SentryFeature)
         if (installPrometheus) install(PrometheusFeature.Feature)
         install(Health)
         intercept(ApplicationCallPipeline.Call) {
