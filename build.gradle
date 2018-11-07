@@ -58,7 +58,7 @@ dependencies {
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 
     // Logging
-    compile 'io.github.microutils:kotlin-logging:1.6.10'
+    compile 'io.github.microutils:kotlin-logging:1.6.20'
 
     // Project specific dependencies (disabled by default)
     compile 'ch.vorburger:fswatch:1.1.0'
