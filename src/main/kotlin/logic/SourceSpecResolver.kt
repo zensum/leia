@@ -15,7 +15,7 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             !req.matchCors(cfg.corsHosts) -> CorsNotAllowed
             // TODO: We need to be able to tell this apart from explicitly allowed
             cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options -> CorsPreflightAllowed
-            !cfg.allowedMethodsSet.contains(req.method) -> NoMatch
+            cfg.allowedMethodsSet.let { it.isNotEmpty() && !it.contains(req.method) } -> NoMatch
             else -> authAndAppendToLog(req)
         }
     }
