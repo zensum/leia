@@ -9,6 +9,7 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.MalformedJsonException
 import kotlinx.coroutines.experimental.runBlocking
 import java.io.ByteArrayInputStream
+import java.io.EOFException
 import java.io.InputStreamReader
 
 
@@ -32,7 +33,7 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
         var valid = true
         var inputStream: ByteArrayInputStream
         runBlocking {
-            inputStream = ByteArrayInputStream(req.readBody())//.toString(Charsets.UTF_8)
+            inputStream = ByteArrayInputStream(req.readBody())
             val reader = JsonReader(InputStreamReader(inputStream, Charsets.UTF_8))
             try {
                 while (reader.hasNext()) {
@@ -50,6 +51,8 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
                     }
                 }
             } catch (e: MalformedJsonException) {
+                valid = false
+            } catch (e: EOFException) {
                 valid = false
             } finally {
                 reader.close()

@@ -88,7 +88,7 @@ class SourceSpecResolverTest {
     @Test
     fun validateValidJson() {
         val re = defaultSp.copy(validateJson = true).ssr()
-        val ir = pathIR(goodPath).copy(readBodyFn = { validJson.toByteArray()})
+        val ir = pathIR(goodPath).copy(readBodyFn = { validJson.toByteArray() })
         val res = re.resolve(ir)
         assertNotEquals(JsonValidationFailed, res, "should not give error match")
     }
@@ -96,7 +96,7 @@ class SourceSpecResolverTest {
     @Test
     fun validateInvalidJson() {
         val re = defaultSp.copy(validateJson = true).ssr()
-        val ir = pathIR(goodPath).copy(readBodyFn = { invalidJson.toByteArray()})
+        val ir = pathIR(goodPath).copy(readBodyFn = { invalidJson.toByteArray() })
         val res = re.resolve(ir)
         assertEquals(JsonValidationFailed, res, "should give error match")
     }
