@@ -2,17 +2,13 @@ package se.zensum.leia
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import leia.logic.CorsNotAllowed
-import leia.logic.IncomingRequest
-import leia.logic.LogAppend
-import leia.logic.NoMatch
-import leia.logic.NotAuthorized
-import leia.logic.SourceSpecResolver
+import leia.logic.*
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
 import kotlin.test.Test
+import kotlin.test.assertNotEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -28,7 +24,7 @@ private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), ""
 class SourceSpecResolverTest {
     val goodPath = "this_is_the_path"
     val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
-        authenticateUsing = emptyList())
+        authenticateUsing = emptyList(), validateJson = false)
     @Test
     fun rejectsImproperPath() {
         val re = defaultSp.copy(path = "not_good_path").ssr()
@@ -88,4 +84,46 @@ class SourceSpecResolverTest {
 
         assertEquals(rec.status, sp.response.value, "Http status code set")
     }
+
+    @Test
+    fun validateValidJson() {
+        val re = defaultSp.copy(validateJson = true).ssr()
+        val ir = pathIR(goodPath).copy(readBodyFn = { validJson.toByteArray()})
+        val res = re.resolve(ir)
+        assertNotEquals(JsonValidationFailed, res, "should not give error match")
+    }
+
+    @Test
+    fun validateInvalidJson() {
+        val re = defaultSp.copy(validateJson = true).ssr()
+        val ir = pathIR(goodPath).copy(readBodyFn = { invalidJson.toByteArray()})
+        val res = re.resolve(ir)
+        assertEquals(JsonValidationFailed, res, "should give error match")
+    }
 }
+
+val validJson = """
+{
+    "glossary": {
+        "title": "example glossary",
+		"GlossDiv": {
+            "title": "S",
+			"GlossList": {
+                "GlossEntry": {
+                    "ID": "SGML",
+					"SortAs": "SGML",
+					"GlossTerm": "Standard Generalized Markup Language",
+					"Acronym": "SGML",
+					"Abbrev": "ISO 8879:1986",
+					"GlossDef": {
+                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+						"GlossSeeAlso": ["GML", "XML"]
+                    },
+					"GlossSee": "markup"
+                }
+            }
+        }
+    }
+}
+""".trimIndent()
+const val invalidJson = """ { "title": "invalid JSON """

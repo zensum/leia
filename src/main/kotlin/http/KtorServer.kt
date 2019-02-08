@@ -21,16 +21,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.toMap
 import ktor_health_check.Health
-import leia.logic.CorsNotAllowed
-import leia.logic.CorsPreflightAllowed
-import leia.logic.ErrorMatch
-import leia.logic.Forbidden
-import leia.logic.IncomingRequest
-import leia.logic.LogAppend
-import leia.logic.NoMatch
-import leia.logic.NotAuthorized
-import leia.logic.Receipt
-import leia.logic.Resolver
+import leia.logic.*
 import leia.sink.SinkProvider
 import leia.sink.SinkResult
 import mu.KotlinLogging
@@ -75,6 +66,8 @@ private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) 
             "cors not allowed" to HttpStatusCode.Forbidden
         CorsPreflightAllowed ->
             throw RuntimeException("ASSERT FAILED CORS handled elsewhere")
+        JsonValidationFailed ->
+            "Body is not valid JSON" to HttpStatusCode.BadRequest
     }
     call.respondText(text, status = status)
 }

@@ -12,7 +12,8 @@ data class SourceSpec(val path: String,
                       val corsHosts: List<String>,
                       val response: HttpStatusCode,
                       val sink: String? = null,
-                      val authenticateUsing: List<String>) {
+                      val authenticateUsing: List<String>,
+                      val validateJson: Boolean) {
     val allowedMethodsSet = allowedMethods.toSet()
 
     init {
@@ -82,7 +83,8 @@ data class SourceSpec(val path: String,
             // This in conjunction with the rule that if JWK_URL is set a JWK auth-provider with the name $default_jwk_provider is
             // created, means that backward compat breaking changes were introduced for authenticateUsing...This fallback functionality
             // will be removed in a future version of the software.
-            authenticateUsing = authProviders
+            authenticateUsing = authProviders,
+            validateJson = m["validateJson"] as? Boolean ?: false
         )
     }
 }

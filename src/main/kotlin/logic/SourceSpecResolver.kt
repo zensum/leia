@@ -4,6 +4,13 @@ import io.ktor.http.HttpMethod
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.config.SourceSpec
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.MalformedJsonException
+import kotlinx.coroutines.experimental.runBlocking
+import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
+
 
 // A resolver that resolves an incoming request against a single source-spec
 // object.
@@ -16,8 +23,39 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             // TODO: We need to be able to tell this apart from explicitly allowed
             cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options -> CorsPreflightAllowed
             cfg.allowedMethodsSet.let { it.isNotEmpty() && !it.contains(req.method) } -> NoMatch
+            cfg.validateJson && !validateBodyAsJson(req) -> JsonValidationFailed
             else -> authAndAppendToLog(req)
         }
+    }
+
+    private fun validateBodyAsJson(req: IncomingRequest): Boolean {
+        var valid = true
+        var inputStream: ByteArrayInputStream
+        runBlocking {
+            inputStream = ByteArrayInputStream(req.readBody())//.toString(Charsets.UTF_8)
+            val reader = JsonReader(InputStreamReader(inputStream, Charsets.UTF_8))
+            try {
+                while (reader.hasNext()) {
+                    when (reader.peek()) {
+                        JsonToken.BEGIN_ARRAY -> reader.beginArray()
+                        JsonToken.END_ARRAY -> reader.endArray()
+                        JsonToken.BEGIN_OBJECT -> reader.beginObject()
+                        JsonToken.END_OBJECT -> reader.endObject()
+                        JsonToken.NAME -> reader.nextName()
+                        JsonToken.STRING -> reader.nextString()
+                        JsonToken.NUMBER -> reader.nextDouble()
+                        JsonToken.BOOLEAN -> reader.nextBoolean()
+                        JsonToken.NULL -> reader.nextNull()
+                        JsonToken.END_DOCUMENT -> {}
+                    }
+                }
+            } catch (e: MalformedJsonException) {
+                valid = false
+            } finally {
+                reader.close()
+            }
+        }
+        return valid
     }
 
     private fun authAndAppendToLog(req: IncomingRequest): Result {
