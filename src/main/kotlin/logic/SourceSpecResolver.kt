@@ -33,7 +33,7 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
         var valid = true
         var inputStream: ByteArrayInputStream
         runBlocking {
-            inputStream = ByteArrayInputStream(req.readBodyValidation())
+            inputStream = ByteArrayInputStream(req.readBody())
             val reader = JsonReader(InputStreamReader(inputStream, Charsets.UTF_8))
             try {
                 while (reader.hasNext()) {

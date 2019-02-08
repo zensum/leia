@@ -14,7 +14,7 @@ import se.zensum.leia.config.Format
 import kotlin.test.*
 
 class DisjunctiveResolverTest {
-    val exampleIR = IncomingRequest(Get, null, "foo", emptyMap(), "", null, { ByteArray(0) }, { ByteArray(0) })
+    val exampleIR = IncomingRequest(Get, null, "foo", emptyMap(), "", null, { ByteArray(0) })
     @Test fun testZeroToNoMatch() {
         val r = DisjunctiveResolver(emptyList())
         val res = r.resolve(exampleIR)

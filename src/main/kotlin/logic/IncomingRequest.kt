@@ -3,6 +3,7 @@ package leia.logic
 import com.github.rholder.fauxflake.IdGenerators
 import com.github.rholder.fauxflake.api.IdGenerator
 import io.ktor.http.HttpMethod
+import kotlinx.coroutines.experimental.runBlocking
 
 private val idGen: IdGenerator = IdGenerators.newSnowflakeIdGenerator()
 private fun generateId(): Long = idGen.generateId(10).asLong()
@@ -16,9 +17,9 @@ data class IncomingRequest(
     val headers: Map<String, List<String>>,
     val queryString: String,
     private val host: String?,
-    private val readBodyFn: suspend () -> ByteArray,
-    private val readBodyForValidationFn: suspend () -> ByteArray
+    private val readBodyFn: suspend () -> ByteArray
 ) {
+    private val savedBody: ByteArray by lazy { runBlocking { readBodyFn() } }
     val requestId = generateId().also {
         if(it == 0L) throw IllegalStateException("Generated flake id was 0")
     }
@@ -26,6 +27,5 @@ data class IncomingRequest(
     fun matchCors(origins: List<String>) =
         origin == null || origins.isEmpty() || origins.contains(origin) || origins.contains("*")
 
-    suspend fun readBody() = readBodyFn()
-    suspend fun readBodyValidation() = readBodyForValidationFn()
+    fun readBody() = savedBody
 }
