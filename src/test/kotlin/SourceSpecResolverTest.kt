@@ -19,7 +19,7 @@ private typealias Sp = SourceSpec
 private typealias IR = IncomingRequest
 fun Sp.ssr(auth: AuthProvider = NoCheck) = SSR(this, auth)
 
-private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), "", null, { ByteArray(0 )})
+private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), "", null, { ByteArray(0 )}, { ByteArray(0) })
 
 class SourceSpecResolverTest {
     val goodPath = "this_is_the_path"
@@ -88,7 +88,8 @@ class SourceSpecResolverTest {
     @Test
     fun validateValidJson() {
         val re = defaultSp.copy(validateJson = true).ssr()
-        val ir = pathIR(goodPath).copy(readBodyFn = { validJson.toByteArray() })
+        val validBytesFn = suspend { validJson.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn, readBodyForValidationFn = validBytesFn)
         val res = re.resolve(ir)
         assertNotEquals(JsonValidationFailed, res, "should not give error match")
     }
@@ -96,7 +97,8 @@ class SourceSpecResolverTest {
     @Test
     fun validateInvalidJson() {
         val re = defaultSp.copy(validateJson = true).ssr()
-        val ir = pathIR(goodPath).copy(readBodyFn = { invalidJson.toByteArray() })
+        val invalidBytesFn = suspend { invalidJson.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = invalidBytesFn, readBodyForValidationFn = invalidBytesFn)
         val res = re.resolve(ir)
         assertEquals(JsonValidationFailed, res, "should give error match")
     }

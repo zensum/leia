@@ -13,7 +13,7 @@ import kotlin.test.*;
 class ResultTest {
     val la = LogAppend(
         SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
-        IncomingRequest(HttpMethod.Get, null, "pleb", emptyMap(), "", null, { ByteArray(0) }),
+        IncomingRequest(HttpMethod.Get, null, "pleb", emptyMap(), "", null, { ByteArray(0) }, { ByteArray(0) }),
         Receipt(200, "foo")
     )
     val em = NotAuthorized(emptyList())

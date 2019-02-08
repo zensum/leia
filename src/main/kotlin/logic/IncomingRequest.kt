@@ -16,7 +16,8 @@ data class IncomingRequest(
     val headers: Map<String, List<String>>,
     val queryString: String,
     private val host: String?,
-    private val readBodyFn: suspend () -> ByteArray
+    private val readBodyFn: suspend () -> ByteArray,
+    private val readBodyForValidationFn: suspend () -> ByteArray
 ) {
     val requestId = generateId().also {
         if(it == 0L) throw IllegalStateException("Generated flake id was 0")
@@ -26,4 +27,5 @@ data class IncomingRequest(
         origin == null || origins.isEmpty() || origins.contains(origin) || origins.contains("*")
 
     suspend fun readBody() = readBodyFn()
+    suspend fun readBodyValidation() = readBodyForValidationFn()
 }

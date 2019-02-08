@@ -121,7 +121,8 @@ internal fun genericRequest(headers: Map<String, List<String>> = emptyMap()) = I
     headers = headers,
     queryString = "",
     host = null,
-    readBodyFn = { ByteArray(0) }
+    readBodyFn = { ByteArray(0) },
+    readBodyForValidationFn = { ByteArray(0) }
 )
 
 internal fun basicAuthHeaderValue(user: String, password: String): String = Base64

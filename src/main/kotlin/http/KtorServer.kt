@@ -46,15 +46,18 @@ private fun createIncomingRequest(req: ApplicationRequest) =
         req.headers.toMap(),
         req.queryString(),
         req.host(),
-        req.headerInt("Content-Length").let { len ->
-            if (len == 0) {
-                RETURN_EMPTY_BUF
-            } else {
-                { req.call.receiveStream().readBytes(len) }
-            }
-        }
+        getReadBytesFn(req),
+        getReadBytesFn(req)
     )
 
+fun getReadBytesFn(req: ApplicationRequest) =
+    req.headerInt("Content-Length").let { len ->
+    if (len == 0) {
+        RETURN_EMPTY_BUF
+    } else {
+        { req.call.receiveStream().readBytes(len) }
+    }
+}
 
 private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) {
     val (text, status) = when(error) {
