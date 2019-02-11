@@ -1,17 +1,23 @@
 package leia.logic
 
-import io.ktor.http.HttpMethod
-import se.zensum.leia.auth.AuthProvider
-import se.zensum.leia.auth.AuthResult
-import se.zensum.leia.config.SourceSpec
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.MalformedJsonException
+import io.ktor.http.HttpMethod
 import kotlinx.coroutines.experimental.runBlocking
+import mu.KotlinLogging
+import se.zensum.leia.auth.AuthProvider
+import se.zensum.leia.auth.AuthResult
+import se.zensum.leia.config.SourceSpec
 import java.io.ByteArrayInputStream
 import java.io.EOFException
 import java.io.InputStreamReader
+import org.everit.json.schema.ValidationException
+import org.everit.json.schema.loader.SchemaLoader
+import org.json.JSONException
+import org.json.JSONObject
 
+private val logger = KotlinLogging.logger("source-spec")
 
 // A resolver that resolves an incoming request against a single source-spec
 // object.
@@ -24,12 +30,29 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             // TODO: We need to be able to tell this apart from explicitly allowed
             cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options -> CorsPreflightAllowed
             cfg.allowedMethodsSet.let { it.isNotEmpty() && !it.contains(req.method) } -> NoMatch
-            cfg.validateJson && !validateBodyAsJson(req) -> JsonValidationFailed
+            cfg.validateJson && !validateBodyAsJson(req, cfg.jsonSchema) -> JsonValidationFailed
             else -> authAndAppendToLog(req)
         }
     }
 
-    private fun validateBodyAsJson(req: IncomingRequest): Boolean {
+    // Validates if request body is in JSON format. If jsonSchema is not empty it is used for validation.
+    private fun validateBodyAsJson(req: IncomingRequest, jsonSchema: String): Boolean {
+        if (jsonSchema != "") {
+            val schema = try {
+                SchemaLoader.load(JSONObject(jsonSchema))
+            } catch (e: JSONException) {
+                logger.error { "Failed to parse JSON schema: ${e.message}" }
+                return false
+            }
+            try {
+                val body = req.readBody().toString(Charsets.UTF_8)
+                schema.validate(JSONObject(body))
+            } catch (e: ValidationException) {
+                return false
+            }
+            return true
+        }
+
         var valid = true
         var inputStream: ByteArrayInputStream
         runBlocking {

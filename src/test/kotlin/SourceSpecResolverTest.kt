@@ -24,7 +24,7 @@ private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), ""
 class SourceSpecResolverTest {
     val goodPath = "this_is_the_path"
     val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
-        authenticateUsing = emptyList(), validateJson = false)
+        authenticateUsing = emptyList(), validateJson = false, jsonSchema = "")
     @Test
     fun rejectsImproperPath() {
         val re = defaultSp.copy(path = "not_good_path").ssr()
@@ -102,8 +102,36 @@ class SourceSpecResolverTest {
         val res = re.resolve(ir)
         assertEquals(JsonValidationFailed, res, "should give error match")
     }
+
+    @Test
+    fun validateJsonSchemaValidJson() {
+        val re = defaultSp.copy(validateJson = true, jsonSchema = jsonSchema).ssr()
+        val validBytesFn = suspend { validJsonForSchema.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
+        val res = re.resolve(ir)
+        assertNotEquals(JsonValidationFailed, res, "should not give error match")
+    }
+
+    @Test
+    fun validateJsonSchemaInvalidJson() {
+        val re = defaultSp.copy(validateJson = true, jsonSchema = jsonSchema).ssr()
+        val validBytesFn = suspend { invalidJsonForSchema.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
+        val res = re.resolve(ir)
+        assertEquals(JsonValidationFailed, res, "should give error match")
+    }
+
+    @Test
+    fun validateInvalidJsonSchemaValidJson() {
+        val re = defaultSp.copy(validateJson = true, jsonSchema = invalidJsonSchema).ssr()
+        val validBytesFn = suspend { validJsonForSchema.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
+        val res = re.resolve(ir)
+        assertEquals(JsonValidationFailed, res, "should give error match")
+    }
 }
 
+// example from https://www.json.org/example.html
 val validJson = """
 {
     "glossary": {
@@ -129,3 +157,49 @@ val validJson = """
 }
 """.trimIndent()
 const val invalidJson = """ { "title": "invalid JSON """
+
+// example from https://json-schema.org/learn/miscellaneous-examples.html
+val jsonSchema = """
+{
+  "${"$"}id": "https://example.com/person.schema.json",
+  "${"$"}schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Person",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "description": "The person's first name."
+    },
+    "lastName": {
+      "type": "string",
+      "description": "The person's last name."
+    },
+    "age": {
+      "description": "Age in years which must be equal to or greater than zero.",
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}
+""".trimIndent()
+
+val invalidJsonSchema = """
+{
+  "properties": {
+""".trimIndent()
+
+val validJsonForSchema = """
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": 21
+}
+""".trimIndent()
+
+val invalidJsonForSchema = """
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": "21"
+}
+""".trimIndent()

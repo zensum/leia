@@ -30,6 +30,9 @@ title = "My routes config"
         format = "raw_body"
         verify = true
         validateJson = true
+        jsonSchema = """
+<put your JSON schema here>
+"""
 ```
 
 Routing is saved in a file, and its location is set with the environment varaiable `ROUTES_FILE`. If this is not set it will default to `/etc/config/routes`.
@@ -42,3 +45,4 @@ Routing is saved in a file, and its location is set with the environment varaiab
 4. _format_ - **optional**, default is _protobuf_.
 5. _methods_ - **optional**, default is all seven HTTP verbs.
 6. _validateJson_ = **optional**, default is _false_
+7. _jsonSchema_ = **optional**, validates request body against this JSON schema if _validateJson_ is set to _true_

@@ -13,7 +13,8 @@ data class SourceSpec(val path: String,
                       val response: HttpStatusCode,
                       val sink: String? = null,
                       val authenticateUsing: List<String>,
-                      val validateJson: Boolean) {
+                      val validateJson: Boolean,
+                      val jsonSchema: String) {
     val allowedMethodsSet = allowedMethods.toSet()
 
     init {
@@ -84,7 +85,8 @@ data class SourceSpec(val path: String,
             // created, means that backward compat breaking changes were introduced for authenticateUsing...This fallback functionality
             // will be removed in a future version of the software.
             authenticateUsing = authProviders,
-            validateJson = m["validateJson"] as? Boolean ?: false
+            validateJson = m["validateJson"] as? Boolean ?: false,
+            jsonSchema = m["jsonSchema"] as? String ?: ""
         )
     }
 }
