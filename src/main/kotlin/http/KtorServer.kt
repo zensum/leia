@@ -67,6 +67,8 @@ private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) 
             throw RuntimeException("ASSERT FAILED CORS handled elsewhere")
         JsonValidationFailed ->
             "Body is not valid JSON" to HttpStatusCode.BadRequest
+        JsonSchemaInvalid ->
+            "JSON schema is invalid" to HttpStatusCode.BadRequest
     }
     call.respondText(text, status = status)
 }

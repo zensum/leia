@@ -6,6 +6,7 @@ import com.google.gson.stream.MalformedJsonException
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.experimental.runBlocking
 import mu.KotlinLogging
+import org.everit.json.schema.Schema
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.config.SourceSpec
@@ -18,11 +19,29 @@ import org.json.JSONException
 import org.json.JSONObject
 
 private val logger = KotlinLogging.logger("source-spec")
+private val pass: Unit = Unit
 
 // A resolver that resolves an incoming request against a single source-spec
 // object.
 class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProvider) : Resolver {
-    override fun resolve(req: IncomingRequest) : Result {
+    var jsonSchema: Schema? = null
+
+    init {
+        initJsonSchema()
+    }
+
+    private fun initJsonSchema() {
+        if (cfg.jsonSchema != "") {
+            jsonSchema = try {
+                SchemaLoader.load(JSONObject(cfg.jsonSchema))
+            } catch (e: JSONException) {
+                logger.error { "Failed to parse JSON schema: ${e.message}" }
+                null
+            }
+        }
+    }
+
+    override fun resolve(req: IncomingRequest): Result {
         return when {
             // TODO: Add hostname restriction here
             !req.matchPath(cfg.path) -> NoMatch
@@ -30,58 +49,64 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             // TODO: We need to be able to tell this apart from explicitly allowed
             cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options -> CorsPreflightAllowed
             cfg.allowedMethodsSet.let { it.isNotEmpty() && !it.contains(req.method) } -> NoMatch
-            cfg.validateJson && !validateBodyAsJson(req, cfg.jsonSchema) -> JsonValidationFailed
-            else -> authAndAppendToLog(req)
+            else -> validateAndProcess(req)
         }
     }
 
-    // Validates if request body is in JSON format. If jsonSchema is not empty it is used for validation.
-    private fun validateBodyAsJson(req: IncomingRequest, jsonSchema: String): Boolean {
-        if (jsonSchema != "") {
-            val schema = try {
-                SchemaLoader.load(JSONObject(jsonSchema))
-            } catch (e: JSONException) {
-                logger.error { "Failed to parse JSON schema: ${e.message}" }
-                return false
+    private fun validateAndProcess(req: IncomingRequest): Result {
+        if (cfg.validateJson) {
+            val errorMatch = if (cfg.jsonSchema != "") {
+                if (jsonSchema != null) {
+                    validateBodyWithJsonSchema(req)
+                } else {
+                    JsonSchemaInvalid
+                }
+            } else {
+                validateBodyAsJson(req)
             }
-            try {
-                val body = req.readBody().toString(Charsets.UTF_8)
-                schema.validate(JSONObject(body))
-            } catch (e: ValidationException) {
-                return false
+            if (errorMatch != null) {
+                return errorMatch
             }
-            return true
+        }
+        return authAndAppendToLog(req)
+    }
+
+    private fun validateBodyWithJsonSchema(req: IncomingRequest) =
+        try {
+            val body = req.readBody().toString(Charsets.UTF_8)
+            jsonSchema?.validate(JSONObject(body))
+            null
+        } catch (e: ValidationException) {
+            JsonValidationFailed
         }
 
-        var valid = true
-        var inputStream: ByteArrayInputStream
-        runBlocking {
-            inputStream = ByteArrayInputStream(req.readBody())
-            val reader = JsonReader(InputStreamReader(inputStream, Charsets.UTF_8))
-            try {
-                while (reader.hasNext()) {
-                    when (reader.peek()) {
-                        JsonToken.BEGIN_ARRAY -> reader.beginArray()
-                        JsonToken.END_ARRAY -> reader.endArray()
-                        JsonToken.BEGIN_OBJECT -> reader.beginObject()
-                        JsonToken.END_OBJECT -> reader.endObject()
-                        JsonToken.NAME -> reader.nextName()
-                        JsonToken.STRING -> reader.nextString()
-                        JsonToken.NUMBER -> reader.nextDouble()
-                        JsonToken.BOOLEAN -> reader.nextBoolean()
-                        JsonToken.NULL -> reader.nextNull()
-                        JsonToken.END_DOCUMENT -> {}
-                    }
-                }
-            } catch (e: MalformedJsonException) {
-                valid = false
-            } catch (e: EOFException) {
-                valid = false
-            } finally {
-                reader.close()
+    // Validates if request body is in JSON format.
+    private fun validateBodyAsJson(req: IncomingRequest): JsonValidationFailed? {
+        var result: JsonValidationFailed? = null
+        val inputStream = runBlocking { ByteArrayInputStream(req.readBody()) }
+        val reader = JsonReader(InputStreamReader(inputStream, Charsets.UTF_8))
+        try {
+            while (reader.hasNext()) when (reader.peek()) {
+                JsonToken.BEGIN_ARRAY -> reader.beginArray()
+                JsonToken.END_ARRAY -> reader.endArray()
+                JsonToken.BEGIN_OBJECT -> reader.beginObject()
+                JsonToken.END_OBJECT -> reader.endObject()
+                JsonToken.NAME -> reader.nextName()
+                JsonToken.STRING -> reader.nextString()
+                JsonToken.NUMBER -> reader.nextDouble()
+                JsonToken.BOOLEAN -> reader.nextBoolean()
+                JsonToken.NULL -> reader.nextNull()
+                JsonToken.END_DOCUMENT -> pass
+                else -> pass
             }
+        } catch (e: MalformedJsonException) {
+            result = JsonValidationFailed
+        } catch (e: EOFException) {
+            result = JsonValidationFailed
+        } finally {
+            reader.close()
         }
-        return valid
+        return result
     }
 
     private fun authAndAppendToLog(req: IncomingRequest): Result {

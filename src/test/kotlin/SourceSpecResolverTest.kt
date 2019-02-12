@@ -127,7 +127,7 @@ class SourceSpecResolverTest {
         val validBytesFn = suspend { validJsonForSchema.toByteArray() }
         val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
         val res = re.resolve(ir)
-        assertEquals(JsonValidationFailed, res, "should give error match")
+        assertEquals(JsonSchemaInvalid, res, "should give error match")
     }
 }
 
