@@ -2,17 +2,13 @@ package se.zensum.leia
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import leia.logic.CorsNotAllowed
-import leia.logic.IncomingRequest
-import leia.logic.LogAppend
-import leia.logic.NoMatch
-import leia.logic.NotAuthorized
-import leia.logic.SourceSpecResolver
+import leia.logic.*
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
 import kotlin.test.Test
+import kotlin.test.assertNotEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -28,7 +24,7 @@ private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), ""
 class SourceSpecResolverTest {
     val goodPath = "this_is_the_path"
     val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
-        authenticateUsing = emptyList())
+        authenticateUsing = emptyList(), validateJson = false, jsonSchema = "")
     @Test
     fun rejectsImproperPath() {
         val re = defaultSp.copy(path = "not_good_path").ssr()
@@ -88,4 +84,122 @@ class SourceSpecResolverTest {
 
         assertEquals(rec.status, sp.response.value, "Http status code set")
     }
+
+    @Test
+    fun validateValidJson() {
+        val re = defaultSp.copy(validateJson = true).ssr()
+        val validBytesFn = suspend { validJson.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
+        val res = re.resolve(ir)
+        assertNotEquals(JsonValidationFailed, res, "should not give error match")
+    }
+
+    @Test
+    fun validateInvalidJson() {
+        val re = defaultSp.copy(validateJson = true).ssr()
+        val invalidBytesFn = suspend { invalidJson.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = invalidBytesFn)
+        val res = re.resolve(ir)
+        assertEquals(JsonValidationFailed, res, "should give error match")
+    }
+
+    @Test
+    fun validateJsonSchemaValidJson() {
+        val re = defaultSp.copy(validateJson = true, jsonSchema = jsonSchema).ssr()
+        val validBytesFn = suspend { validJsonForSchema.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
+        val res = re.resolve(ir)
+        assertNotEquals(JsonValidationFailed, res, "should not give error match")
+    }
+
+    @Test
+    fun validateJsonSchemaInvalidJson() {
+        val re = defaultSp.copy(validateJson = true, jsonSchema = jsonSchema).ssr()
+        val validBytesFn = suspend { invalidJsonForSchema.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
+        val res = re.resolve(ir)
+        assertEquals(JsonValidationFailed, res, "should give error match")
+    }
+
+    @Test
+    fun validateInvalidJsonSchemaValidJson() {
+        val re = defaultSp.copy(validateJson = true, jsonSchema = invalidJsonSchema).ssr()
+        val validBytesFn = suspend { validJsonForSchema.toByteArray() }
+        val ir = pathIR(goodPath).copy(readBodyFn = validBytesFn)
+        val res = re.resolve(ir)
+        assertEquals(JsonSchemaInvalid, res, "should give error match")
+    }
 }
+
+// example from https://www.json.org/example.html
+val validJson = """
+{
+    "glossary": {
+        "title": "example glossary",
+		"GlossDiv": {
+            "title": "S",
+			"GlossList": {
+                "GlossEntry": {
+                    "ID": "SGML",
+					"SortAs": "SGML",
+					"GlossTerm": "Standard Generalized Markup Language",
+					"Acronym": "SGML",
+					"Abbrev": "ISO 8879:1986",
+					"GlossDef": {
+                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+						"GlossSeeAlso": ["GML", "XML"]
+                    },
+					"GlossSee": "markup"
+                }
+            }
+        }
+    }
+}
+""".trimIndent()
+const val invalidJson = """ { "title": "invalid JSON """
+
+// example from https://json-schema.org/learn/miscellaneous-examples.html
+val jsonSchema = """
+{
+  "${"$"}id": "https://example.com/person.schema.json",
+  "${"$"}schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Person",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "description": "The person's first name."
+    },
+    "lastName": {
+      "type": "string",
+      "description": "The person's last name."
+    },
+    "age": {
+      "description": "Age in years which must be equal to or greater than zero.",
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}
+""".trimIndent()
+
+val invalidJsonSchema = """
+{
+  "properties": {
+""".trimIndent()
+
+val validJsonForSchema = """
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": 21
+}
+""".trimIndent()
+
+val invalidJsonForSchema = """
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "age": "21"
+}
+""".trimIndent()

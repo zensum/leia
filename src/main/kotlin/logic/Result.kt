@@ -48,3 +48,7 @@ object CorsNotAllowed : ErrorMatch()
 // A CorsPreflight alllowed is actually an error match as it is overridden by
 // actual matches event if it results in a 200
 object CorsPreflightAllowed: ErrorMatch()
+// Validation of request body as JSON failed
+object JsonValidationFailed: ErrorMatch()
+// Validation of JSON schema failed
+object JsonSchemaInvalid: ErrorMatch()
