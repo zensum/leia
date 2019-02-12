@@ -1,9 +1,11 @@
 package leia;
 
 import org.junit.ClassRule;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.containers.DockerComposeContainer;
 import java.io.File;
 
+@Category(IntegrationTest.class)
 public class IntegrationTestBaseRule {
 
     @ClassRule
@@ -14,3 +16,5 @@ public class IntegrationTestBaseRule {
         .withExposedService("leia", 80)
         .withLocalCompose(true);
 }
+
+interface IntegrationTest {}
