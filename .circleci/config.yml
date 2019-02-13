@@ -15,6 +15,7 @@ jobs:
           key: circleci-{{ checksum "build.gradle" }}
       - run: gradle build
       - run: gradle test
+      - run: gradle integrationTest
       - setup_remote_docker
       - run: |
           docker login -u $HUB_USERNAME -p $HUB_PASSWORD
