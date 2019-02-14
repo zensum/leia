@@ -67,7 +67,7 @@ dependencies {
     integrationTestCompile "org.testcontainers:testcontainers:1.10.6"
 
     // Logging
-    compile 'io.github.microutils:kotlin-logging:1.6.10'
+    compile 'io.github.microutils:kotlin-logging:1.6.24'
 
     // Project specific dependencies (disabled by default)
     compile 'ch.vorburger:fswatch:1.1.0'
