@@ -79,12 +79,14 @@ dependencies {
     compile 'com.github.zensum:ktor-health-check:e7365fd'
     compile 'io.ktor:ktor-server-core:0.9.5'
     compile 'io.ktor:ktor-server-netty:0.9.5'
+    compile "io.ktor:ktor-server-test-host:0.9.5"
     testCompile "io.ktor:ktor-server-test-host:0.9.5"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile 'com.github.jonross:fauxflake:90abbcf5b6'
     implementation "com.github.mantono:pyttipanna:0.2.0"
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation(group: "com.github.everit-org.json-schema", name: "org.everit.json.schema", version: "1.11.0")
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
 }
 
 junitPlatform {

@@ -6,6 +6,11 @@ import leia.logic.IncomingRequest
 import leia.logic.Resolver
 import leia.logic.ResolverAtom
 import leia.logic.SourceSpecsResolver
+import leia.registry.K8sRegistry
+import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_ENABLE
+import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_HOST
+import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_PORT
+import leia.registry.Registries
 import leia.registry.Registry
 import leia.registry.TomlRegistry
 import leia.sink.CachedSinkProviderFactory
@@ -81,7 +86,15 @@ fun <T, U> registryUpdated(
 private const val DEFAULT_JWK_PROVIDER_NAME = "\$default_jwk_provider"
 
 fun bootstrap() {
-    val reg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
+    val tomlRreg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
+    val k8sHost = getEnv("KUBERNETES_SERVICE_HOST", DEFAULT_KUBERNETES_HOST)
+    val k8sPort = getEnv("KUBERNETES_SERVICE_PORT", DEFAULT_KUBERNETES_PORT)
+    val k8sEnable = getEnv("KUBERNETES_ENABLE", DEFAULT_KUBERNETES_ENABLE)
+    val registries = mutableListOf<Registry>()
+    if (k8sEnable == "true") registries.add(K8sRegistry(k8sHost, k8sPort))
+    registries.add(tomlRreg)
+
+    val reg = Registries(registries)
     val auth = setupAuthProvider(reg).addJwkProvider()
     val server = run(
         KtorServer,

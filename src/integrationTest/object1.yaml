@@ -1,0 +1,11 @@
+---
+apiVersion: leia.klira.io/v1
+kind: LeiaRoute
+metadata:
+  name: route1
+spec:
+  path: "/status/mail"
+  topic: "mail"
+  verify: false
+  format: "proto"
+  methods: [ "POST", "PUT", "HEAD", "GET" ]
