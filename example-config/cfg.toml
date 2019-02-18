@@ -37,6 +37,7 @@ title = "Routes config"
   }
 }
 """
+
 [[sink-providers]]
     name = "kafka"
     type = "kafka"
@@ -45,5 +46,11 @@ title = "Routes config"
         host = "kafka:9092"
 
 
+#[[sink-providers]]
+#    name = "redis"
+#    type = "redis"
+#    [sink-providers.options]
+#        host = "localhost"
+#        port = "6379"
 
 

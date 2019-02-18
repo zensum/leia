@@ -7,6 +7,7 @@ class DefaultSinkProviderFactory : SinkProviderFactory {
         when(spec.type.toLowerCase()) {
             "null" -> NullSinkProvider
             "kafka" -> KafkaSinkProvider(spec.options["host"] as String?)
+            "redis" -> RedisSinkProvider(spec.options["host"] as String?, (spec.options["port"] as String?) ?.toIntOrNull())
             "always-error" -> AlwaysErrorSinkProvider(spec.options["message"] as String)
             else ->
                 throw RuntimeException("No sinkProvider matching type ${spec.type}")

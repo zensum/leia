@@ -85,6 +85,7 @@ dependencies {
     implementation "com.github.mantono:pyttipanna:0.2.0"
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation(group: "com.github.everit-org.json-schema", name: "org.everit.json.schema", version: "1.11.0")
+    implementation group: 'redis.clients', name: 'jedis', version: '3.0.1'
 }
 
 junitPlatform {
