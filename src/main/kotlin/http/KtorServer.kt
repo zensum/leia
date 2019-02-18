@@ -7,13 +7,7 @@ import io.ktor.application.install
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.pipeline.PipelineContext
-import io.ktor.request.ApplicationRequest
-import io.ktor.request.header
-import io.ktor.request.host
-import io.ktor.request.httpMethod
-import io.ktor.request.path
-import io.ktor.request.queryString
-import io.ktor.request.receiveStream
+import io.ktor.request.*
 import io.ktor.response.header
 import io.ktor.response.respondText
 import io.ktor.server.engine.ApplicationEngine
@@ -56,7 +50,7 @@ private fun createIncomingRequest(req: ApplicationRequest) =
     )
 
 private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) {
-    val (text, status) = when(error) {
+    val (text, status) = when (error) {
         is NotAuthorized ->
             sendNotAuthorized(error, call)
         Forbidden ->
@@ -84,7 +78,7 @@ private fun sendNotAuthorized(
     error: NotAuthorized,
     call: ApplicationCall
 ): Pair<String, HttpStatusCode> {
-    if("basic_auth" in error.triedAuthMethods) {
+    if ("basic_auth" in error.triedAuthMethods) {
         call.response.header("WWW-Authenticate", "Basic")
     }
     return "unauthorized" to HttpStatusCode.Unauthorized
@@ -138,7 +132,6 @@ class KtorServer private constructor(
 
     suspend fun handleRequest(ctx: PipelineContext<Unit, ApplicationCall>) {
         val req = createIncomingRequest(ctx.context.request)
-        logRequest(ctx.context.request)
         val resolveResult = resolver.resolve(req)
         when (resolveResult) {
             is LogAppend -> performLogAppend(
@@ -150,11 +143,13 @@ class KtorServer private constructor(
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
             NoMatch -> sendNotFoundResponse(ctx.context)
         }
+        logRequest(ctx.context, resolveResult)
     }
 
-    private fun logRequest(request: ApplicationRequest) {
-        request.apply {
-            logger.info("${httpMethod.value} ${path()} from ${host()}")
+    private fun logRequest(call: ApplicationCall, result: Result) {
+        val sink = if (result is LogAppend) result.sinkDescription.name else ""
+        call.request.apply {
+            logger.info("${host()} ${httpMethod.value} ${path()} ${call.response.status()?.value} $sink")
         }
     }
 
@@ -167,7 +162,7 @@ class KtorServer private constructor(
         }
     }
 
-    private fun getPort() : Int = Integer.parseInt(getEnv("PORT", "80"))
+    private fun getPort(): Int = Integer.parseInt(getEnv("PORT", "80"))
 
     private var ktorServer: ApplicationEngine? = null
     private fun getKtorServer(): ApplicationEngine {
@@ -187,7 +182,7 @@ class KtorServer private constructor(
     }
 
     companion object : ServerFactory {
-        override fun create(resolver: Resolver, sinkProvider: SinkProvider) : Server =
+        override fun create(resolver: Resolver, sinkProvider: SinkProvider): Server =
             KtorServer(
                 resolver,
                 { sinkProvider.handle(it.sinkDescription, it.request) },
