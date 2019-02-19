@@ -88,6 +88,7 @@ dependencies {
     implementation(group: "com.github.everit-org.json-schema", name: "org.everit.json.schema", version: "1.11.0")
     implementation group: 'redis.clients', name: 'jedis', version: '3.0.1'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+"
+    implementation 'com.google.cloud:google-cloud-pubsub:1.59.0'
 }
 
 junitPlatform {
