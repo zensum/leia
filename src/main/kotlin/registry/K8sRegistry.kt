@@ -19,8 +19,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
-class K8sResourceHolder(private val parser: (String) -> List<K8sRegistry.RouteItem>) {
-    private val entriesA = AtomicReference(listOf<K8sRegistry.RouteItem>())
+class K8sResourceHolder<T>(private val parser: (String) -> List<T>) {
+    private val entriesA = AtomicReference(listOf<T>())
     fun onChange(yaml: String) {
         entriesA.updateAndGet {
             try {
@@ -32,7 +32,7 @@ class K8sResourceHolder(private val parser: (String) -> List<K8sRegistry.RouteIt
         }
     }
 
-    fun getData(): List<K8sRegistry.RouteItem> = entriesA.get()
+    fun getData(): List<T> = entriesA.get()
 }
 
 // Auto-watching registry for a directory of Kubernetes Yaml files.
@@ -41,9 +41,13 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
     private val mapper = ObjectMapper(JsonFactory())
         .also { it.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false) }
         .also { it.registerModule(KotlinModule()) }
-    private val holder = K8sResourceHolder { yaml ->
+    private val routesHolder = K8sResourceHolder { yaml ->
         val routes = mapper.readValue(yaml, K8sRegistry.Routes::class.java)
         routes.items.filter { apiVersions.contains(it.apiVersion) }
+    }
+    private val sinksHolder = K8sResourceHolder { yaml ->
+        val sinks = mapper.readValue(yaml, K8sRegistry.Sinks::class.java)
+        sinks.items.filter { apiVersions.contains(it.apiVersion) }
     }
 
     private val scheduler = Executors.newScheduledThreadPool(1)
@@ -52,16 +56,17 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         scheduler.scheduleAtFixedRate({ this.forceUpdate() }, 1, 1, TimeUnit.MINUTES)
     }
 
-    override fun getMaps(name: String): List<Map<String, Any>> =
-        holder.getData().filter { it.kind == nameToKind[name] }.map { it.spec.toMap() }
+    override fun getMaps(name: String) = getMaps(name, routesHolder).toMutableList().also { it.addAll(getMaps(name, sinksHolder)); it }
 
-    private fun onUpdate(yaml: String) {
+    private fun <T> getMaps(name: String, holder: K8sResourceHolder<T>): List<Map<String, Any>> =
+        routesHolder.getData().filter { it.kind == nameToKind[name] }.map { it.spec.toMap() }
+
+    private fun <T> onUpdate(yaml: String, holder: K8sResourceHolder<T>) {
         holder.onChange(yaml)
         watchers.forEach { (table, fn, handler) -> handler(getMaps(table).map { fn(it) }) }
-        logger.info { "Loaded ${holder.getData().size} objects from kubernetes" }
     }
 
-    private fun getPort(): Int  = try {
+    private fun getPort(): Int = try {
         port.toInt()
     } catch (e: NumberFormatException) {
         logger.error { "Invalid port number: $port, using default 8080" }
@@ -70,24 +75,31 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
 
     override fun forceUpdate() {
         logger.info("Polling all objects from kubernetes")
+        forceUpdate("leiaroutes") { content -> onUpdate(content, routesHolder) }
+        forceUpdate("leiasinks") { content -> onUpdate(content, sinksHolder) }
+        logger.info { "Loaded ${routesHolder.getData().size} routes ${sinksHolder.getData().size} sinks from kubernetes" }
+    }
+
+    private fun forceUpdate(path: String, onUpdate: (content: String) -> Unit) {
         val builder = HttpRequestBuilder()
             .also { it.method = HttpMethod.Get }
-            .also { it.url.also { url ->
-                url.host = host
-                url.port = getPort()
-            }.encodedPath = "/apis/leia.klira.io/v1/namespaces/default/leiaroutes" }
+            .also {
+                it.url.also { url ->
+                    url.host = host
+                    url.port = getPort()
+                }.encodedPath = "/apis/leia.klira.io/v1/namespaces/default/$path"
+            }
         var error: String? = null
         try {
             val response = runBlocking { HttpClient().call(builder).response }
             val content = runBlocking { response.readBytes().toString(Charsets.UTF_8) }
-
-            onUpdate(content)
+            onUpdate.invoke(content)
         } catch (e: UnresolvedAddressException) {
             error = e.message
         } catch (e: ConnectException) {
             error = e.message
         }
-        error?.let { logger.warn { "Failed to connect to kubernetes: $error" }}
+        error?.let { logger.warn { "Failed to connect to kubernetes: $error" } }
     }
 
     override fun <T> watch(name: String, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
@@ -103,7 +115,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         const val DEFAULT_KUBERNETES_HOST = "localhost"
         const val DEFAULT_KUBERNETES_PORT = "8080"
         const val DEFAULT_KUBERNETES_ENABLE = "true"
-        val nameToKind = hashMapOf("routes" to "LeiaRoute")
+        val nameToKind = hashMapOf("routes" to "LeiaRoute", "sink-providers" to "LeiaSinkProviders")
         val apiVersions = listOf("leia.klira.io/v1") // supported versions
     }
 
@@ -135,6 +147,23 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
             authenticateUsing?.let { map["authenticateUsing"] = it }
             validateJson?.let { map["validateJson"] = it }
             jsonSchema?.let { map["jsonSchema"] = it }
+            return map
+        }
+    }
+
+    data class Sinks(val apiVersion: String, val items: List<SinkItem>)
+
+    data class SinkItem(val apiVersion: String, val kind: String, val spec: Sink)
+    data class Sink(val name: String,
+                    val default: Boolean? = null,
+                    val type: String? = null,
+                    val options: Map<String, Any>? = null) {
+        fun toMap(): Map<String, Any> {
+            val map = HashMap<String, Any>()
+            map["name"] = name
+            default?.let { map["default"] = it }
+            type?.let { map["type"] = it }
+            options?.let { map["options"] = it }
             return map
         }
     }
