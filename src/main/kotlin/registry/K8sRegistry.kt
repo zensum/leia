@@ -38,10 +38,10 @@ class K8sResourceHolder(private val parser: (String) -> List<K8sRegistry.RouteIt
 // Auto-watching registry for a directory of Kubernetes Yaml files.
 class K8sRegistry(private val host: String, private val port: String) : Registry {
     private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
+    private val mapper = ObjectMapper(JsonFactory())
+        .also { it.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false) }
+        .also { it.registerModule(KotlinModule()) }
     private val holder = K8sResourceHolder { yaml ->
-        val mapper = ObjectMapper(JsonFactory())
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        mapper.registerModule(KotlinModule()) // Enable Kotlin support
         val routes = mapper.readValue(yaml, K8sRegistry.Routes::class.java)
         routes.items.filter { apiVersions.contains(it.apiVersion) }
     }
