@@ -147,7 +147,7 @@ class KtorServer private constructor(
     }
 
     private fun logRequest(call: ApplicationCall, result: Result) {
-        val sink = if (result is LogAppend) result.sinkDescription.name else ""
+        val sink = if (result is LogAppend) result.sinkDescription.name ?: "default" else ""
         call.request.apply {
             logger.info("${host()} ${httpMethod.value} ${path()} ${call.response.status()?.value} $sink")
         }
