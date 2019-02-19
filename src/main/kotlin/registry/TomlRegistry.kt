@@ -22,12 +22,13 @@ class ResourceHolder<K, out V>(private val parser: (K) -> V) {
             it + ks.map { k -> k to parser(k) }.toMap()
         }
     }
+
     fun getData(): Map<K, V> = entriesA.get()
 }
 
 // Auto-watching registry for a directory of Toml-files.
-class TomlRegistry(configPath: String): Registry {
-    private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any,(List<*>) -> Unit>>()
+class TomlRegistry(configPath: String) : Registry {
+    private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
     private val holder = ResourceHolder<Path, Toml> { path ->
         Toml().also {
             if (path.toFile().exists()) {
@@ -37,6 +38,7 @@ class TomlRegistry(configPath: String): Registry {
     }
 
     private val scheduler = Executors.newScheduledThreadPool(1)
+
     init {
         scheduler.scheduleAtFixedRate({ this.forceUpdate() }, 1, 1, TimeUnit.MINUTES)
     }
@@ -51,30 +53,31 @@ class TomlRegistry(configPath: String): Registry {
         .listener { path, chng ->
             val p = path.toFile()
             logger.info { "Detected file change $path (${chng.name})" }
-            if (!p.isHidden &&p.isFile && p.extension.toLowerCase() == "toml") {
+            if (!p.isHidden && p.isFile && p.extension.toLowerCase() == "toml") {
                 onUpdate(listOf(path))
             }
         }
         .build()
 
+    override fun getMaps(name: String): List<Map<String, Any>> =
+        with(computeCurrentState()) {
+            if (this.containsTableArray(name)) {
+                this.getTables(name).map { it.toMap() }
+            } else emptyList()
+        }
+
     private fun onUpdate(paths: List<Path>) {
         holder.onChange(paths)
-        val s = computeCurrentState()
-        watchers.forEach { (table, fn, handler) ->
-            val m = if (s.containsTableArray(table)) {
-                s.getTables(table).map { fn(it.toMap()) }
-            } else emptyList()
-            handler(m)
-        }
+        watchers.forEach { (table, fn, handler) -> handler(getMaps(table).map { fn(it) }) }
         logger.info { "Updated ${paths.count()} files" }
     }
 
-    fun forceUpdate() {
+    override fun forceUpdate() {
         logger.info("Polling all config files")
         configP
             .toFile()
             .listFiles()
-            .filter { it.isFile && !it.isHidden && it.extension.toLowerCase() == "toml"}
+            .filter { it.isFile && !it.isHidden && it.extension.toLowerCase() == "toml" }
             .map { it.toPath() }
             .let(this::onUpdate)
     }
@@ -89,7 +92,7 @@ class TomlRegistry(configPath: String): Registry {
 
     override fun <T> watch(name: String, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
         // Generics are insufficient for this, just go with
-        val t = Triple<String, (Map<String, Any>) -> Any,(List<*>) -> Unit>(
+        val t = Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
             name,
             fn as ((Map<String, Any>)) -> Any,
             handler as ((List<*>) -> Unit)
