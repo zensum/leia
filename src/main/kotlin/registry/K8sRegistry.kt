@@ -11,6 +11,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.response.readBytes
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
 import registry.Tables
@@ -91,7 +92,11 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         try {
             val response = runBlocking { HttpClient().call(builder).response }
             val content = runBlocking { response.readBytes().toString(Charsets.UTF_8) }
-            onUpdate.invoke(content)
+            if (response.status.isSuccess()) {
+                onUpdate.invoke(content)
+            } else {
+                logger.warn { "Failed to get $path from kubernetes" }
+            }
         } catch (e: UnresolvedAddressException) {
             error = e.message
         } catch (e: ConnectException) {
