@@ -3,6 +3,7 @@ package leia.registry
 import ch.vorburger.fswatch.DirectoryWatcherBuilder
 import com.moandjiezana.toml.Toml
 import mu.KLogging
+import registry.Tables
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.concurrent.Executors
@@ -28,7 +29,7 @@ class ResourceHolder<K, out V>(private val parser: (K) -> V) {
 
 // Auto-watching registry for a directory of Toml-files.
 class TomlRegistry(configPath: String) : Registry {
-    private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
+    private val watchers = mutableListOf<Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
     private val holder = ResourceHolder<Path, Toml> { path ->
         Toml().also {
             if (path.toFile().exists()) {
@@ -59,10 +60,10 @@ class TomlRegistry(configPath: String) : Registry {
         }
         .build()
 
-    override fun getMaps(name: String): List<Map<String, Any>> =
+    override fun getMaps(table: Tables): List<Map<String, Any>> =
         with(computeCurrentState()) {
-            if (this.containsTableArray(name)) {
-                this.getTables(name).map { it.toMap() }
+            if (this.containsTableArray(table.key)) {
+                this.getTables(table.key).map { it.toMap() }
             } else emptyList()
         }
 
@@ -90,10 +91,10 @@ class TomlRegistry(configPath: String) : Registry {
         return state
     }
 
-    override fun <T> watch(name: String, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
+    override fun <T> watch(table: Tables, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
         // Generics are insufficient for this, just go with
-        val t = Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
-            name,
+        val t = Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
+            table,
             fn as ((Map<String, Any>)) -> Any,
             handler as ((List<*>) -> Unit)
         )

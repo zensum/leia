@@ -13,6 +13,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.experimental.runBlocking
 import mu.KLogging
+import registry.Tables
 import java.net.ConnectException
 import java.nio.channels.UnresolvedAddressException
 import java.util.concurrent.Executors
@@ -37,7 +38,7 @@ class K8sResourceHolder<T>(private val parser: (String) -> List<T>) {
 
 // Auto-watching registry for a directory of Kubernetes Yaml files.
 class K8sRegistry(private val host: String, private val port: String) : Registry {
-    private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
+    private val watchers = mutableListOf<Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
     private val mapper = ObjectMapper(JsonFactory())
         .also { it.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false) }
         .also { it.registerModule(KotlinModule()) }
@@ -56,14 +57,10 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         scheduler.scheduleAtFixedRate({ this.forceUpdate() }, 1, 1, TimeUnit.MINUTES)
     }
 
-    override fun getMaps(name: String) = getMaps(name, routesHolder).toMutableList().also { it.addAll(getMaps(name, sinksHolder)); it }
-
-    private fun <T> getMaps(name: String, holder: K8sResourceHolder<T>): List<Map<String, Any>> =
-        routesHolder.getData().filter { it.kind == nameToKind[name] }.map { it.spec.toMap() }
-
-    private fun <T> onUpdate(yaml: String, holder: K8sResourceHolder<T>) {
-        holder.onChange(yaml)
-        watchers.forEach { (table, fn, handler) -> handler(getMaps(table).map { fn(it) }) }
+    override fun getMaps(table: Tables) = when(table) {
+        Tables.Routes -> routesHolder.getData().map { it.spec.toMap() }
+        Tables.SinkProviders -> sinksHolder.getData().map { it.spec.toMap() }
+        else -> listOf()
     }
 
     private fun getPort(): Int = try {
@@ -75,8 +72,9 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
 
     override fun forceUpdate() {
         logger.info("Polling all objects from kubernetes")
-        forceUpdate("leiaroutes") { content -> onUpdate(content, routesHolder) }
-        forceUpdate("leiasinks") { content -> onUpdate(content, sinksHolder) }
+        forceUpdate("leiaroutes") { content -> routesHolder.onChange(content) }
+        forceUpdate("leiasinks") { content -> sinksHolder.onChange(content) }
+        watchers.forEach { (table, fn, handler) -> handler(getMaps(table).map { fn(it) }) }
         logger.info { "Loaded ${routesHolder.getData().size} routes ${sinksHolder.getData().size} sinks from kubernetes" }
     }
 
@@ -102,9 +100,9 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         error?.let { logger.warn { "Failed to connect to kubernetes: $error" } }
     }
 
-    override fun <T> watch(name: String, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
-        val t = Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
-            name,
+    override fun <T> watch(table: Tables, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
+        val t = Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
+            table,
             fn as ((Map<String, Any>)) -> Any,
             handler as ((List<*>) -> Unit)
         )
@@ -115,7 +113,6 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         const val DEFAULT_KUBERNETES_HOST = "localhost"
         const val DEFAULT_KUBERNETES_PORT = "8080"
         const val DEFAULT_KUBERNETES_ENABLE = "true"
-        val nameToKind = hashMapOf("routes" to "LeiaRoute", "sink-providers" to "LeiaSinkProviders")
         val apiVersions = listOf("leia.klira.io/v1") // supported versions
     }
 
