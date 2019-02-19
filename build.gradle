@@ -79,7 +79,7 @@ dependencies {
     compile 'com.github.zensum:ktor-health-check:e7365fd'
     compile 'io.ktor:ktor-server-core:0.9.5'
     compile 'io.ktor:ktor-server-netty:0.9.5'
-    compile "io.ktor:ktor-server-test-host:0.9.5"
+    compile "io.ktor:ktor-server-test-host:1.1.2"
     testCompile "io.ktor:ktor-server-test-host:0.9.5"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile 'com.github.jonross:fauxflake:90abbcf5b6'
