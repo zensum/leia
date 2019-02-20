@@ -11,11 +11,6 @@ private fun mkJedis(host: String? = null, port: Int? = null) = when {
     else -> Jedis()
 }
 
-private fun <K, V> Map<K, V>.with(addend: Pair<K, V?>?): Map<K, V> =
-    if (addend?.second != null)
-        plus(addend.first to addend.second!!).toMap()
-    else this
-
 private class RedisSink(
     private val jedis: Jedis,
     private val description: SinkDescription
@@ -32,7 +27,7 @@ private class RedisSink(
     }
 }
 
-class RedisSinkProvider(private val host: String? = null, port: Int? = null) : SinkProvider {
+class RedisSinkProvider(host: String? = null, port: Int? = null) : SinkProvider {
     private val jedis = mkJedis(host, port)
     override fun sinkFor(description: SinkDescription): Sink? =
         RedisSink(jedis, description)
