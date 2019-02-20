@@ -11,7 +11,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.response.readBytes
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import java.net.ConnectException
 import java.nio.channels.UnresolvedAddressException
