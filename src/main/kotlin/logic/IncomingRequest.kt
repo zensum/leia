@@ -3,7 +3,7 @@ package leia.logic
 import com.github.rholder.fauxflake.IdGenerators
 import com.github.rholder.fauxflake.api.IdGenerator
 import io.ktor.http.HttpMethod
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 
 private val idGen: IdGenerator = IdGenerators.newSnowflakeIdGenerator()
 private fun generateId(): Long = idGen.generateId(10).asLong()

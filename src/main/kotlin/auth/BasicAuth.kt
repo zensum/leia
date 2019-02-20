@@ -1,8 +1,8 @@
 package se.zensum.leia.auth
 
-import com.mantono.pyttipanna.HashAlgorithm
-import com.mantono.pyttipanna.hash
-import io.ktor.util.decodeBase64
+import com.mantono.pyttipanna.hashing.HashAlgorithm
+import com.mantono.pyttipanna.hashing.hash
+import com.mantono.pyttipanna.transformation.Base64
 import leia.logic.IncomingRequest
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
@@ -44,9 +44,10 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
      * @param credential the base64 encoded version of the username and password, as
      * it is provided in the header without the "Basic" prefix
      */
+    @UseExperimental(io.ktor.util.InternalAPI::class)
     fun verify(credential: String): AuthResult {
         return try {
-            val credentialDecoded = String(decodeBase64(credential))
+            val credentialDecoded = String(Base64.asBytes(credential))
             if(credentialDecoded.count { it == ':' } != 1)
                 return AuthResult.Denied.InvalidCredentials
             val (user: String, password: String) = credentialDecoded.split(":")

@@ -4,7 +4,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.MalformedJsonException
 import io.ktor.http.HttpMethod
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.everit.json.schema.Schema
 import se.zensum.leia.auth.AuthProvider
