@@ -2,6 +2,7 @@ buildscript {
     ext.kotlin_version = '1.3.21'
     ext.jvm_version = '1.8'
     ext.junit_platform_version = '1.2.0'
+    ext.ktor_version = '1.1.2'
     repositories {
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
@@ -14,7 +15,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.cloud.tools.jib' version '0.9.7'
+    id 'com.google.cloud.tools.jib' version '1.0.0'
 }
 
 apply plugin: 'kotlin'
@@ -58,7 +59,7 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 
     // Junit
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.0'
     testRuntime "org.junit.platform:junit-platform-launcher:$junit_platform_version"
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.4.0'
 
@@ -71,15 +72,15 @@ dependencies {
 
     // Project specific dependencies (disabled by default)
     compile 'ch.vorburger:fswatch:1.1.0'
-    compile 'com.github.zensum:franz:f1e1d92'
+    compile 'com.github.zensum:franz:55be4a2'
     compile 'com.github.zensum:webhook-proto:0.1.2'
     compile 'com.github.zensum:ktor-prometheus-feature:0.6'
-    compile 'com.github.zensum:ktor-sentry-feature:cb46084f'
+    compile 'com.github.zensum:ktor-sentry-feature:fde5bc8f'
     compile 'com.github.zensum:ktor-jwt:5dc52cb'
-    compile 'com.github.zensum:ktor-health-check:e7365fd'
-    compile 'io.ktor:ktor-server-core:1.1.2'
-    compile 'io.ktor:ktor-server-netty:1.1.2'
-    compile "io.ktor:ktor-server-test-host:1.1.2"
+    compile 'com.github.zensum:ktor-health-check:011a5a8'
+    compile "io.ktor:ktor-server-core:$ktor_version"
+    compile "io.ktor:ktor-server-netty:$ktor_version"
+    compile "io.ktor:ktor-server-test-host:$ktor_version"
     testCompile "io.ktor:ktor-server-test-host:0.9.5"
     compile 'com.moandjiezana.toml:toml4j:0.7.2'
     compile 'com.github.jonross:fauxflake:90abbcf5b6'
