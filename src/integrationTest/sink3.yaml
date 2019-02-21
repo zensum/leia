@@ -1,0 +1,11 @@
+---
+apiVersion: leia.klira.io/v1
+kind: LeiaSinkProviders
+metadata:
+  name: sink3
+spec:
+  name: "redis"
+  type: "redis"
+  options:
+    host: "localhost"
+    port: "6379"

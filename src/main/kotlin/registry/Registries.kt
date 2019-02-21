@@ -1,35 +1,35 @@
 package leia.registry
 
-import java.util.concurrent.atomic.AtomicReference
+import registry.Tables
 
 class Registries(private val registries: List<Registry>) : Registry {
 
-    private val watchers = mutableListOf<Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
+    private val watchers = mutableListOf<Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
 
     override fun forceUpdate() {
         registries.forEach { it.forceUpdate() }
     }
 
-    override fun getMaps(name: String): List<Map<String, Any>> =
-        registries.map { it.getMaps(name) }.reduce { acc, list -> acc + list }
+    override fun getMaps(table: Tables): List<Map<String, Any>> =
+        registries.map { it.getMaps(table) }.reduce { acc, list -> acc + list }
 
-    private fun onUpdate(name: String) {
-        val maps = getMaps(name)
-        watchers.filter { triple -> triple.first == name }.map { triple ->
+    private fun onUpdate(table: Tables) {
+        val maps = getMaps(table)
+        watchers.filter { triple -> triple.first == table }.map { triple ->
             triple.third(maps.map { triple.second(it) })
         }
     }
 
-    override fun <T> watch(name: String, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
+    override fun <T> watch(table: Tables, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
         // Generics are insufficient for this, just go with
-        val t = Triple<String, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
-            name,
+        val t = Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
+            table,
             fn as ((Map<String, Any>)) -> Any,
             handler as ((List<*>) -> Unit)
         )
         watchers.add(t)
         registries.forEach {
-            it.watch(name, {}, { onUpdate(name) })
+            it.watch(table, {}, { onUpdate(table) })
         }
     }
 }

@@ -18,6 +18,7 @@ import leia.sink.DefaultSinkProviderFactory
 import leia.sink.SinkProvider
 import leia.sink.SinkProviderAtom
 import leia.sink.SpecSinkProvider
+import registry.Tables
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthProviderAtom
 import se.zensum.leia.auth.AuthProviderSpec
@@ -42,7 +43,7 @@ fun setupSinkProvider(reg: Registry): SinkProvider {
         { SinkProviderAtom(SpecSinkProvider(spf, emptyList())) },
         { SinkProviderSpec.fromMap(it) },
         { SpecSinkProvider(spf, it) },
-        "sink-providers",
+        Tables.SinkProviders,
         reg
     ) as SinkProvider
 }
@@ -53,7 +54,7 @@ fun setupResolver(reg: Registry, auth: AuthProvider): Resolver {
         { ResolverAtom(SourceSpecsResolver(auth, listOf())) },
         { SourceSpec.fromMap(it) },
         { SourceSpecsResolver(auth, it) },
-        "routes",
+        Tables.Routes,
         reg
     ) as Resolver
 }
@@ -63,11 +64,11 @@ fun setupAuthProvider(reg: Registry): AuthProvider {
     val atom: Atom<AuthProvider> = AuthProviderAtom(NoCheck)
     val mapper: (Map<String, Any>) -> AuthProviderSpec = { AuthProviderSpec.fromMap(it) }
     val combiner: (List<AuthProviderSpec>) -> AuthProvider = { specs -> SpecsAuthProvider(specs, authFactory) }
-    return registryUpdated<AuthProvider, AuthProviderSpec>(
+    return registryUpdated(
         zero = { atom },
         mapper = mapper,
         combiner = combiner,
-        key = "auth_providers",
+        table = Tables.AuthProviders,
         reg = reg
     ) as AuthProvider
 }
@@ -76,9 +77,9 @@ fun <T, U> registryUpdated(
     zero: () -> Atom<T>,
     mapper: (Map<String, Any>) -> U,
     combiner: (List<U>) -> T,
-    key: String,
+    table: Tables,
     reg: Registry) : Atom<T> = zero().also { atom ->
-    reg.watch(key, mapper) {
+    reg.watch(table, mapper) {
         atom.reference.set(combiner(it))
     }
 }
