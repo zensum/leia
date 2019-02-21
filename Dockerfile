@@ -5,7 +5,7 @@ RUN mkdir -p /usr/src/app && chown gradle:gradle /usr/src/app
 USER gradle
 
 WORKDIR /usr/src/app
-ADD build.gradle /usr/src/app/
+ADD build.gradle.kts /usr/src/app/
 
 RUN gradle -q --no-daemon dependencies
 
