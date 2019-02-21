@@ -1,4 +1,4 @@
-title = "Routes config"
+title = "Sample config"
 
 [[routes]]
 	path = "/"
@@ -12,7 +12,7 @@ title = "Routes config"
 	topic = "test"
 	verify = false
 	format = "proto"
-	methods = [ "POST", "GET", "HEAD" ]
+	methods = [ "POST" ]
     validateJson = true
     jsonSchema = """
 {
