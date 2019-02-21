@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import toBase64
 import java.util.*
+import com.mantono.pyttipanna.transformation.Base64 as PBase64
 
 class BasicAuthTest {
     /**
@@ -144,3 +144,5 @@ private fun basicAuthFromSpec(): AuthProvider {
     val spec = basicAuthProviderSpecWithCredentials()
     return DefaultAuthProviderFactory.create(spec)
 }
+
+private fun ByteArray.toBase64() = PBase64.asString(this)

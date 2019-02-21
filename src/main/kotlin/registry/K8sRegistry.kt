@@ -12,7 +12,7 @@ import io.ktor.client.response.readBytes
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import registry.Tables
 import java.net.ConnectException

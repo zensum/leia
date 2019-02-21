@@ -53,4 +53,9 @@ title = "Routes config"
 #        host = "localhost"
 #        port = "6379"
 
+#[[sink-providers]]
+#    name = "gpubsub"
+#    type = "gpubsub"
+#    [sink-providers.options]
+#        projectId = "<your-project-id>"
 
