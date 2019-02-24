@@ -32,7 +32,7 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
         if(!incomingRequest.headers.containsKey(HEADER))
             return AuthResult.Denied.NoCredentials
 
-        val credential: String = incomingRequest.headers[HEADER]!!
+        val credential: String = incomingRequest.headers.getValue(HEADER)
             .first()
             .removePrefix("Basic")
             .trim()
@@ -44,7 +44,6 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
      * @param credential the base64 encoded version of the username and password, as
      * it is provided in the header without the "Basic" prefix
      */
-    @UseExperimental(io.ktor.util.InternalAPI::class)
     fun verify(credential: String): AuthResult {
         return try {
             val credentialDecoded = String(Base64.asBytes(credential))
@@ -66,8 +65,19 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
     }
 
     companion object {
+        private inline fun <reified T> unEraseMapTypes(map: Map<*, *>): Map<T, T> =
+            map.filter { it.key is T && it.value is T }.map {
+                it.key as T to it.value as T
+            }.toMap()
+
+        private fun parseOptions(option: Any?): Map<String, String> = when (option) {
+            null -> emptyMap()
+            is Map<*, *> -> unEraseMapTypes(option)
+            else -> throw RuntimeException("Invalid option: $option")
+        }
+
     	fun fromOptions(options: Map<String, Any>): BasicAuth {
-            val map = options["basic_auth_users"] as Map<String, String>
+            val map = parseOptions(options["basic_auth_users"])
             return BasicAuth(map)
         }
     }

@@ -44,7 +44,7 @@ private fun createIncomingRequest(req: ApplicationRequest) =
             if (len == 0) {
                 RETURN_EMPTY_BUF
             } else {
-                { req.call.receiveStream().readBytes(len) }
+                { req.call.receiveStream().readBytes() }
             }
         }
     )

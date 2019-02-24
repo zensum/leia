@@ -16,6 +16,7 @@ class JwkAuth(
     private val decode: JWTDecoder
 ): AuthProvider {
 
+    @Suppress("unused")
     constructor(
         config: JwkConfig
     ): this(JwtValidator(config))
@@ -44,9 +45,20 @@ class JwkAuth(
             return JwkAuth(jwtDecoderCreator(jwkConfig))
         }
 
+        private inline fun <reified T> unEraseMapTypes(map: Map<*, *>): Map<T, T> =
+            map.filter { it.key is T && it.value is T }.map {
+                it.key as T to it.value as T
+            }.toMap()
+
+        private fun parseOptions(option: Any?): Map<String, String> = when (option) {
+            null -> emptyMap()
+            is Map<*, *> -> unEraseMapTypes(option)
+            else -> throw RuntimeException("Invalid option: $option")
+        }
+
         private fun validateConfig(options: Map<String, Any>): JwkConfig {
             require(options.containsKey("jwk_config")) { "Found no config for JWK" }
-            val jwkConfig: Map<String, String> = options["jwk_config"] as Map<String, String>
+            val jwkConfig: Map<String, String> = parseOptions(options["jwk_config"])
             require(jwkConfig.containsKey("jwk_url")) { "Missing required config key 'jwk_url'" }
             require(jwkConfig.containsKey("jwk_issuer")) { "Missing required config key 'jwk_issuer'" }
             return jwkConfig.toJwkConfig()
@@ -55,8 +67,8 @@ class JwkAuth(
 }
 
 private fun Map<String, String>.toJwkConfig(): JwkConfig {
-    val url = URL(this["jwk_url"]!!)
-    val issuer = this["jwk_issuer"]!!
+    val url = URL(this.getValue("jwk_url"))
+    val issuer = this.getValue("jwk_issuer")
     return JwkConfig(url, issuer)
 }
 

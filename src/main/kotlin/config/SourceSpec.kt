@@ -49,6 +49,12 @@ data class SourceSpec(val path: String,
             else -> throw RuntimeException("Invalid method(s): $methods")
         }
 
+        private fun parseAuthProviders(providers: Any?): List<String> = when(providers) {
+            null -> emptyList()
+            is Iterable<*> -> uneraseType(providers)
+            else -> throw RuntimeException("Invalid auth provider(s): $providers")
+        }
+
         private fun parseResponse(response: Any?): Int = when(response) {
             null -> 204
             is Number -> response.toInt()
@@ -57,7 +63,7 @@ data class SourceSpec(val path: String,
 
         fun fromMap(m: Map<String, Any>): SourceSpec {
             val verify: Boolean = m["verify"] as? Boolean ?: false
-            val rawAuthProviders: List<String> = m["auth_providers"] as? List<String> ?: emptyList()
+            val rawAuthProviders: List<String> = parseAuthProviders(m["auth_providers"])
             val authProviders: List<String> = if(verify) listOf("\$default_jwk_provider") else rawAuthProviders
 
             require(!(verify && rawAuthProviders.isNotEmpty())) {
