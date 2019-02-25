@@ -79,7 +79,7 @@ Route defines where given request should be sent to.
  - `response` - is optional, HTTP response code which should be sent to the sender on success, default is `204`.
  - `validateJson` - is optional, wether to validate body of the request as JSON before sending, default is `false`. `204` code is returned on success, `400` code on error.
  - `jsonSchema` - is optional, validates request body against this JSON schema if `validateJson` is set to `true`
- - `corsHosts` - is optional, list of hosts to check incoming request's [origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin) against for [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS). By default all traffic is allowed. If contains `*` then all hosts are allowed.
+ - `cors` - is optional, list of hosts to check incoming request's [origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin) against for [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS). By default all traffic is allowed. If contains `*` then all hosts are allowed.
  - `authenticateUsing` - is optional, list of [auth providers](#auth-providers) to verify request against
 
 

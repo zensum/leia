@@ -13,7 +13,7 @@ open class IntegrationTestBase: IntegrationTestBaseRule() {
             val builder = HttpRequestBuilder()
             builder.method = req.method
             for (header in req.headers) {
-                builder.headers.appendAll(header.key, header.value)
+                builder.headers.append(header.key, header.value)
             }
             builder.url.encodedPath = req.path
             builder.body = req.body
@@ -23,8 +23,10 @@ open class IntegrationTestBase: IntegrationTestBaseRule() {
 
     data class Request(val method: HttpMethod,
                        val path: String,
-                       val headers: Map<String, List<String>>,
+                       val headers: Map<String, String>,
                        val body: String)
+
+    fun Request.getResponse() = HttpClient().getResponseCode(getReqBuilder(this))
 }
 
-fun HttpClient.getResponseCode(builder: HttpRequestBuilder) = this.let { runBlocking { it.call(builder).response.status.value } }
+fun HttpClient.getResponseCode(builder: HttpRequestBuilder) = runBlocking { call(builder).response.status.value }
