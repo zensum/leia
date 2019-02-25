@@ -8,6 +8,13 @@ title = "Sample config"
 	methods = [ "POST", "GET", "HEAD" ]
 
 [[routes]]
+	path = "/with_cors"
+	topic = "test"
+	format = "proto"
+	methods = [ "POST", "GET", "HEAD" ]
+    cors = [ "http://example.com" ]
+
+[[routes]]
 	path = "/json"
 	topic = "test"
 	verify = false
