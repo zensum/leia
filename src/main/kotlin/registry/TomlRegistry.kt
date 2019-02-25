@@ -93,7 +93,7 @@ class TomlRegistry(configPath: String) : Registry {
 
     override fun <T> watch(table: Tables, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
         // Generics are insufficient for this, just go with
-        val t = Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>(
+        @Suppress("UNCHECKED_CAST") val t = Triple(
             table,
             fn as ((Map<String, Any>)) -> Any,
             handler as ((List<*>) -> Unit)
