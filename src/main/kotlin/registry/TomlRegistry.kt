@@ -28,8 +28,7 @@ class ResourceHolder<K, out V>(private val parser: (K) -> V) {
 }
 
 // Auto-watching registry for a directory of Toml-files.
-class TomlRegistry(configPath: String) : Registry {
-    private val watchers = mutableListOf<Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
+class TomlRegistry(configPath: String) : Registry() {
     private val holder = ResourceHolder<Path, Toml> { path ->
         Toml().also {
             if (path.toFile().exists()) {
@@ -59,7 +58,7 @@ class TomlRegistry(configPath: String) : Registry {
                 onUpdate(listOf(path))
             }
         }
-        .build()
+        .build()!!
 
     override fun getMaps(table: Tables): List<Map<String, Any>> =
         with(computeCurrentState()) {
@@ -90,16 +89,6 @@ class TomlRegistry(configPath: String) : Registry {
             state.read(it)
         }
         return state
-    }
-
-    override fun <T> watch(table: Tables, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
-        // Generics are insufficient for this, just go with
-        @Suppress("UNCHECKED_CAST") val t = Triple(
-            table,
-            fn as ((Map<String, Any>)) -> Any,
-            handler as ((List<*>) -> Unit)
-        )
-        watchers.add(t)
     }
 
     companion object : KLogging()
