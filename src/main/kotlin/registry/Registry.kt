@@ -18,8 +18,8 @@ abstract class Registry {
     }
 
     open fun <T> watch(table: Tables,
-                  fn: (Map<String, Any>) -> T,
-                  handler: (List<T>) -> Unit) {
+                       fn: (Map<String, Any>) -> T,
+                       handler: (List<T>) -> Unit) {
         // Generics are insufficient for this, just go with
         @Suppress("UNCHECKED_CAST") val t = Triple(
             table,
