@@ -2,7 +2,7 @@
 apiVersion: leia.klira.io/v1
 kind: LeiaSinkProviders
 metadata:
-  name: sink1
+  name: sink2
 spec:
   name: "null"
   type: "null"

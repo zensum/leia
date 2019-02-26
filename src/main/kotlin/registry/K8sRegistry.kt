@@ -12,6 +12,8 @@ import io.ktor.client.response.readBytes
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import registry.Tables
@@ -71,8 +73,12 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
     }
 
     private fun forceUpdateAll() {
-        forceUpdate("leiaroutes") { content -> routesHolder.onChange(content) }
-        forceUpdate("leiasinks") { content -> sinksHolder.onChange(content) }
+        val futureRoutes = forceUpdateAsync("leiaroutes") { content -> routesHolder.onChange(content) }
+        val futureSinks = forceUpdateAsync("leiasinks") { content -> sinksHolder.onChange(content) }
+        runBlocking {
+            futureRoutes.await()
+            futureSinks.await()
+        }
     }
 
     override fun forceUpdate() {
@@ -82,7 +88,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         logger.info { "Loaded ${routesHolder.getData().size} routes ${sinksHolder.getData().size} sinks from kubernetes" }
     }
 
-    private fun forceUpdate(path: String, onUpdate: (content: String) -> Unit) {
+    private fun forceUpdateAsync(path: String, onUpdate: (content: String) -> Unit) = GlobalScope.async {
         val builder = HttpRequestBuilder()
             .also { it.method = HttpMethod.Get }
             .also {
@@ -94,10 +100,10 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         fetchData(builder, onUpdate)?.let { logger.warn { "Failed to connect to kubernetes: $it" } }
     }
 
-    private fun fetchData(builder: HttpRequestBuilder, callback: (content: String) -> Unit): String? {
+    private suspend fun fetchData(builder: HttpRequestBuilder, callback: (content: String) -> Unit): String? {
         try {
-            val response = runBlocking { HttpClient().call(builder).response }
-            val content = runBlocking { response.readBytes().toString(Charsets.UTF_8) }
+            val response = HttpClient().call(builder).response
+            val content = response.readBytes().toString(Charsets.UTF_8)
             if (response.status.isSuccess()) {
                 callback.invoke(content)
             } else {
