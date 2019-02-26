@@ -13,14 +13,14 @@ class SpecsAuthProviderTest {
         val authProviders: List<AuthProviderSpec> = listOf(
             basicAuthProviderSpecWithCredentials("spec1"),
             AuthProviderSpec("spec2", "jwk", mapOf(
-                "jwk_config" to mapOf<String, String>(
+                "jwk_config" to mapOf(
                     "jwk_url" to "https://klira.io",
                     "jwk_issuer" to "my-issuer"
                 )
             ))
         )
         val sap = SpecsAuthProvider(authProviders, MockAuthProviderFactory)
-        val request = genericRequest(mapOf<String, List<String>>(
+        val request = genericRequest(mapOf(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
         val result: AuthResult = sap.verify(listOf("spec1", "spec2"), request)
@@ -34,14 +34,14 @@ class SpecsAuthProviderTest {
         val authProviders: List<AuthProviderSpec> = listOf(
             basicAuthProviderSpecWithCredentials("spec1"),
             AuthProviderSpec("spec2", "jwk", mapOf(
-                "jwk_config" to mapOf<String, String>(
+                "jwk_config" to mapOf(
                     "jwk_url" to "https://klira.io",
                     "jwk_issuer" to "my-issuer"
                 )
             ))
         )
         val sap = SpecsAuthProvider(authProviders, MockAuthProviderFactory)
-        val request = genericRequest(mapOf<String, List<String>>(
+        val request = genericRequest(mapOf(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "!!wrong secret!!"))
         ))
         val result: AuthResult = sap.verify(listOf("spec1", "spec2"), request)
@@ -55,7 +55,7 @@ class SpecsAuthProviderTest {
             basicAuthProviderSpecWithCredentials("spec2")
         )
         val sap = SpecsAuthProvider(authProviders, MockAuthProviderFactory)
-        val request = genericRequest(mapOf<String, List<String>>(
+        val request = genericRequest(mapOf(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
         assertThrows<UnsupportedOperationException> {

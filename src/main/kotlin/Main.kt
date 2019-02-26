@@ -2,7 +2,7 @@ package se.zensum.leia
 
 import leia.bootstrap
 
-fun main(args: Array<String>) {
+fun main() {
     bootstrap()
 }
 

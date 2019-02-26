@@ -132,7 +132,7 @@ class KtorServer private constructor(
         sendSuccessResponse(call, sinkResult, logAppend.receipt)
     }
 
-    suspend fun handleRequest(ctx: PipelineContext<Unit, ApplicationCall>) {
+    private suspend fun handleRequest(ctx: PipelineContext<Unit, ApplicationCall>) {
         val req = createIncomingRequest(ctx.context.request)
         val resolveResult = resolver.resolve(req)
         when (resolveResult) {

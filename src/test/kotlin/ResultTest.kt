@@ -8,44 +8,32 @@ import leia.logic.NotAuthorized
 import leia.logic.Receipt
 import leia.logic.SinkDescription
 import se.zensum.leia.config.Format
-import kotlin.test.*;
+import kotlin.test.*
 
 class ResultTest {
-    val la = LogAppend(
+    private val la = LogAppend(
         SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
-        IncomingRequest(HttpMethod.Get, null, "pleb", emptyMap(), "", null, { ByteArray(0) }),
+        IncomingRequest(HttpMethod.Get, null, "pleb", emptyMap(), "", null) { ByteArray(0) },
         Receipt(200, "foo")
     )
-    val em = NotAuthorized(emptyList())
+    private val em = NotAuthorized(emptyList())
     @Test fun noMatchOverriddenByAll() {
-        NoMatch.combine(la).let {
-            assertEquals(la, it, "Overridden by LogAppend")
-        }
-        NoMatch.combine(em).let {
-            assertEquals(em, it, "Overridden by ErrorMatch")
-        }
+        assertEquals(la, NoMatch.combine(la), "Overridden by LogAppend")
+        assertEquals(em, NoMatch.combine(em), "Overridden by ErrorMatch")
 
     }
 
     @Test fun noMatchIdempotent() {
-        NoMatch.combine(NoMatch).let {
-            assertEquals(NoMatch, it, "Idempotent when matched with itself")
-        }
+        assertEquals(NoMatch, NoMatch.combine(NoMatch), "Idempotent when matched with itself")
     }
 
     @Test fun errorMatchOverrides() {
-        em.combine(NoMatch).let {
-            assertEquals(em, it, "Error match not overridden by no match")
-        }
+        assertEquals(em, em.combine(NoMatch), "Error match not overridden by no match")
     }
 
     @Test fun logAppendOverrides() {
-        la.combine(NoMatch).let {
-            assertEquals(la, it, "LogAppend overrides NoMatch")
-        }
-        la.combine(em).let {
-            assertEquals(la, it, "LogAppend overrides error match")
-        }
+        assertEquals(la, la.combine(NoMatch), "LogAppend overrides NoMatch")
+        assertEquals(la, la.combine(em), "LogAppend overrides error match")
     }
 
 }
