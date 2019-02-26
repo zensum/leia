@@ -19,7 +19,6 @@ import java.io.EOFException
 import java.io.InputStreamReader
 
 private val logger = KotlinLogging.logger("source-spec")
-private val pass: Unit = Unit
 
 // A resolver that resolves an incoming request against a single source-spec
 // object.
