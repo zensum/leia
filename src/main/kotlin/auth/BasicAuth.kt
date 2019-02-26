@@ -3,6 +3,8 @@ package se.zensum.leia.auth
 import com.mantono.pyttipanna.hashing.HashAlgorithm
 import com.mantono.pyttipanna.hashing.hash
 import com.mantono.pyttipanna.transformation.Base64
+import config.Utils.parseOptions
+import config.Utils.unEraseMapTypes
 import leia.logic.IncomingRequest
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
@@ -62,19 +64,8 @@ class BasicAuth(credentials: Map<String, String>) : AuthProvider {
     }
 
     companion object {
-        private inline fun <reified T> unEraseMapTypes(map: Map<*, *>): Map<T, T> =
-            map.filter { it.key is T && it.value is T }.map {
-                it.key as T to it.value as T
-            }.toMap()
-
-        private fun parseOptions(option: Any?): Map<String, String> = when (option) {
-            null -> emptyMap()
-            is Map<*, *> -> unEraseMapTypes(option)
-            else -> throw RuntimeException("Invalid option: $option")
-        }
-
         fun fromOptions(options: Map<String, Any>): BasicAuth {
-            val map = parseOptions(options["basic_auth_users"])
+            val map = parseOptions(options["basic_auth_users"], ::unEraseMapTypes)
             return BasicAuth(map)
         }
     }

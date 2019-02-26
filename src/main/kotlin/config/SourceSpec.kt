@@ -1,5 +1,6 @@
 package se.zensum.leia.config
 
+import config.Utils.uneraseType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 
@@ -22,10 +23,6 @@ data class SourceSpec(val path: String,
     }
 
     companion object {
-        private inline fun <reified T> uneraseType(xs: Iterable<*>): List<T> =
-            xs.map {
-                it as? T ?: throw RuntimeException("Could not cast as ${T::class}")
-            }.toList()
 
         private fun parseFormat(x: Any?): Format = when (x) {
             "raw_body" -> Format.RAW_BODY
