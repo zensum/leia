@@ -76,16 +76,23 @@ fun <T, U> registryUpdated(
 
 private const val DEFAULT_JWK_PROVIDER_NAME = "\$default_jwk_provider"
 
-fun bootstrap() {
-    val tomlReg = TomlRegistry(getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY))
+object Env {
+    val configDir = getEnv("CONFIG_DIRECTORY", DEFAULT_CONFIG_DIRECTORY)
     val k8sHost = getEnv("KUBERNETES_SERVICE_HOST", DEFAULT_KUBERNETES_HOST)
     val k8sPort = getEnv("KUBERNETES_SERVICE_PORT", DEFAULT_KUBERNETES_PORT)
     val k8sEnable = getEnv("KUBERNETES_ENABLE", DEFAULT_KUBERNETES_ENABLE)
-    val registries = mutableListOf<Registry>()
-    if (k8sEnable == "true") registries.add(K8sRegistry(k8sHost, k8sPort))
-    registries.add(tomlReg)
+}
 
-    val reg = Registries(registries)
+fun prepareRegistry(): Registries {
+    val tomlReg = TomlRegistry(Env.configDir)
+    val registries = mutableListOf<Registry>()
+    if (Env.k8sEnable == "true") registries.add(K8sRegistry(Env.k8sHost, Env.k8sPort))
+    registries.add(tomlReg)
+    return Registries(registries)
+}
+
+fun bootstrap() {
+    val reg = prepareRegistry()
     val auth = setupAuthProvider(reg).addJwkProvider()
     val server = run(
         KtorServer,
