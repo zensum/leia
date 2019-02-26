@@ -87,21 +87,24 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
                     url.port = getPort()
                 }.encodedPath = "/apis/leia.klira.io/v1/namespaces/default/$path"
             }
-        var error: String? = null
+        fetchData(builder, onUpdate)?.let { logger.warn { "Failed to connect to kubernetes: $it" } }
+    }
+
+    private fun fetchData(builder: HttpRequestBuilder, callback: (content: String) -> Unit): String? {
         try {
             val response = runBlocking { HttpClient().call(builder).response }
             val content = runBlocking { response.readBytes().toString(Charsets.UTF_8) }
             if (response.status.isSuccess()) {
-                onUpdate.invoke(content)
+                callback.invoke(content)
             } else {
-                logger.warn { "Failed to get $path from kubernetes" }
+                logger.warn { "Failed to get from kubernetes: ${builder.url.encodedPath}" }
             }
         } catch (e: UnresolvedAddressException) {
-            error = e.message
+            return e.message
         } catch (e: ConnectException) {
-            error = e.message
+            return e.message
         }
-        error?.let { logger.warn { "Failed to connect to kubernetes: $error" } }
+        return null
     }
 
     companion object : KLogging() {
