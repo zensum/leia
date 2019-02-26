@@ -9,8 +9,13 @@ import registry.Tables
 abstract class Registry {
     protected val watchers = mutableListOf<Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
     abstract fun forceUpdate()
+
     // get list of key value pairs for given type of config e.g. route
     abstract fun getMaps(table: Tables): List<Map<String, Any>>
+
+    protected fun notifyWatchers() {
+        watchers.forEach { (table, fn, handler) -> handler(getMaps(table).map { fn(it) }) }
+    }
 
     open fun <T> watch(table: Tables,
                   fn: (Map<String, Any>) -> T,
