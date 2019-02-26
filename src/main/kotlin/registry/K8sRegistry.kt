@@ -70,11 +70,15 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         DEFAULT_KUBERNETES_PORT.toInt()
     }
 
-    override fun forceUpdate() {
-        logger.info("Polling all objects from kubernetes")
+    private fun forceUpdateAll() {
         forceUpdate("leiaroutes") { content -> routesHolder.onChange(content) }
         forceUpdate("leiasinks") { content -> sinksHolder.onChange(content) }
-        watchers.forEach { (table, fn, handler) -> handler(getMaps(table).map { fn(it) }) }
+    }
+
+    override fun forceUpdate() {
+        logger.info("Polling all objects from kubernetes")
+        forceUpdateAll()
+        notifyWatchers()
         logger.info { "Loaded ${routesHolder.getData().size} routes ${sinksHolder.getData().size} sinks from kubernetes" }
     }
 

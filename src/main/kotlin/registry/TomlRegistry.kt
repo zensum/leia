@@ -69,7 +69,7 @@ class TomlRegistry(configPath: String) : Registry() {
 
     private fun onUpdate(paths: List<Path>) {
         holder.onChange(paths)
-        watchers.forEach { (table, fn, handler) -> handler(getMaps(table).map { fn(it) }) }
+        notifyWatchers()
         logger.info { "Updated ${paths.count()} files" }
     }
 
