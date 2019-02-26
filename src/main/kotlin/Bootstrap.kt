@@ -29,23 +29,21 @@ private const val DEFAULT_CONFIG_DIRECTORY = "/etc/config"
 // Sets up a sink provider using the passed in registry
 fun setupSinkProvider(reg: Registry): SinkProvider {
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
-    return registryUpdated(
+    return reg.registryUpdated(
         { SinkProviderAtom(SpecSinkProvider(spf, emptyList())) },
         { SinkProviderSpec.fromMap(it) },
         { SpecSinkProvider(spf, it) },
-        Tables.SinkProviders,
-        reg
+        Tables.SinkProviders
     ) as SinkProvider
 }
 
 // Sets up a resolver configured using the passed in registry
 fun setupResolver(reg: Registry, auth: AuthProvider): Resolver {
-    return registryUpdated(
+    return reg.registryUpdated(
         { ResolverAtom(SourceSpecsResolver(auth, listOf())) },
         { SourceSpec.fromMap(it) },
         { SourceSpecsResolver(auth, it) },
-        Tables.Routes,
-        reg
+        Tables.Routes
     ) as Resolver
 }
 
@@ -54,22 +52,20 @@ fun setupAuthProvider(reg: Registry): AuthProvider {
     val atom: Atom<AuthProvider> = AuthProviderAtom(NoCheck)
     val mapper: (Map<String, Any>) -> AuthProviderSpec = { AuthProviderSpec.fromMap(it) }
     val combiner: (List<AuthProviderSpec>) -> AuthProvider = { specs -> SpecsAuthProvider(specs, authFactory) }
-    return registryUpdated(
+    return reg.registryUpdated(
         zero = { atom },
         mapper = mapper,
         combiner = combiner,
-        table = Tables.AuthProviders,
-        reg = reg
+        table = Tables.AuthProviders
     ) as AuthProvider
 }
 
-fun <T, U> registryUpdated(
+fun <T, U> Registry.registryUpdated(
     zero: () -> Atom<T>,
     mapper: (Map<String, Any>) -> U,
     combiner: (List<U>) -> T,
-    table: Tables,
-    reg: Registry): Atom<T> = zero().also { atom ->
-    reg.watch(table, mapper) {
+    table: Tables): Atom<T> = zero().also { atom ->
+    watch(table, mapper) {
         atom.reference.set(combiner(it))
     }
 }
