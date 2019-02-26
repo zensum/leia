@@ -63,6 +63,8 @@ private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) 
             "Body is not valid JSON" to HttpStatusCode.BadRequest
         JsonSchemaInvalid ->
             "JSON schema is invalid" to HttpStatusCode.BadRequest
+        MethodNotAllowed ->
+            "Method not allowed" to HttpStatusCode.MethodNotAllowed
     }
     call.respondText(text, status = status)
 }

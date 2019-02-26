@@ -37,7 +37,7 @@ class SourceSpecResolverTest {
         val re = defaultSp.copy(allowedMethods = listOf(HttpMethod.Patch)).ssr()
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)
-        assertTrue(res is NoMatch, "Shouldn't match")
+        assertTrue(res is MethodNotAllowed, "Shouldn't match")
     }
 
     @Test
