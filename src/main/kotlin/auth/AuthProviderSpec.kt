@@ -17,7 +17,7 @@ data class AuthProviderSpec(
     val options: Map<String, Any> = emptyMap()
 ) {
     companion object {
-    	fun fromMap(config: Map<String, Any>): AuthProviderSpec {
+        fun fromMap(config: Map<String, Any>): AuthProviderSpec {
             val options: Map<String, Any> = config
                 .filterKeys { it !in listOf("type", "name") }
 

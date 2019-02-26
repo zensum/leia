@@ -7,7 +7,7 @@ import io.ktor.http.HttpMethod
 import kotlinx.coroutines.runBlocking
 import leia.IntegrationTestBaseRule
 
-open class IntegrationTestBase: IntegrationTestBaseRule() {
+open class IntegrationTestBase : IntegrationTestBaseRule() {
     companion object {
         fun getReqBuilder(req: Request): HttpRequestBuilder {
             val builder = HttpRequestBuilder()

@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicReference
 class ResolverAtom(inner: Resolver) : Resolver, Atom<Resolver> {
     override val reference: AtomicReference<Resolver> = AtomicReference(inner)
 
-    override fun resolve(req: IncomingRequest): Result
-        = reference.get().resolve(req)
+    override fun resolve(req: IncomingRequest): Result = reference.get().resolve(req)
 }
 

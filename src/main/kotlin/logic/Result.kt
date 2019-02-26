@@ -21,7 +21,7 @@ sealed class Match : Result() {
     // Match + Match = Undefined
     // Match + NoMatch = Match
     // Match + ErrorMatch = Match
-    override fun combine(other: Result) = when(other) {
+    override fun combine(other: Result) = when (other) {
         is ErrorMatch -> this
         is Match -> throw UnsupportedOperationException("we cant handle this yet")
         else -> this
@@ -32,25 +32,31 @@ sealed class Match : Result() {
 // such as the presence of authentication headers.
 sealed class ErrorMatch : Match() {
     override fun combine(other: Result): Match =
-        when(other) {
+        when (other) {
             is Match -> other
             is ErrorMatch -> throw UnsupportedOperationException("we cant handle this yet")
             is NoMatch -> this
         }
 }
+
 // The rule matches but authorization is missing but is required
-data class NotAuthorized(val triedAuthMethods: List<String>): ErrorMatch()
+data class NotAuthorized(val triedAuthMethods: List<String>) : ErrorMatch()
+
 // The rule matches but authorization presented is invalid
-object Forbidden: ErrorMatch()
+object Forbidden : ErrorMatch()
+
 // The rule matches but CORS is not allowed for that host.
 object CorsNotAllowed : ErrorMatch()
 
 // A CorsPreflight alllowed is actually an error match as it is overridden by
 // actual matches event if it results in a 200
-object CorsPreflightAllowed: ErrorMatch()
+object CorsPreflightAllowed : ErrorMatch()
+
 // Validation of request body as JSON failed
-object JsonValidationFailed: ErrorMatch()
+object JsonValidationFailed : ErrorMatch()
+
 // Validation of JSON schema failed
-object JsonSchemaInvalid: ErrorMatch()
+object JsonSchemaInvalid : ErrorMatch()
+
 // HTTP method is not allowed
-object MethodNotAllowed: ErrorMatch()
+object MethodNotAllowed : ErrorMatch()

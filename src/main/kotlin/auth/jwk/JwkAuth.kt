@@ -14,12 +14,12 @@ typealias JWTDecoderCreator = (JwkConfig) -> JWTDecoder
 
 class JwkAuth(
     private val decode: JWTDecoder
-): AuthProvider {
+) : AuthProvider {
 
     @Suppress("unused")
     constructor(
         config: JwkConfig
-    ): this(JwtValidator(config))
+    ) : this(JwtValidator(config))
 
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult {
         val token: String = incomingRequest.headers["Authorization"]
@@ -75,6 +75,7 @@ private fun Map<String, String>.toJwkConfig(): JwkConfig {
 internal class JWKKeyProvider(private val jwkProvider: JwkProvider) : RSAKeyProvider {
     override fun getPublicKeyById(kid: String) =
         jwkProvider.get(kid).publicKey as RSAPublicKey
+
     override fun getPrivateKey(): RSAPrivateKey {
         throw UnsupportedOperationException()
     }

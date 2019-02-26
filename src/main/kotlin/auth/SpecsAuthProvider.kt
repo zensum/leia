@@ -13,7 +13,7 @@ class SpecsAuthProvider(specs: List<AuthProviderSpec>, private val apf: AuthProv
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = matching
         .asSequence()
         .mapNotNull { match ->
-            mapping[match].also { if(it == null) log.warn { "Found no mapping for $match" } }
+            mapping[match].also { if (it == null) log.warn { "Found no mapping for $match" } }
         }
         .map { it.verify(matching, incomingRequest) }
         .fold(AuthResult.Denied.InvalidCredentials) { a: AuthResult, b: AuthResult -> a.combine(b) }
@@ -24,8 +24,8 @@ sealed class AuthResult {
     /**
      * Authorization was successful (if required)
      */
-    data class Authorized(val identifier: String?): AuthResult() {
-        override fun combine(other: AuthResult): AuthResult = when(other) {
+    data class Authorized(val identifier: String?) : AuthResult() {
+        override fun combine(other: AuthResult): AuthResult = when (other) {
             is Authorized ->
                 throw UnsupportedOperationException("Only one means of authorization is allowed")
             else -> this
@@ -35,13 +35,13 @@ sealed class AuthResult {
     /**
      * Authorized was required but not successful
      */
-    sealed class Denied: AuthResult() {
+    sealed class Denied : AuthResult() {
 
         /**
          * No credentials were found for authorization
          */
-        object NoCredentials: AuthResult.Denied() {
-            override fun combine(other: AuthResult): AuthResult = when(other) {
+        object NoCredentials : AuthResult.Denied() {
+            override fun combine(other: AuthResult): AuthResult = when (other) {
                 is Authorized -> other
                 else -> other
             }
@@ -50,8 +50,8 @@ sealed class AuthResult {
         /**
          * Credentials were found but they were not valid for this resource
          */
-        object InvalidCredentials: AuthResult.Denied() {
-            override fun combine(other: AuthResult): AuthResult = when(other) {
+        object InvalidCredentials : AuthResult.Denied() {
+            override fun combine(other: AuthResult): AuthResult = when (other) {
                 is Authorized -> other
                 else -> this
             }

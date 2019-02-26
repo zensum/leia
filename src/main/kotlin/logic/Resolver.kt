@@ -22,5 +22,5 @@ data class Receipt(
 // which contains information on the sink to which the message is to be
 // routed, if any.
 interface Resolver {
-    fun resolve(req: IncomingRequest) : Result
+    fun resolve(req: IncomingRequest): Result
 }

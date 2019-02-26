@@ -4,7 +4,8 @@ import leia.logic.IncomingRequest
 import leia.logic.SinkDescription
 import se.zensum.leia.config.Format
 import se.zensum.leia.config.SinkProviderSpec
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class SpecSinkProviderTest {
     private val baseSpec = SinkProviderSpec("name", false, "foo", emptyMap())

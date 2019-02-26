@@ -13,19 +13,9 @@ import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_PORT
 import leia.registry.Registries
 import leia.registry.Registry
 import leia.registry.TomlRegistry
-import leia.sink.CachedSinkProviderFactory
-import leia.sink.DefaultSinkProviderFactory
-import leia.sink.SinkProvider
-import leia.sink.SinkProviderAtom
-import leia.sink.SpecSinkProvider
+import leia.sink.*
 import registry.Tables
-import se.zensum.leia.auth.AuthProvider
-import se.zensum.leia.auth.AuthProviderAtom
-import se.zensum.leia.auth.AuthProviderSpec
-import se.zensum.leia.auth.AuthResult
-import se.zensum.leia.auth.DefaultAuthProviderFactory
-import se.zensum.leia.auth.NoCheck
-import se.zensum.leia.auth.SpecsAuthProvider
+import se.zensum.leia.auth.*
 import se.zensum.leia.auth.jwk.JwkAuth
 import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
@@ -34,7 +24,7 @@ import se.zensum.leia.getEnv
 fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) =
     sf.create(resolver, sinkProvider)
 
-private const val DEFAULT_CONFIG_DIRECTORY ="/etc/config"
+private const val DEFAULT_CONFIG_DIRECTORY = "/etc/config"
 
 // Sets up a sink provider using the passed in registry
 fun setupSinkProvider(reg: Registry): SinkProvider {
@@ -78,7 +68,7 @@ fun <T, U> registryUpdated(
     mapper: (Map<String, Any>) -> U,
     combiner: (List<U>) -> T,
     table: Tables,
-    reg: Registry) : Atom<T> = zero().also { atom ->
+    reg: Registry): Atom<T> = zero().also { atom ->
     reg.watch(table, mapper) {
         atom.reference.set(combiner(it))
     }
@@ -113,7 +103,7 @@ private fun AuthProvider.addJwkProvider(): AuthProvider {
         .mapKeys { it.value.toLowerCase() }
         .filterValues { it.isBlank() }
 
-    if(envVars.size != 2)
+    if (envVars.size != 2)
         return this
 
     return createJwkAuth(envVars)

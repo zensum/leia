@@ -5,9 +5,9 @@ import se.zensum.leia.auth.jwk.JWTDecoder
 import se.zensum.leia.auth.jwk.JwkAuth
 import java.util.*
 
-object MockAuthProviderFactory: AuthProviderFactory {
+object MockAuthProviderFactory : AuthProviderFactory {
     override fun create(spec: AuthProviderSpec): AuthProvider =
-        when(spec.type.toLowerCase()) {
+        when (spec.type.toLowerCase()) {
             "basic_auth" -> BasicAuth.fromOptions(spec.options)
             "no_auth" -> NoCheck
             "jwk" -> JwkAuth.fromOptions(spec.options) {
@@ -21,10 +21,10 @@ object MockAuthProviderFactory: AuthProviderFactory {
  * Mock version of a [JWTDecoder] for testing purpose only, which unlike a
  * real JWTDecoder does no verification of signature or claims.
  */
-internal object MockJWTDecoder: JWTDecoder {
+internal object MockJWTDecoder : JWTDecoder {
     override fun verifyToken(token: String): DecodedJWT = JsonWebToken(token)
 
-    private data class JsonWebToken(private val token: String): DecodedJWT {
+    private data class JsonWebToken(private val token: String) : DecodedJWT {
         private val parts: List<String> = token.split(".")
         private val header: String = decode(parts[0])
         private val payload: String = decode(parts[1])
@@ -48,11 +48,9 @@ internal object MockJWTDecoder: JWTDecoder {
 
         override fun getAlgorithm(): String = header.field("alg")!!
 
-        override fun getExpiresAt(): Date?
-            = payload.field("exp")?.toLong()?.let { Date(it*1000L) }
+        override fun getExpiresAt(): Date? = payload.field("exp")?.toLong()?.let { Date(it * 1000L) }
 
-        override fun getAudience(): List<String>
-            = payload.field("aud")?.let { listOf(it) } ?: emptyList()
+        override fun getAudience(): List<String> = payload.field("aud")?.let { listOf(it) } ?: emptyList()
 
         override fun getId(): String? = this["jti"]
 
@@ -64,17 +62,15 @@ internal object MockJWTDecoder: JWTDecoder {
         override fun getToken(): String = token
         override fun getContentType(): String? = header.field("cty")
 
-        override fun getNotBefore(): Date?
-            = this["nbf"]?.toLong()?.let { Date(it*1000L) }
+        override fun getNotBefore(): Date? = this["nbf"]?.toLong()?.let { Date(it * 1000L) }
 
         override fun getSubject(): String? = this["sub"]
         override fun getPayload(): String = payload
         override fun getIssuer(): String = this["iss"]!!
-        override fun getClaims(): MutableMap<String, Claim>
-            = throw UnsupportedOperationException()
+        override fun getClaims(): MutableMap<String, Claim> = throw UnsupportedOperationException()
 
         override fun getIssuedAt(): Date =
-            Date(this["iat"]!!.toLong() *1000L)
+            Date(this["iat"]!!.toLong() * 1000L)
 
         override fun getClaim(name: String): Claim = Claim(this[name])
 
@@ -82,20 +78,17 @@ internal object MockJWTDecoder: JWTDecoder {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private data class Claim(private val value: String?): com.auth0.jwt.interfaces.Claim {
+    private data class Claim(private val value: String?) : com.auth0.jwt.interfaces.Claim {
         override fun isNull(): Boolean = value == null
-        override fun asDate(): Date?
-            = value?.toLong()?.let { ts -> Date(ts*1000L) }
+        override fun asDate(): Date? = value?.toLong()?.let { ts -> Date(ts * 1000L) }
         override fun asMap(): MutableMap<String, Any>? = value as? MutableMap<String, Any>
-        override fun <T : Any?> asList(tClazz: Class<T>?): MutableList<T>?
-            = value as? MutableList<T>
+        override fun <T : Any?> asList(tClazz: Class<T>?): MutableList<T>? = value as? MutableList<T>
         override fun asLong(): Long? = value?.toLong()
         override fun <T : Any?> `as`(tClazz: Class<T>?): T? = value as? T
         override fun asBoolean(): Boolean? = value?.toBoolean()
         override fun asDouble(): Double? = value?.toDouble()
         override fun asString(): String? = value
-        override fun <T : Any?> asArray(tClazz: Class<T>?): Array<T>
-            = throw UnsupportedOperationException()
+        override fun <T : Any?> asArray(tClazz: Class<T>?): Array<T> = throw UnsupportedOperationException()
         override fun asInt(): Int? = value?.toInt()
     }
 }

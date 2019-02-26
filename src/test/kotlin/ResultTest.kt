@@ -1,14 +1,10 @@
 package leia
 
 import io.ktor.http.HttpMethod
-import leia.logic.IncomingRequest
-import leia.logic.LogAppend
-import leia.logic.NoMatch
-import leia.logic.NotAuthorized
-import leia.logic.Receipt
-import leia.logic.SinkDescription
+import leia.logic.*
 import se.zensum.leia.config.Format
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ResultTest {
     private val la = LogAppend(
@@ -17,21 +13,25 @@ class ResultTest {
         Receipt(200, "foo")
     )
     private val em = NotAuthorized(emptyList())
-    @Test fun noMatchOverriddenByAll() {
+    @Test
+    fun noMatchOverriddenByAll() {
         assertEquals(la, NoMatch.combine(la), "Overridden by LogAppend")
         assertEquals(em, NoMatch.combine(em), "Overridden by ErrorMatch")
 
     }
 
-    @Test fun noMatchIdempotent() {
+    @Test
+    fun noMatchIdempotent() {
         assertEquals(NoMatch, NoMatch.combine(NoMatch), "Idempotent when matched with itself")
     }
 
-    @Test fun errorMatchOverrides() {
+    @Test
+    fun errorMatchOverrides() {
         assertEquals(em, em.combine(NoMatch), "Error match not overridden by no match")
     }
 
-    @Test fun logAppendOverrides() {
+    @Test
+    fun logAppendOverrides() {
         assertEquals(la, la.combine(NoMatch), "LogAppend overrides NoMatch")
         assertEquals(la, la.combine(em), "LogAppend overrides error match")
     }

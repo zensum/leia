@@ -8,6 +8,7 @@ interface Server {
     fun stop()
     fun start()
 }
+
 interface ServerFactory {
-    fun create(resolver: Resolver, sinkProvider: SinkProvider) : Server
+    fun create(resolver: Resolver, sinkProvider: SinkProvider): Server
 }

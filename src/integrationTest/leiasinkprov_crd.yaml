@@ -14,4 +14,4 @@ spec:
     singular: leiasink
     kind: LeiaSinkProviders
     shortNames:
-    - lsp
+      - lsp

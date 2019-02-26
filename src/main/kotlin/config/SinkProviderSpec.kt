@@ -10,7 +10,7 @@ data class SinkProviderSpec(
         private val emptyOptions = mutableMapOf<String, Any>()
 
         private inline fun <reified T> unEraseMapType(map: Map<*, *>): Map<T, Any> =
-            map.filter { it.key is T}.map {
+            map.filter { it.key is T }.map {
                 it.key as T to it.value as Any
             }.toMap()
 
@@ -20,7 +20,7 @@ data class SinkProviderSpec(
             else -> throw RuntimeException("Invalid option: $option")
         }
 
-        fun fromMap(m: Map<String, Any>)  =
+        fun fromMap(m: Map<String, Any>) =
             SinkProviderSpec(
                 name = m["name"] as String,
                 isDefault = m.getOrDefault("default", false) as Boolean,

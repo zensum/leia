@@ -10,6 +10,7 @@ interface Registry {
     fun forceUpdate()
     // get list of key value pairs for given type of config e.g. route
     fun getMaps(table: Tables): List<Map<String, Any>>
+
     fun <T> watch(table: Tables,
                   fn: (Map<String, Any>) -> T,
                   handler: (List<T>) -> Unit)

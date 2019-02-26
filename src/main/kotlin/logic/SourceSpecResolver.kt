@@ -7,16 +7,16 @@ import io.ktor.http.HttpMethod
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.everit.json.schema.Schema
+import org.everit.json.schema.ValidationException
+import org.everit.json.schema.loader.SchemaLoader
+import org.json.JSONException
+import org.json.JSONObject
 import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.config.SourceSpec
 import java.io.ByteArrayInputStream
 import java.io.EOFException
 import java.io.InputStreamReader
-import org.everit.json.schema.ValidationException
-import org.everit.json.schema.loader.SchemaLoader
-import org.json.JSONException
-import org.json.JSONObject
 
 private val logger = KotlinLogging.logger("source-spec")
 private val pass: Unit = Unit
