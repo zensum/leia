@@ -38,8 +38,7 @@ class K8sResourceHolder<T>(private val parser: (String) -> List<T>) {
 }
 
 // Auto-watching registry for a directory of Kubernetes Yaml files.
-class K8sRegistry(private val host: String, private val port: String) : Registry {
-    private val watchers = mutableListOf<Triple<Tables, (Map<String, Any>) -> Any, (List<*>) -> Unit>>()
+class K8sRegistry(private val host: String, private val port: String) : Registry() {
     private val mapper = ObjectMapper(JsonFactory())
         .also { it.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false) }
         .also { it.registerModule(KotlinModule()) }
@@ -103,15 +102,6 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
             error = e.message
         }
         error?.let { logger.warn { "Failed to connect to kubernetes: $error" } }
-    }
-
-    override fun <T> watch(table: Tables, fn: (Map<String, Any>) -> T, handler: (List<T>) -> Unit) {
-        @Suppress("UNCHECKED_CAST") val t = Triple(
-            table,
-            fn as ((Map<String, Any>)) -> Any,
-            handler as ((List<*>) -> Unit)
-        )
-        watchers.add(t)
     }
 
     companion object : KLogging() {
