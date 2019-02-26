@@ -130,19 +130,10 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
                      val validateJson: Boolean?,
                      val jsonSchema: String? = null) {
         fun toMap(): Map<String, Any> {
-            val map = HashMap<String, Any>()
-            map["path"] = path
-            map["topic"] = topic
-            format?.let { map["format"] = it }
-            verify?.let { map["verify"] = it }
-            methods?.let { map["methods"] = it }
-            cors?.let { map["cors"] = it }
-            response?.let { map["response"] = it }
-            sink?.let { map["sink"] = it }
-            authenticateUsing?.let { map["authenticateUsing"] = it }
-            validateJson?.let { map["validateJson"] = it }
-            jsonSchema?.let { map["jsonSchema"] = it }
-            return map
+            val map = hashMapOf("path" to path, "topic" to topic, "format" to format, "verify" to verify,
+                "methods" to methods, "cors" to cors, "response" to response, "sink" to sink,
+                "authenticateUsing" to authenticateUsing, "validateJson" to validateJson, "jsonSchema" to jsonSchema)
+            return map.filter { it.value != null }.map { it.key to it.value as Any }.toMap()
         }
     }
 
