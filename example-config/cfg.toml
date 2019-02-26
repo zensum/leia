@@ -5,7 +5,7 @@ title = "Sample config"
 	topic = "test"
 	verify = false
 	format = "proto"
-	methods = [ "POST", "GET", "HEAD" ]
+	methods = [ "POST", "GET", "HEAD", "OPTIONS" ]
 
 [[routes]]
 	path = "/with_cors"

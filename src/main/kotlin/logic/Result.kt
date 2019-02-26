@@ -52,3 +52,5 @@ object CorsPreflightAllowed: ErrorMatch()
 object JsonValidationFailed: ErrorMatch()
 // Validation of JSON schema failed
 object JsonSchemaInvalid: ErrorMatch()
+// HTTP method is not allowed
+object MethodNotAllowed: ErrorMatch()
