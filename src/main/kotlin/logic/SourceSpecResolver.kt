@@ -53,20 +53,21 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
         }
     }
 
+    private fun validateJson(req: IncomingRequest) =
+        if (cfg.jsonSchema != "") {
+            if (jsonSchema != null) {
+                validateBodyWithJsonSchema(req)
+            } else {
+                JsonSchemaInvalid
+            }
+        } else {
+            validateBodyAsJson(req)
+        }
+
+    /** Validates JSON (if enabled) and returns error when not valid. Otherwise processe request. */
     private fun validateAndProcess(req: IncomingRequest): Result {
         if (cfg.validateJson) {
-            val errorMatch = if (cfg.jsonSchema != "") {
-                if (jsonSchema != null) {
-                    validateBodyWithJsonSchema(req)
-                } else {
-                    JsonSchemaInvalid
-                }
-            } else {
-                validateBodyAsJson(req)
-            }
-            if (errorMatch != null) {
-                return errorMatch
-            }
+            validateJson(req)?.let { return it }
         }
         return authAndAppendToLog(req)
     }
@@ -82,6 +83,7 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
 
     /** Reads contents of JSON file from reader and throws exception if file is not valid JSON */
     private fun parseJson(reader: JsonReader) {
+        @Suppress("NON_EXHAUSTIVE_WHEN")
         while (reader.hasNext()) when (reader.peek()) {
             JsonToken.BEGIN_ARRAY -> reader.beginArray()
             JsonToken.END_ARRAY -> reader.endArray()
@@ -92,8 +94,6 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             JsonToken.NUMBER -> reader.nextDouble()
             JsonToken.BOOLEAN -> reader.nextBoolean()
             JsonToken.NULL -> reader.nextNull()
-            JsonToken.END_DOCUMENT -> pass
-            else -> pass
         }
     }
 
