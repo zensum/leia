@@ -10,7 +10,7 @@ object MockAuthProviderFactory: AuthProviderFactory {
         when(spec.type.toLowerCase()) {
             "basic_auth" -> BasicAuth.fromOptions(spec.options)
             "no_auth" -> NoCheck
-            "jwk" -> JwkAuth.fromOptions(spec.options) { _ ->
+            "jwk" -> JwkAuth.fromOptions(spec.options) {
                 MockJWTDecoder
             }
             else -> throw RuntimeException("No AuthProvider matching type ${spec.type}")

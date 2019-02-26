@@ -39,7 +39,7 @@ private class KafkaSink(
     }
 }
 
-class KafkaSinkProvider(private val host: String? = null) : SinkProvider {
+class KafkaSinkProvider(host: String? = null) : SinkProvider {
     private val producer = mkProducer(host)
     override fun sinkFor(description: SinkDescription): Sink? =
         KafkaSink(producer, description)

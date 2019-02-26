@@ -13,7 +13,7 @@ class JwkAuthTest {
 
     private fun jwkAuthFromSpec(): AuthProvider {
         val options = mapOf<String, Any>(
-            "jwk_config" to mapOf<String, String>(
+            "jwk_config" to mapOf(
                 "jwk_issuer" to "x",
                 "jwk_url" to "https://xx.yy"
             )

@@ -5,7 +5,7 @@ import mu.KotlinLogging
 
 private val log = KotlinLogging.logger("specs-auth-provider")
 
-class SpecsAuthProvider(val specs: List<AuthProviderSpec>, val apf: AuthProviderFactory) : AuthProvider {
+class SpecsAuthProvider(specs: List<AuthProviderSpec>, private val apf: AuthProviderFactory) : AuthProvider {
     private val namesToSpecs = specs.map { it.name to it }.toMap()
     private val mapping = namesToSpecs.mapValues { (_, v) -> apf.create(v) }
 

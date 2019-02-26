@@ -3,9 +3,8 @@ package leia.sink
 import leia.logic.IncomingRequest
 import leia.logic.SinkDescription
 
-class SinkNotFoundException(val sinkDescription: SinkDescription) :
-    Exception("Unable to find sink for description $sinkDescription") {
-}
+class SinkNotFoundException(sinkDescription: SinkDescription) :
+    Exception("Unable to find sink for description $sinkDescription")
 
 interface SinkProvider {
     fun sinkFor (description: SinkDescription): Sink?

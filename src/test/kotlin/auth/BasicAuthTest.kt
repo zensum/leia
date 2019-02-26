@@ -39,7 +39,7 @@ class BasicAuthTest {
 
     @Test
     fun testDeniedOnBearerInsteadOfBasicInHeader() {
-        val auth: BasicAuth = BasicAuth(hashedCredentials)
+        val auth = BasicAuth(hashedCredentials)
         val req: IncomingRequest = genericRequest(mapOf(
             "Authorization" to listOf("Bearer Vader:Rebel scum")
         ))
@@ -49,8 +49,8 @@ class BasicAuthTest {
 
     @Test
     fun testVerifyingCredentialsAsValid() {
-        val auth: BasicAuth = BasicAuth(hashedCredentials)
-        val b64BasicAuth: String = base64Credentials["Luke"]!!
+        val auth = BasicAuth(hashedCredentials)
+        val b64BasicAuth: String = base64Credentials.getValue("Luke")
         val result: AuthResult = auth.verify(b64BasicAuth)
 
         assertTrue(result is AuthResult.Authorized)
@@ -60,7 +60,7 @@ class BasicAuthTest {
 
     @Test
     fun testVerifyingCredentialsAsInvalid() {
-        val auth: BasicAuth = BasicAuth(hashedCredentials)
+        val auth = BasicAuth(hashedCredentials)
         val unauthorizedUser: String = "Vader:Rebel scum"
             .toByteArray()
             .toBase64()
@@ -70,8 +70,8 @@ class BasicAuthTest {
 
     @Test
     fun testDenyCredentialsWithNonBase64() {
-        val auth: BasicAuth = BasicAuth(hashedCredentials)
-        val unauthorizedUser: String = "Vader:Rebel scum"
+        val auth = BasicAuth(hashedCredentials)
+        val unauthorizedUser = "Vader:Rebel scum"
         val result: AuthResult = auth.verify(unauthorizedUser)
         assertEquals(AuthResult.Denied.InvalidCredentials, result)
     }
@@ -87,7 +87,7 @@ class BasicAuthTest {
     @Test
     fun `allow request with proper credentials`() {
         val basicAuth: AuthProvider = basicAuthFromSpec()
-        val req = genericRequest(mapOf<String, List<String>>(
+        val req = genericRequest(mapOf(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "x"))
         ))
         val result: AuthResult = basicAuth.verify(listOf("some_auth"), req)
@@ -98,7 +98,7 @@ class BasicAuthTest {
     @Test
     fun `deny request with invalid credentials`() {
         val basicAuth: AuthProvider = basicAuthFromSpec()
-        val req = genericRequest(mapOf<String, List<String>>(
+        val req = genericRequest(mapOf(
             "Authorization" to listOf(basicAuthHeaderValue("user-x", "wrong secret!"))
         ))
         val result: AuthResult = basicAuth.verify(listOf("some_auth"), req)
@@ -131,7 +131,7 @@ internal fun basicAuthHeaderValue(user: String, password: String): String = Base
 
 internal fun basicAuthProviderSpecWithCredentials(name: String = "some_auth"): AuthProviderSpec {
     val options = mapOf<String, Any>(
-        "basic_auth_users" to mapOf<String, String>(
+        "basic_auth_users" to mapOf(
             "user-x" to "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881", // "x"
             "user-y" to "a1fce4363854ff888cff4b8e7875d600c2682390412a8cf79b37d0b11148b0fa", // "y"
             "user-z" to "594e519ae499312b29433b7dd8a97ff068defcba9755b6d5d00e84c524d67b06" // "z

@@ -24,7 +24,7 @@ private val pass: Unit = Unit
 // A resolver that resolves an incoming request against a single source-spec
 // object.
 class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProvider) : Resolver {
-    var jsonSchema: Schema? = null
+    private var jsonSchema: Schema? = null
 
     init {
         initJsonSchema()

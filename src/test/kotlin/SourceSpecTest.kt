@@ -12,7 +12,7 @@ class SourceSpecTest {
     fun `check that verify and auth-provider are not present at the same time`() {
         assertThrows<IllegalArgumentException> {
             SourceSpec.fromMap(
-                mapOf<String, Any>(
+                mapOf(
                     "path" to "/",
                     "topic" to "topic",
                     "format" to "proto",
@@ -30,7 +30,7 @@ class SourceSpecTest {
     fun `jwk_auth should be used when verify is true`() {
         // Essentially, check backwards compatibility with old config
         val spec = SourceSpec.fromMap(
-            mapOf<String, Any>(
+            mapOf(
                 "path" to "/",
                 "topic" to "topic",
                 "format" to "proto",
@@ -49,7 +49,7 @@ class SourceSpecTest {
     @Test
     fun `no auth provider should be used when verify is false and list of providers is empty`() {
         val spec = SourceSpec.fromMap(
-            mapOf<String, Any>(
+            mapOf(
                 "path" to "/",
                 "topic" to "topic",
                 "format" to "proto",

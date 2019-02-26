@@ -46,6 +46,7 @@ class TomlRegistry(configPath: String) : Registry {
 
     private val configP = FileSystems.getDefault().getPath(configPath)
 
+    @Suppress("unused")
     val w = DirectoryWatcherBuilder().fileFilter {
         !it.isHidden
     }
