@@ -15,7 +15,7 @@ class SpecSinkProvider(
     private val nameToSpecs = specs.map { it.name }.zip(specs).toMap()
 
     private fun delegateTo(description: SinkDescription): SinkProvider? =
-        if(description.name == null) {
+        if (description.name == null) {
             defaultProvider
         } else {
             providers[nameToSpecs[description.name]]

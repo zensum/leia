@@ -24,6 +24,7 @@ class HttpRequestsTest : IntegrationTestBase() {
 
     /* Test CORS */
     private fun validCors() = getPath("/with_cors").copy(headers = mapOf("Origin" to "http://example.com"))
+
     private fun invalidCors() = validCors().copy(headers = mapOf("Origin" to "http://invalid.example.com"))
     private fun corsPreflight() = validCors().copy(method = HttpMethod.Options)
 

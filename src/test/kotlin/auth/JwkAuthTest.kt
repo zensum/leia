@@ -40,8 +40,7 @@ class JwkAuthTest {
     @Test
     fun `present Authorization headers results in Authorized`() {
         val auth = JwkAuth(MockJWTDecoder)
-        val requestWithHeaders: IncomingRequest
-            = genericRequest(mapOf("Authorization" to listOf("Bearer $EXAMPLE_JWT")))
+        val requestWithHeaders: IncomingRequest = genericRequest(mapOf("Authorization" to listOf("Bearer $EXAMPLE_JWT")))
         val result: AuthResult = auth.verify(emptyList(), requestWithHeaders)
         assertTrue(result is AuthResult.Authorized)
         result as AuthResult.Authorized

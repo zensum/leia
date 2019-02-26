@@ -12,7 +12,7 @@ private val log = KotlinLogging.logger("basic-auth")
 
 private const val HEADER = "Authorization"
 
-class BasicAuth(credentials: Map<String, String>): AuthProvider {
+class BasicAuth(credentials: Map<String, String>) : AuthProvider {
 
     private val credentials: Map<String, ByteArray> = credentials.mapValues {
         Hex.decodeHex(it.value)
@@ -27,9 +27,8 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
     }
 
 
-
-    override fun verify(matching: List<String>, incomingRequest: IncomingRequest) : AuthResult {
-        if(!incomingRequest.headers.containsKey(HEADER))
+    override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult {
+        if (!incomingRequest.headers.containsKey(HEADER))
             return AuthResult.Denied.NoCredentials
 
         val credential: String = incomingRequest.headers.getValue(HEADER)
@@ -47,18 +46,16 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
     fun verify(credential: String): AuthResult {
         return try {
             val credentialDecoded = String(Base64.asBytes(credential))
-            if(credentialDecoded.count { it == ':' } != 1)
+            if (credentialDecoded.count { it == ':' } != 1)
                 return AuthResult.Denied.InvalidCredentials
             val (user: String, password: String) = credentialDecoded.split(":")
             val hashedPass: ByteArray = hash(password, HashAlgorithm.SHA256)
-            if(MessageDigest.isEqual(credentials[user], hashedPass)) {
+            if (MessageDigest.isEqual(credentials[user], hashedPass)) {
                 AuthResult.Authorized(user)
-            }
-            else {
+            } else {
                 AuthResult.Denied.InvalidCredentials
             }
-        }
-        catch(e: IllegalArgumentException) {
+        } catch (e: IllegalArgumentException) {
             log.warn("Credentials for basic authentication with invalid base64 was used: ${e.message}")
             AuthResult.Denied.InvalidCredentials
         }
@@ -76,7 +73,7 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
             else -> throw RuntimeException("Invalid option: $option")
         }
 
-    	fun fromOptions(options: Map<String, Any>): BasicAuth {
+        fun fromOptions(options: Map<String, Any>): BasicAuth {
             val map = parseOptions(options["basic_auth_users"])
             return BasicAuth(map)
         }
@@ -86,6 +83,6 @@ class BasicAuth(credentials: Map<String, String>): AuthProvider {
 /**
  * Always set as [AuthResult.Authorized]
  */
-object NoCheck: AuthProvider {
+object NoCheck : AuthProvider {
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = AuthResult.Authorized(null)
 }

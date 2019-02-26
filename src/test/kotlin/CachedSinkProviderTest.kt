@@ -2,7 +2,8 @@ package leia.sink
 
 import leia.logic.SinkDescription
 import se.zensum.leia.config.SinkProviderSpec
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class CachedSinkProviderTest {
     private val dummySpec = SinkProviderSpec("foo", true, "kafka", emptyMap())
@@ -17,14 +18,17 @@ class CachedSinkProviderTest {
             }
         }
     }
-    @Test fun createsSpecOnce() {
+
+    @Test
+    fun createsSpecOnce() {
         val bck = dummy()
         val spf = CachedSinkProviderFactory(bck)
         spf.create(dummySpec)
         assertEquals(1, bck.ctr, "Backing factory should only called once!")
     }
 
-    @Test fun createSpecOnlyOnce() {
+    @Test
+    fun createSpecOnlyOnce() {
         val bck = dummy()
         val spf = CachedSinkProviderFactory(bck)
         spf.create(dummySpec)
@@ -32,7 +36,8 @@ class CachedSinkProviderTest {
         assertEquals(1, bck.ctr, "Backing factory should only called once!")
     }
 
-    @Test fun createsForDifferentSpecsStillCount() {
+    @Test
+    fun createsForDifferentSpecsStillCount() {
         val bck = dummy()
         val spf = CachedSinkProviderFactory(bck)
         spf.create(dummySpec)
@@ -41,7 +46,8 @@ class CachedSinkProviderTest {
         assertEquals(2, bck.ctr, "Backing factory should only called once!")
     }
 
-    @Test fun createsSpecOnceEvenForDupes() {
+    @Test
+    fun createsSpecOnceEvenForDupes() {
         val bck = dummy()
         val spf = CachedSinkProviderFactory(bck)
         spf.create(dummySpec)

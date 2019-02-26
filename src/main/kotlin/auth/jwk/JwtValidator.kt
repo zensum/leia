@@ -8,7 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT
 
 class JwtValidator(
     config: JwkConfig
-): JWTDecoder {
+) : JWTDecoder {
     private val verifier: JWTVerifier = MemoizedJWTVerifierFactory.createVerifier(config)
     override fun verifyToken(token: String): DecodedJWT? = verifier.verify(token)
 }
@@ -23,7 +23,7 @@ private object MemoizedJWTVerifierFactory {
     private val verifiers: MutableMap<JwkConfig, JWTVerifier> = mutableMapOf()
 
     fun createVerifier(config: JwkConfig): JWTVerifier {
-        return if(config in verifiers)
+        return if (config in verifiers)
             verifiers[config]!!
         else {
             buildVerifier(config).also { createdVerifier ->

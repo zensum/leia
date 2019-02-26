@@ -2,11 +2,12 @@ package leia.sink
 
 import leia.logic.IncomingRequest
 import se.zensum.leia.config.Format
-import io.ktor.http.HttpMethod as KtorHttpMethod
 import se.zensum.webhook.PayloadOuterClass
+import io.ktor.http.HttpMethod as KtorHttpMethod
 
 typealias HttpMethod = PayloadOuterClass.HttpMethod
-fun convertMethod(method: KtorHttpMethod): PayloadOuterClass.HttpMethod = when(method) {
+
+fun convertMethod(method: KtorHttpMethod): PayloadOuterClass.HttpMethod = when (method) {
     KtorHttpMethod.Put -> HttpMethod.PUT
     KtorHttpMethod.Patch -> HttpMethod.PATCH
     KtorHttpMethod.Delete -> HttpMethod.DELETE
@@ -45,7 +46,8 @@ suspend fun createPayloadProtobuf(req: IncomingRequest): PayloadOuterClass.Paylo
             it.flakeId = requestId
         }.build()
     }
-internal suspend fun Format.generateBody(req: IncomingRequest) : ByteArray = when (this) {
+
+internal suspend fun Format.generateBody(req: IncomingRequest): ByteArray = when (this) {
     Format.RAW_BODY -> req.readBody()
     Format.PROTOBUF -> createPayloadProtobuf(req).toByteArray()
 }

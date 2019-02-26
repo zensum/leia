@@ -7,24 +7,22 @@ import se.zensum.leia.auth.AuthProvider
 import se.zensum.leia.auth.AuthResult
 import se.zensum.leia.auth.NoCheck
 import se.zensum.leia.config.SourceSpec
-import kotlin.test.Test
-import kotlin.test.assertNotEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 
 private typealias SSR = SourceSpecResolver
 private typealias Sp = SourceSpec
 private typealias IR = IncomingRequest
+
 fun Sp.ssr(auth: AuthProvider = NoCheck) = SSR(this, auth)
 
-private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), "", null) { ByteArray(0 )}
+private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), "", null) { ByteArray(0) }
 
 class SourceSpecResolverTest {
     private val goodPath = "this_is_the_path"
     private val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
         authenticateUsing = emptyList(), validateJson = false, jsonSchema = "")
+
     @Test
     fun rejectsImproperPath() {
         val re = defaultSp.copy(path = "not_good_path").ssr()
@@ -32,6 +30,7 @@ class SourceSpecResolverTest {
         val res = re.resolve(ir)
         assertTrue(res is NoMatch, "Shouldn't match")
     }
+
     @Test
     fun rejectsIncorrectMethod() {
         val re = defaultSp.copy(allowedMethods = listOf(HttpMethod.Patch)).ssr()
@@ -46,8 +45,7 @@ class SourceSpecResolverTest {
             authenticateUsing = listOf("jwk"),
             allowedMethods = HttpMethods.verbs
         ).ssr(object : AuthProvider {
-            override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult
-            = AuthResult.Denied.NoCredentials
+            override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult = AuthResult.Denied.NoCredentials
         })
         val ir = pathIR(goodPath)
         val res = re.resolve(ir)
@@ -74,7 +72,7 @@ class SourceSpecResolverTest {
 
         val res = re.resolve(ir) as? LogAppend ?: fail("Res must be log-append")
 
-        val (sinkDes, req, rec)  = res
+        val (sinkDes, req, rec) = res
 
         assertEquals("rhee", sinkDes.topic, "Topic set as appropriate")
         assertEquals(sp.sink, sinkDes.name, "Sink-name sent into sinkdescription")

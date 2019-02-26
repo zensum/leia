@@ -1,21 +1,17 @@
 package leia
 
 import io.ktor.http.HttpMethod.Companion.Get
-import leia.logic.DisjunctiveResolver
-import leia.logic.IncomingRequest
-import leia.logic.LogAppend
-import leia.logic.NoMatch
-import leia.logic.Receipt
-import leia.logic.Resolver
-import leia.logic.Result
-import leia.logic.SinkDescription
+import leia.logic.*
 import org.junit.jupiter.api.assertThrows
 import se.zensum.leia.config.Format
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class DisjunctiveResolverTest {
     private val exampleIR = IncomingRequest(Get, null, "foo", emptyMap(), "", null) { ByteArray(0) }
-    @Test fun testZeroToNoMatch() {
+    @Test
+    fun testZeroToNoMatch() {
         val r = DisjunctiveResolver(emptyList())
         val res = r.resolve(exampleIR)
         assertTrue(res is NoMatch, "A disjunctive resolver of zero entries resolves to nothing")
@@ -25,7 +21,8 @@ class DisjunctiveResolverTest {
         override fun resolve(req: IncomingRequest): Result = r
     }
 
-    @Test fun testOneIdentity() {
+    @Test
+    fun testOneIdentity() {
         val la = LogAppend(
             SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
             exampleIR,
@@ -36,7 +33,8 @@ class DisjunctiveResolverTest {
         assertEquals(la, res, "A unary disjunction is idempotent")
     }
 
-    @Test fun testTwoTakesFirst() {
+    @Test
+    fun testTwoTakesFirst() {
         val la = LogAppend(
             SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
             exampleIR,
@@ -52,7 +50,8 @@ class DisjunctiveResolverTest {
         }
     }
 
-    @Test fun testTwoTakesFirstMatching() {
+    @Test
+    fun testTwoTakesFirstMatching() {
         val la = LogAppend(
             SinkDescription("foo", "bar", Format.RAW_BODY, "baz", null),
             exampleIR,

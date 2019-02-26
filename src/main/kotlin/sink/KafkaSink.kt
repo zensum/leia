@@ -16,7 +16,7 @@ private fun mkProducer(servers: String?) =
         }.create()
 
 private fun <K, V> Map<K, V>.with(addend: Pair<K, V?>?): Map<K, V> =
-    if(addend?.second != null)
+    if (addend?.second != null)
         plus(addend.first to addend.second!!).toMap()
     else this
 

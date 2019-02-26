@@ -58,7 +58,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         scheduler.scheduleAtFixedRate({ this.forceUpdate() }, 1, 1, TimeUnit.MINUTES)
     }
 
-    override fun getMaps(table: Tables) = when(table) {
+    override fun getMaps(table: Tables) = when (table) {
         Tables.Routes -> routesHolder.getData().map { it.spec.toMap() }
         Tables.SinkProviders -> sinksHolder.getData().map { it.spec.toMap() }
         else -> listOf()

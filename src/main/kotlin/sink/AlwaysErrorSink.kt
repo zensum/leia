@@ -12,5 +12,5 @@ private class AlwaysErrorSink(private val exc: Exception) : Sink {
 
 internal class AlwaysErrorSinkProvider(msg: String) : SinkProvider {
     private val sink = AlwaysErrorSink(PreSinkError(msg))
-    override fun sinkFor(description: SinkDescription) : Sink? = sink
+    override fun sinkFor(description: SinkDescription): Sink? = sink
 }

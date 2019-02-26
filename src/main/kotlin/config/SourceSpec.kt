@@ -27,20 +27,20 @@ data class SourceSpec(val path: String,
                 it as? T ?: throw RuntimeException("Could not cast as ${T::class}")
             }.toList()
 
-        private fun parseFormat(x: Any?): Format = when(x) {
+        private fun parseFormat(x: Any?): Format = when (x) {
             "raw_body" -> Format.RAW_BODY
             "proto" -> Format.PROTOBUF
             null -> Format.PROTOBUF
             else -> throw IllegalArgumentException("Denied value for config parameter 'format'")
         }
 
-        private fun parseCors(cors: Any?): List<String> = when(cors) {
+        private fun parseCors(cors: Any?): List<String> = when (cors) {
             null -> emptyList()
             is Iterable<*> -> uneraseType(cors)
             else -> throw RuntimeException("rhee")
         }
 
-        private fun parseMethods(methods: Any?): Set<HttpMethod> = when(methods) {
+        private fun parseMethods(methods: Any?): Set<HttpMethod> = when (methods) {
             null -> HttpMethod.DefaultMethods.toSet()
             is Iterable<*> ->
                 uneraseType<String>(methods)
@@ -49,13 +49,13 @@ data class SourceSpec(val path: String,
             else -> throw RuntimeException("Invalid method(s): $methods")
         }
 
-        private fun parseAuthProviders(providers: Any?): List<String> = when(providers) {
+        private fun parseAuthProviders(providers: Any?): List<String> = when (providers) {
             null -> emptyList()
             is Iterable<*> -> uneraseType(providers)
             else -> throw RuntimeException("Invalid auth provider(s): $providers")
         }
 
-        private fun parseResponse(response: Any?): Int = when(response) {
+        private fun parseResponse(response: Any?): Int = when (response) {
             null -> 204
             is Number -> response.toInt()
             else -> throw RuntimeException("rhee")
@@ -64,7 +64,7 @@ data class SourceSpec(val path: String,
         fun fromMap(m: Map<String, Any>): SourceSpec {
             val verify: Boolean = m["verify"] as? Boolean ?: false
             val rawAuthProviders: List<String> = parseAuthProviders(m["auth_providers"])
-            val authProviders: List<String> = if(verify) listOf("\$default_jwk_provider") else rawAuthProviders
+            val authProviders: List<String> = if (verify) listOf("\$default_jwk_provider") else rawAuthProviders
 
             require(!(verify && rawAuthProviders.isNotEmpty())) {
                 "Config parameter 'verify' cannot be true when an 'auth_provider' is " +

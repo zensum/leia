@@ -16,7 +16,7 @@ private class RefCountedCache<K, V> {
     }
 }
 
-class CachedSinkProviderFactory(private val backing: SinkProviderFactory): SinkProviderFactory {
+class CachedSinkProviderFactory(private val backing: SinkProviderFactory) : SinkProviderFactory {
     private val sinkProviderCache = RefCountedCache<SinkProviderSpec, SinkProvider>()
     override fun create(spec: SinkProviderSpec): SinkProvider? =
         sinkProviderCache.computeIfAbsent(spec) { backing.create(spec) }?.first

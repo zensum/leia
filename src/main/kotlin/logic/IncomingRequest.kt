@@ -21,8 +21,9 @@ data class IncomingRequest(
 ) {
     private val savedBody: ByteArray by lazy { runBlocking { readBodyFn() } }
     val requestId = generateId().also {
-        if(it == 0L) throw IllegalStateException("Generated flake id was 0")
+        if (it == 0L) throw IllegalStateException("Generated flake id was 0")
     }
+
     fun matchPath(otherPath: String?) = otherPath == path
     fun matchCors(origins: List<String>) =
         origin == null || origins.isEmpty() || origins.contains(origin) || origins.contains("*")
