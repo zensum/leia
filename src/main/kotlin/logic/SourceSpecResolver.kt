@@ -80,29 +80,35 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
             JsonValidationFailed
         }
 
-    // Validates if request body is in JSON format.
+    /** Reads contents of JSON file from reader and throws exception if file is not valid JSON */
+    private fun parseJson(reader: JsonReader) {
+        while (reader.hasNext()) when (reader.peek()) {
+            JsonToken.BEGIN_ARRAY -> reader.beginArray()
+            JsonToken.END_ARRAY -> reader.endArray()
+            JsonToken.BEGIN_OBJECT -> reader.beginObject()
+            JsonToken.END_OBJECT -> reader.endObject()
+            JsonToken.NAME -> reader.nextName()
+            JsonToken.STRING -> reader.nextString()
+            JsonToken.NUMBER -> reader.nextDouble()
+            JsonToken.BOOLEAN -> reader.nextBoolean()
+            JsonToken.NULL -> reader.nextNull()
+            JsonToken.END_DOCUMENT -> pass
+            else -> pass
+        }
+    }
+
+    /** Validates if request body is in JSON format. */
     private fun validateBodyAsJson(req: IncomingRequest): JsonValidationFailed? {
         var result: JsonValidationFailed? = null
         val inputStream = runBlocking { ByteArrayInputStream(req.readBody()) }
         val reader = JsonReader(InputStreamReader(inputStream, Charsets.UTF_8))
         try {
-            while (reader.hasNext()) when (reader.peek()) {
-                JsonToken.BEGIN_ARRAY -> reader.beginArray()
-                JsonToken.END_ARRAY -> reader.endArray()
-                JsonToken.BEGIN_OBJECT -> reader.beginObject()
-                JsonToken.END_OBJECT -> reader.endObject()
-                JsonToken.NAME -> reader.nextName()
-                JsonToken.STRING -> reader.nextString()
-                JsonToken.NUMBER -> reader.nextDouble()
-                JsonToken.BOOLEAN -> reader.nextBoolean()
-                JsonToken.NULL -> reader.nextNull()
-                JsonToken.END_DOCUMENT -> pass
-                else -> pass
+            parseJson(reader)
+        } catch (e: Exception) {
+            when (e) {
+                is MalformedJsonException, is EOFException -> result = JsonValidationFailed
+                else -> throw e
             }
-        } catch (e: MalformedJsonException) {
-            result = JsonValidationFailed
-        } catch (e: EOFException) {
-            result = JsonValidationFailed
         } finally {
             reader.close()
         }
