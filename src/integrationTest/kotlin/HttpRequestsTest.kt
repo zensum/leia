@@ -59,6 +59,14 @@ class HttpRequestsTest : IntegrationTestBase() {
         assertEquals(HttpStatus.FORBIDDEN_403, invalidCors().getResponse())
     }
 
+    /* Test Redis */
+
+    @Test
+    fun sendMessageToRedis() {
+        val b = getReqBuilder(getPath("/"))
+        assertEquals(HttpStatus.NO_CONTENT_204, getPath("/redis").getResponse())
+    }
+
     /* Test JSON */
     private fun postJson() = getPath("/json").copy(method = HttpMethod.Post)
 
