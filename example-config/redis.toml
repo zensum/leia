@@ -1,21 +1,24 @@
-title = "Sample config"
+title = "Redis config"
 
 [[routes]]
-	path = "/"
+	path = "/redis"
+	sink = "redis"
 	topic = "test"
 	verify = false
 	format = "proto"
 	methods = [ "POST", "GET", "HEAD", "OPTIONS" ]
 
 [[routes]]
-	path = "/with_cors"
+	path = "/redis/with_cors"
+	sink = "redis"
 	topic = "test"
 	format = "proto"
 	methods = [ "POST", "GET", "HEAD" ]
     cors = [ "http://example.com" ]
 
 [[routes]]
-	path = "/json"
+	path = "/redis/json"
+	sink = "redis"
 	topic = "test"
 	verify = false
 	format = "proto"
@@ -46,23 +49,8 @@ title = "Sample config"
 """
 
 [[sink-providers]]
-    name = "kafka"
-    type = "kafka"
-    default = true
+    name = "redis"
+    type = "redis"
     [sink-providers.options]
-        host = "kafka:9092"
-
-
-#[[sink-providers]]
-#    name = "redis"
-#    type = "redis"
-#    [sink-providers.options]
-#        host = "redis"
-#        port = "6379"
-
-#[[sink-providers]]
-#    name = "gpubsub"
-#    type = "gpubsub"
-#    [sink-providers.options]
-#        projectId = "<your-project-id>"
-
+        host = "redis"
+        port = "6379"

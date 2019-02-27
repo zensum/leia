@@ -14,7 +14,7 @@ public class IntegrationTestBaseRule {
 
     @ClassRule
     public static DockerComposeContainer environment =
-        new DockerComposeContainer(new File("docker-compose-kafka-cluster.yaml"))
+        new DockerComposeContainer(new File("docker-compose-redis-kafka-cluster.yaml"))
             .withExposedService("zookeeper", 32181)
             .withExposedService("kafka", 9092)
             .withExposedService("leia", 80)
