@@ -73,7 +73,7 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
 
     private fun validateBodyWithJsonSchema(req: IncomingRequest) =
         try {
-            val body = req.readBody().toString(Charsets.UTF_8)
+            val body = runBlocking { req.readBody().toString(Charsets.UTF_8) }
             jsonSchema?.validate(JSONObject(body))
             null
         } catch (e: ValidationException) {
