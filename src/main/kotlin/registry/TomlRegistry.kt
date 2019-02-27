@@ -61,11 +61,10 @@ class TomlRegistry(configPath: String) : Registry() {
         .build()!!
 
     override fun getMaps(table: Tables): List<Map<String, Any>> =
-        with(computeCurrentState()) {
-            if (this.containsTableArray(table.key)) {
-                this.getTables(table.key).map { it.toMap() }
-            } else emptyList()
-        }
+        holder.getData().values
+            .filter { it.containsTableArray(table.key) }
+            .map { toml -> toml.getTables(table.key).map { it.toMap() } }
+            .flatten()
 
     private fun onUpdate(paths: List<Path>) {
         holder.onChange(paths)
@@ -81,14 +80,6 @@ class TomlRegistry(configPath: String) : Registry() {
             .filter { it.isFile && !it.isHidden && it.extension.toLowerCase() == "toml" }
             .map { it.toPath() }
             .let(this::onUpdate)
-    }
-
-    private fun computeCurrentState(): Toml {
-        val state = Toml()
-        holder.getData().values.forEach {
-            state.read(it)
-        }
-        return state
     }
 
     companion object : KLogging()
