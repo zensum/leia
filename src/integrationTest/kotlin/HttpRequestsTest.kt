@@ -3,6 +3,9 @@ package se.zensum.leia.integrationTest
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
 import org.eclipse.jetty.http.HttpStatus
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPubSub
+import kotlin.concurrent.thread
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -63,8 +66,30 @@ class HttpRequestsTest : IntegrationTestBase() {
 
     @Test
     fun sendMessageToRedis() {
-        val b = getReqBuilder(getPath("/"))
         assertEquals(HttpStatus.NO_CONTENT_204, getPath("/redis").getResponse())
+    }
+
+    @Test(timeout = 10000)
+    fun receiveOneMessageFromRedisTest() {
+        val host = environment.getServiceHost("redis", 6379)
+        val port = environment.getServicePort("redis", 6379)
+        var messagesReceived = 0
+        val jedis = Jedis(host, port)
+        thread {
+            jedis.subscribe(object : JedisPubSub() {
+                override fun onMessage(channel: String?, message: String?) {
+                    super.onMessage(channel, message)
+                    assertEquals("test", channel)
+                    messagesReceived++
+                }
+            }, "test")
+        }
+        Thread.sleep(500)
+        assertEquals(0, messagesReceived)
+        assertEquals(HttpStatus.NO_CONTENT_204, getPath("/redis").getResponse())
+        Thread.sleep(500)
+        assertEquals(1, messagesReceived)
+        jedis.close()
     }
 
     /* Test JSON */

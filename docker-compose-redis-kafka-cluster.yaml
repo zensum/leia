@@ -21,11 +21,16 @@ services:
     image: redis:5.0.3-alpine
     command: ["redis-server", "--appendonly", "yes"]
     hostname: redis
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
 
   leia:
     build: .
     depends_on:
       - kafka
+      - redis
     volumes:
       - ./example-config:/etc/config/
     ports:
