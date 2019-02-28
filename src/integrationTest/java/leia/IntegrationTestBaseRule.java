@@ -17,6 +17,7 @@ public class IntegrationTestBaseRule {
         new DockerComposeContainer(new File("docker-compose-redis-kafka-cluster.yaml"))
             .withExposedService("zookeeper", 32181)
             .withExposedService("kafka", 9092)
+            .withExposedService("redis", 6379)
             .withExposedService("leia", 80)
             .withLocalCompose(true);
 }
