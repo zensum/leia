@@ -81,7 +81,7 @@ class HttpRequestsTest : IntegrationTestBase() {
 
     @Test
     fun validateInvalidJsonTest() {
-        val b = getReqBuilder(postJson().copy(body = invalidJson))
+        val b = getReqBuilder(postJson().copy(body = invalidJsonSchema))
         assertEquals(HttpStatus.BAD_REQUEST_400, HttpClient().getResponseCode(b))
     }
 
@@ -102,12 +102,12 @@ class HttpRequestsTest : IntegrationTestBase() {
         }
     }
 
-    private fun checkMessageReceived(messages: AtomicInt, body: () -> Unit) {
+    private fun checkMessageReceived(valid: Boolean, messages: AtomicInt, body: () -> Unit) {
         Thread.sleep(500)
         assertEquals(0, messages.value, "Should be no messages")
         body.invoke()
         Thread.sleep(500)
-        assertEquals(1, messages.value, "Should be exactly one message")
+        assertEquals(if (valid) 1 else 0, messages.value, "Unexpected number of messages received")
     }
 
     @Test
@@ -115,9 +115,8 @@ class HttpRequestsTest : IntegrationTestBase() {
         assertEquals(HttpStatus.NO_CONTENT_204, getPath("/redis").getResponse())
     }
 
-    private fun verifyMessageRedis(path: String, channel: String) {
-        val sentMessage = json
-        val req = postJson().copy(path = path, body = sentMessage)
+    private fun verifyMessageRedis(path: String, channel: String, valid: Boolean = true, body: String = json) {
+        val req = postJson().copy(path = path, body = body)
         val messagesReceived = atomic(0)
         val receivedMessage = atomic<String?>(null)
         mkJedis().use {
@@ -126,10 +125,10 @@ class HttpRequestsTest : IntegrationTestBase() {
                 messagesReceived.getAndIncrement()
                 receivedMessage.value = message
             }
-            checkMessageReceived(messagesReceived) {
-                assertEquals(HttpStatus.NO_CONTENT_204, req.getResponse())
+            checkMessageReceived(valid, messagesReceived) {
+                assertEquals(if (valid) HttpStatus.NO_CONTENT_204 else HttpStatus.BAD_REQUEST_400, req.getResponse())
             }
-            assertEquals(sentMessage, receivedMessage.value, "Received message must match sent message")
+            assertEquals(if (valid) body else null, receivedMessage.value, "Unexpected message")
         }
     }
 
@@ -148,6 +147,16 @@ class HttpRequestsTest : IntegrationTestBase() {
         verifyMessageRedis("/redis/json_schema", "test")
     }
 
+    @Test(timeout = 10000)
+    fun verifyMessageInvalidJsonRedisTest() {
+        verifyMessageRedis("/redis/json", "test", valid = false, body = invalidJson)
+    }
+
+    @Test(timeout = 10000)
+    fun verifyMessageInvalidJsonSchemaRedisTest() {
+        verifyMessageRedis("/redis/json_schema", "test", valid = false, body = invalidJsonSchema)
+    }
+
     private val json = """
     {
       "firstName": "John",
@@ -156,11 +165,18 @@ class HttpRequestsTest : IntegrationTestBase() {
     }
     """.trimIndent()
 
-    private val invalidJson = """
+    private val invalidJsonSchema = """
     {
       "firstName": "John",
       "lastName": "Doe",
       "age": "21"
     }
+    """.trimIndent()
+
+    private val invalidJson = """
+    {
+      "firstName": "John",
+      "lastName": "Doe",
+      "age":
     """.trimIndent()
 }
