@@ -46,7 +46,7 @@ Configuration consists of few tables:
 
 Configuration is loaded on startup and then refreshed every 1 minute.
 
-It can be retrieved either from a file or from kubernetes custom resources. Configuration from kubernetes currently does not support auth providers.
+It can be retrieved either from a file or from kubernetes custom resources.
 
 #### Configuration in files
 
