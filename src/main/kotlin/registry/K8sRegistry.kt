@@ -52,6 +52,10 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         val sinks = mapper.readValue(yaml, K8sRegistry.Sinks::class.java)
         sinks.items.filter { apiVersions.contains(it.apiVersion) }
     }
+    private val authsHolder = K8sResourceHolder { yaml ->
+        val auths = mapper.readValue(yaml, K8sRegistry.Auths::class.java)
+        auths.items.filter { apiVersions.contains(it.apiVersion) }
+    }
 
     private val scheduler = Executors.newScheduledThreadPool(1)
 
@@ -62,7 +66,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
     override fun getMaps(table: Tables) = when (table) {
         Tables.Routes -> routesHolder.getData().map { it.spec.toMap() }
         Tables.SinkProviders -> sinksHolder.getData().map { it.spec.toMap() }
-        else -> listOf()
+        Tables.AuthProviders -> authsHolder.getData().map { it.spec.toMap() }
     }
 
     private fun getPort(): Int = try {
@@ -75,9 +79,11 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
     private fun forceUpdateAll() {
         val futureRoutes = forceUpdateAsync("leiaroutes") { content -> routesHolder.onChange(content) }
         val futureSinks = forceUpdateAsync("leiasinks") { content -> sinksHolder.onChange(content) }
+        val futureAuths = forceUpdateAsync("leiaauths") { content -> authsHolder.onChange(content) }
         runBlocking {
             futureRoutes.await()
             futureSinks.await()
+            futureAuths.await()
         }
     }
 
@@ -85,7 +91,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         logger.info("Polling all objects from kubernetes")
         forceUpdateAll()
         notifyWatchers()
-        logger.info { "Loaded ${routesHolder.getData().size} routes ${sinksHolder.getData().size} sinks from kubernetes" }
+        logger.info { "Loaded ${routesHolder.getData().size} routes ${sinksHolder.getData().size} sinks ${authsHolder.getData().size} auths from kubernetes" }
     }
 
     private fun forceUpdateAsync(path: String, onUpdate: (content: String) -> Unit) = GlobalScope.async {
@@ -158,6 +164,20 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
             val map = HashMap<String, Any>()
             map["name"] = name
             default?.let { map["default"] = it }
+            type?.let { map["type"] = it }
+            options?.let { map["options"] = it }
+            return map
+        }
+    }
+
+    data class Auths(val apiVersion: String, val items: List<AuthItem>)
+    data class AuthItem(val apiVersion: String, val kind: String, val spec: Auth)
+    data class Auth(val name: String,
+                    val type: String? = null,
+                    val options: Map<String, Any>? = null) {
+        fun toMap(): Map<String, Any> {
+            val map = HashMap<String, Any>()
+            map["name"] = name
             type?.let { map["type"] = it }
             options?.let { map["options"] = it }
             return map

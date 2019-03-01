@@ -1,0 +1,10 @@
+---
+apiVersion: leia.klira.io/v1
+kind: LeiaAuthProviders
+metadata:
+  name: auth1
+spec:
+  name: "auth1"
+  type: "basic_auth"
+  options:
+    "user1": "3df8232404be55d2d6b85be79b99316e028676b69efa2ce91d9094dd18dd3502"
