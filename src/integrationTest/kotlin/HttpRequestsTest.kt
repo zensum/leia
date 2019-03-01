@@ -2,6 +2,8 @@ package se.zensum.leia.integrationTest
 
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
+import kotlinx.atomicfu.AtomicInt
+import kotlinx.atomicfu.atomic
 import org.eclipse.jetty.http.HttpStatus
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPubSub
@@ -62,36 +64,6 @@ class HttpRequestsTest : IntegrationTestBase() {
         assertEquals(HttpStatus.FORBIDDEN_403, invalidCors().getResponse())
     }
 
-    /* Test Redis */
-
-    @Test
-    fun sendMessageToRedis() {
-        assertEquals(HttpStatus.NO_CONTENT_204, getPath("/redis").getResponse())
-    }
-
-    @Test(timeout = 10000)
-    fun receiveOneMessageFromRedisTest() {
-        val host = environment.getServiceHost("redis", 6379)
-        val port = environment.getServicePort("redis", 6379)
-        var messagesReceived = 0
-        val jedis = Jedis(host, port)
-        thread {
-            jedis.subscribe(object : JedisPubSub() {
-                override fun onMessage(channel: String?, message: String?) {
-                    super.onMessage(channel, message)
-                    assertEquals("test", channel)
-                    messagesReceived++
-                }
-            }, "test")
-        }
-        Thread.sleep(500)
-        assertEquals(0, messagesReceived)
-        assertEquals(HttpStatus.NO_CONTENT_204, getPath("/redis").getResponse())
-        Thread.sleep(500)
-        assertEquals(1, messagesReceived)
-        jedis.close()
-    }
-
     /* Test JSON */
     private fun postJson() = getPath("/json").copy(method = HttpMethod.Post)
 
@@ -111,6 +83,69 @@ class HttpRequestsTest : IntegrationTestBase() {
     fun validateInvalidJsonTest() {
         val b = getReqBuilder(postJson().copy(body = invalidJson))
         assertEquals(HttpStatus.BAD_REQUEST_400, HttpClient().getResponseCode(b))
+    }
+
+    /* Test Redis */
+    private fun mkJedis() = Jedis(
+        environment.getServiceHost("redis", 6379),
+        environment.getServicePort("redis", 6379)
+    )
+
+    private fun Jedis.onMessage(channel: String, callback: (channel: String?, message: String?) -> Unit) {
+        thread {
+            subscribe(object : JedisPubSub() {
+                override fun onMessage(_channel: String?, _message: String?) {
+                    super.onMessage(_channel, _message)
+                    callback.invoke(_channel, _message)
+                }
+            }, channel)
+        }
+    }
+
+    private fun checkMessageReceived(messages: AtomicInt, body: () -> Unit) {
+        Thread.sleep(500)
+        assertEquals(0, messages.value, "Should be no messages")
+        body.invoke()
+        Thread.sleep(500)
+        assertEquals(1, messages.value, "Should be exactly one message")
+    }
+
+    @Test
+    fun sendMessageToRedis() {
+        assertEquals(HttpStatus.NO_CONTENT_204, getPath("/redis").getResponse())
+    }
+
+    private fun verifyMessageRedis(path: String, channel: String) {
+        val sentMessage = json
+        val req = postJson().copy(path = path, body = sentMessage)
+        val messagesReceived = atomic(0)
+        val receivedMessage = atomic<String?>(null)
+        mkJedis().use {
+            it.onMessage(channel) { _channel, message ->
+                assertEquals(channel, _channel)
+                messagesReceived.getAndIncrement()
+                receivedMessage.value = message
+            }
+            checkMessageReceived(messagesReceived) {
+                assertEquals(HttpStatus.NO_CONTENT_204, req.getResponse())
+            }
+            assertEquals(sentMessage, receivedMessage.value, "Received message must match sent message")
+        }
+    }
+
+    @Test(timeout = 10000)
+    fun verifyMessageRedisTest() {
+        verifyMessageRedis("/redis", "test")
+    }
+
+    @Test(timeout = 10000)
+    fun verifyMessageJsonRedisTest() {
+        verifyMessageRedis("/redis/json", "test")
+    }
+
+    @Test(timeout = 10000)
+    fun verifyMessageJsonSchemaRedisTest() {
+        verifyMessageRedis("/redis/json_schema", "test")
     }
 
     private val json = """
