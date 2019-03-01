@@ -27,10 +27,10 @@ data class IncomingRequest(
     fun matchCors(origins: List<String>) =
         origin == null || origins.isEmpty() || origins.contains(origin) || origins.contains("*")
 
-    suspend fun readBody(save: Boolean = false): ByteArray {
-        if (save) {
+    suspend fun readBody(): ByteArray {
+        if (savedBody == null) {
             savedBody = readBodyFn()
         }
-        return savedBody ?: readBodyFn()
+        return savedBody!!
     }
 }
