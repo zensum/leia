@@ -10,6 +10,7 @@ data class SourceSpec(val path: String,
                       val topic: String,
                       val format: Format = Format.PROTOBUF,
                       private val allowedMethods: Collection<HttpMethod> = HttpMethod.DefaultMethods,
+                      val hosts: List<String>,
                       val corsHosts: List<String>,
                       val response: HttpStatusCode,
                       val sink: String? = null,
@@ -31,7 +32,7 @@ data class SourceSpec(val path: String,
             else -> throw IllegalArgumentException("Denied value for config parameter 'format'")
         }
 
-        private fun parseCors(cors: Any?): List<String> = when (cors) {
+        private fun parseListString(cors: Any?): List<String> = when (cors) {
             null -> emptyList()
             is Iterable<*> -> uneraseType(cors)
             else -> throw RuntimeException("rhee")
@@ -79,7 +80,8 @@ data class SourceSpec(val path: String,
             path = m["path"] as String,
             topic = m["topic"] as String,
             format = parseFormat(m["format"]),
-            corsHosts = parseCors(m["cors"]),
+            corsHosts = parseListString(m["cors"]),
+            hosts = parseListString(m["hosts"]),
             allowedMethods = parseMethods(m["methods"]),
             response = HttpStatusCode.fromValue(parseResponse(m["response"])),
             sink = m["sink"]?.toString()?.takeIf { it.isNotBlank() },

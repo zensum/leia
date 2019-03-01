@@ -21,7 +21,7 @@ private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), ""
 class SourceSpecResolverTest {
     private val goodPath = "this_is_the_path"
     private val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
-        authenticateUsing = emptyList(), validateJson = false, jsonSchema = "")
+        authenticateUsing = emptyList(), validateJson = false, jsonSchema = "", hosts = emptyList())
 
     @Test
     fun rejectsImproperPath() {
