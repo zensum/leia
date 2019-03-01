@@ -5,14 +5,14 @@ title = "Redis config"
 	sink = "redis"
 	topic = "test"
 	verify = false
-	format = "proto"
+	format = "raw_body"
 	methods = [ "POST", "GET", "HEAD", "OPTIONS" ]
 
 [[routes]]
 	path = "/redis/with_cors"
 	sink = "redis"
 	topic = "test"
-	format = "proto"
+	format = "raw_body"
 	methods = [ "POST", "GET", "HEAD" ]
     cors = [ "http://example.com" ]
 
@@ -20,8 +20,15 @@ title = "Redis config"
 	path = "/redis/json"
 	sink = "redis"
 	topic = "test"
-	verify = false
-	format = "proto"
+	format = "raw_body"
+	methods = [ "POST" ]
+    validateJson = true
+
+[[routes]]
+	path = "/redis/json_schema"
+	sink = "redis"
+	topic = "test"
+	format = "raw_body"
 	methods = [ "POST" ]
     validateJson = true
     jsonSchema = """
