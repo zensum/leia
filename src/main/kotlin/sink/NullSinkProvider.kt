@@ -6,6 +6,9 @@ import leia.logic.SinkDescription
 private object NullSink : Sink {
     override suspend fun handle(incomingRequest: IncomingRequest): SinkResult =
         SinkResult.SuccessfullyWritten
+
+    override suspend fun healthCheck(): SinkResult =
+        SinkResult.SuccessfullyWritten
 }
 
 object NullSinkProvider : SinkProvider {

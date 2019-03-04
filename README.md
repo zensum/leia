@@ -144,3 +144,19 @@ Option `jwk_config`is **mandatory**, it is a map of key/values. The map must con
 - `KUBERNETES_SERVICE_PORT` - port of kubernetes API (default `8080`)
 - `KUBERNETES_ENABLE` - wether to read configuration from Kubernetes custom resources (default `true`). To disable set it to `false`.
 
+### Health check
+
+To check status of leia make request to `http://leiahost/leia/health`. Sample output:
+```
+sink redis1: ERROR
+sink kafka1: OK
+leia: ERROR
+```
+
+Error messages will be written to logs. You can also get them using `verbose` parameter in the request. Here is sample output for `http://leiahost/leia/health?verbose`:
+```
+sink redis1: ERROR redis.clients.jedis.exceptions.JedisConnectionException: Failed connecting to host redis:6379
+sink kafka1: OK
+leia: ERROR
+```
+

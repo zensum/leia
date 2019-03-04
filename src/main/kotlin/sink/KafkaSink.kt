@@ -4,7 +4,10 @@ import franz.ProducerBuilder
 import franz.producer.Producer
 import leia.logic.IncomingRequest
 import leia.logic.SinkDescription
+import mu.KotlinLogging
+import java.net.Socket
 
+private val log = KotlinLogging.logger("kafka-sink")
 
 private fun mkProducer(servers: String?) =
     ProducerBuilder.ofByteArray
@@ -15,6 +18,11 @@ private fun mkProducer(servers: String?) =
             } else it
         }.create()
 
+/** Throws exception when it is not possible to connect to given server */
+fun isServerListening(host: String, port: Int) {
+    Socket(host, port).close()
+}
+
 private fun <K, V> Map<K, V>.with(addend: Pair<K, V?>?): Map<K, V> =
     if (addend?.second != null)
         plus(addend.first to addend.second!!).toMap()
@@ -22,7 +30,8 @@ private fun <K, V> Map<K, V>.with(addend: Pair<K, V?>?): Map<K, V> =
 
 private class KafkaSink(
     private val producer: Producer<String, ByteArray>,
-    private val description: SinkDescription
+    private val description: SinkDescription,
+    private val host: String?
 ) : Sink {
     override suspend fun handle(incomingRequest: IncomingRequest): SinkResult {
         val body = description.dataFormat.generateBody(incomingRequest)
@@ -37,10 +46,21 @@ private class KafkaSink(
             SinkResult.WritingFailed(exc)
         }
     }
+
+    override suspend fun healthCheck(): SinkResult {
+        val parts = host?.split(":") ?: emptyList()
+        return try {
+            isServerListening(parts[0], parts[1].toInt())
+            SinkResult.SuccessfullyWritten
+        } catch (e: Exception) {
+            log.error { e }
+            SinkResult.WritingFailed(e)
+        }
+    }
 }
 
-class KafkaSinkProvider(host: String? = null) : SinkProvider {
+class KafkaSinkProvider(private val host: String? = null) : SinkProvider {
     private val producer = mkProducer(host)
     override fun sinkFor(description: SinkDescription): Sink? =
-        KafkaSink(producer, description)
+        KafkaSink(producer, description, host)
 }

@@ -2,8 +2,10 @@ package leia.sink
 
 import leia.logic.IncomingRequest
 import leia.logic.SinkDescription
+import mu.KotlinLogging
 import redis.clients.jedis.Jedis
 
+private val log = KotlinLogging.logger("redis-sink")
 
 private fun mkJedis(host: String? = null, port: Int? = null) = when {
     host != null && port != null -> Jedis(host, port)
@@ -23,6 +25,16 @@ private class RedisSink(
             SinkResult.SuccessfullyWritten
         } catch (exc: Exception) {
             SinkResult.WritingFailed(exc)
+        }
+    }
+
+    override suspend fun healthCheck(): SinkResult {
+        return try {
+            jedis.ping()
+            SinkResult.SuccessfullyWritten
+        } catch (e: Exception) {
+            log.error { e }
+            SinkResult.WritingFailed(e)
         }
     }
 }

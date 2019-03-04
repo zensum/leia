@@ -1,11 +1,17 @@
 package leia.sink
 
 import com.google.cloud.pubsub.v1.Publisher
+import com.google.cloud.pubsub.v1.TopicAdminClient
 import com.google.protobuf.ByteString
+import com.google.pubsub.v1.ListTopicsRequest
+import com.google.pubsub.v1.ProjectName
 import com.google.pubsub.v1.ProjectTopicName
 import com.google.pubsub.v1.PubsubMessage
 import leia.logic.IncomingRequest
 import leia.logic.SinkDescription
+import mu.KotlinLogging
+
+private val log = KotlinLogging.logger("gpubsub-sink")
 
 class PublisherProvider(private val projectId: String?) {
     private val publishers = hashMapOf<String, Publisher>()
@@ -25,7 +31,8 @@ class PublisherProvider(private val projectId: String?) {
 // Sink for Cloud Pub/Sub from Google
 private class GPubSubSink(
     private val publisherProvider: PublisherProvider,
-    private val description: SinkDescription
+    private val description: SinkDescription,
+    val projectId: String?
 ) : Sink {
     override suspend fun handle(incomingRequest: IncomingRequest): SinkResult {
         val body = description.dataFormat.generateBody(incomingRequest)
@@ -46,10 +53,23 @@ private class GPubSubSink(
             SinkResult.WritingFailed(RuntimeException(e.message))
         }
     }
+
+    override suspend fun healthCheck(): SinkResult {
+        try {
+            TopicAdminClient.create().use { topicAdminClient ->
+                val listTopicsRequest = ListTopicsRequest.newBuilder().setProject(ProjectName.format(projectId)).build()
+                topicAdminClient.listTopics(listTopicsRequest)
+            }
+        } catch (e: Exception) {
+            log.error { e }
+            return SinkResult.WritingFailed(e)
+        }
+        return SinkResult.SuccessfullyWritten
+    }
 }
 
-class GPubSubSinkProvider(projectId: String?) : SinkProvider {
+class GPubSubSinkProvider(private val projectId: String?) : SinkProvider {
     private val publisher = PublisherProvider(projectId)
     override fun sinkFor(description: SinkDescription): Sink? =
-        GPubSubSink(publisher, description)
+        GPubSubSink(publisher, description, projectId)
 }

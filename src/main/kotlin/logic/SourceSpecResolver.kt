@@ -41,6 +41,7 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
 
     override fun resolve(req: IncomingRequest): Result {
         return when {
+            req.matchHealthCheck() -> LeiaHealthCheck
             !req.matchHost(cfg.hosts) -> NoMatch
             !req.matchPath(cfg.path) -> NoMatch
             !req.matchCors(cfg.corsHosts) -> CorsNotAllowed
