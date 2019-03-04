@@ -83,6 +83,28 @@ class SourceSpecResolverTest {
         assertEquals(rec.status, sp.response.value, "Http status code set")
     }
 
+    private val hostsRe = defaultSp.copy(hosts = listOf("mail.example.com", "www.example.com")).ssr()
+    @Test
+    fun acceptsAnyHost() {
+        val ir = pathIR(goodPath).copy(host = "anyhost.example.com")
+        val res = defaultSp.ssr().resolve(ir)
+        assertTrue(res !is NoMatch, "Shouldn't match")
+    }
+
+    @Test
+    fun acceptsProperHost() {
+        val ir = pathIR(goodPath).copy(host = "www.example.com")
+        val res = hostsRe.resolve(ir)
+        assertTrue(res !is NoMatch, "Shouldn't match")
+    }
+
+    @Test
+    fun rejectsImproperHost() {
+        val ir = pathIR(goodPath).copy(host = "example.com")
+        val res = hostsRe.resolve(ir)
+        assertTrue(res is NoMatch, "Shouldn't match")
+    }
+
     @Test
     fun validateValidJson() {
         val re = defaultSp.copy(validateJson = true).ssr()
