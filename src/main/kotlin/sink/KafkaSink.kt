@@ -5,9 +5,18 @@ import franz.producer.Producer
 import leia.logic.IncomingRequest
 import leia.logic.SinkDescription
 import mu.KotlinLogging
-import java.net.Socket
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import java.util.*
 
 private val log = KotlinLogging.logger("kafka-sink")
+
+
+private fun kafkaOptions(servers: String?) = Properties()
+    .apply { put("client.id", "leia") }
+    .apply { put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer") }
+    .apply { put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer") }
+    .apply { put("enable.auto.commit", "false") }
+    .apply { servers?.let { put("bootstrap.servers", it) } }
 
 private fun mkProducer(servers: String?) =
     ProducerBuilder.ofByteArray
@@ -18,10 +27,8 @@ private fun mkProducer(servers: String?) =
             } else it
         }.create()
 
-/** Throws exception when it is not possible to connect to given server */
-fun isServerListening(host: String, port: Int) {
-    Socket(host, port).close()
-}
+private fun mkChecker(servers: String?) =
+    KafkaConsumer<String, ByteArray>(kafkaOptions(servers))
 
 private fun <K, V> Map<K, V>.with(addend: Pair<K, V?>?): Map<K, V> =
     if (addend?.second != null)
@@ -47,16 +54,14 @@ private class KafkaSink(
         }
     }
 
-    override suspend fun healthCheck(): SinkResult {
-        val parts = host?.split(":") ?: emptyList()
-        return try {
-            isServerListening(parts[0], parts[1].toInt())
+    override suspend fun healthCheck() =
+        try {
+            mkChecker(host)
             SinkResult.SuccessfullyWritten
         } catch (e: Exception) {
             log.error { e }
             SinkResult.WritingFailed(e)
         }
-    }
 }
 
 class KafkaSinkProvider(private val host: String? = null) : SinkProvider {

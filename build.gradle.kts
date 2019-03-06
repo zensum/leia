@@ -87,6 +87,7 @@ dependencies {
     implementation(group = "redis.clients", name = "jedis", version = "3.0.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+")
     implementation("com.google.cloud:google-cloud-pubsub:1.62.0")
+    implementation("org.apache.kafka:kafka-clients:0.11.0.3")
 }
 
 // Important: All classes containing test cases must match the
