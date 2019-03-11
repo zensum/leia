@@ -5,19 +5,17 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
-import io.ktor.client.HttpClient
-import io.ktor.client.call.call
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.response.readBytes
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.isSuccess
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.util.EntityUtils
 import registry.Tables
 import java.net.ConnectException
+import java.net.URI
 import java.nio.channels.UnresolvedAddressException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -95,25 +93,21 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
     }
 
     private fun forceUpdateAsync(path: String, onUpdate: (content: String) -> Unit) = GlobalScope.async {
-        val builder = HttpRequestBuilder()
-            .also { it.method = HttpMethod.Get }
-            .also {
-                it.url.also { url ->
-                    url.host = host
-                    url.port = getPort()
-                }.encodedPath = "/apis/leia.klira.io/v1/namespaces/default/$path"
-            }
-        fetchData(builder, onUpdate)?.let { logger.warn { "Failed to connect to kubernetes: $it" } }
+        val uri = URI("http://$host:${getPort()}/apis/leia.klira.io/v1/namespaces/default/$path")
+        fetchData(HttpGet(uri), onUpdate)?.let { logger.warn { "Failed to connect to kubernetes: $it" } }
     }
 
-    private suspend fun fetchData(builder: HttpRequestBuilder, callback: (content: String) -> Unit): String? {
+    private fun fetchData(httpGet: HttpGet, callback: (content: String) -> Unit): String? {
         try {
-            val response = HttpClient().call(builder).response
-            val content = response.readBytes().toString(Charsets.UTF_8)
-            if (response.status.isSuccess()) {
+            val response = HttpClients.createDefault().execute(httpGet)
+            val entity = response.entity
+            val content = entity.content.readBytes().toString(Charsets.UTF_8)
+            EntityUtils.consume(entity)
+            response.close()
+            if (response.statusLine.statusCode.isSuccess()) {
                 callback.invoke(content)
             } else {
-                logger.warn { "Failed to get from kubernetes: ${builder.url.encodedPath}" }
+                logger.warn { "Failed to get from kubernetes: ${httpGet.uri}" }
             }
         } catch (e: UnresolvedAddressException) {
             return e.message
@@ -185,4 +179,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         }
     }
 }
+
+/** Returns true if HTTP status code is success (2xx). */
+private fun Int.isSuccess() = this in (200 until 300)
 
