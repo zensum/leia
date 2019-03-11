@@ -14,11 +14,15 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.pipeline.PipelineContext
 import io.ktor.util.toMap
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import ktor_health_check.Health
 import leia.logic.*
+import leia.registry.Registry
 import leia.sink.SinkProvider
 import leia.sink.SinkResult
 import mu.KotlinLogging
+import registry.Tables
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
 import se.zensum.leia.getEnv
@@ -65,8 +69,32 @@ private suspend fun sendErrorResponse(error: ErrorMatch, call: ApplicationCall) 
             "JSON schema is invalid" to HttpStatusCode.BadRequest
         MethodNotAllowed ->
             "Method not allowed" to HttpStatusCode.MethodNotAllowed
+        LeiaHealthCheck ->
+            throw RuntimeException("ASSERT FAILED leia health check handled elsewhere")
     }
     call.respondText(text, status = status)
+}
+
+fun formatHealthReport(results: List<Pair<String, SinkResult>>, verbose: Boolean): String {
+    var output = ""
+    var leiaStatus = "OK"
+    for ((name, result) in results) {
+        var status = "OK"
+        if (result is SinkResult.WritingFailed) {
+            leiaStatus = "ERROR"
+            status = if (verbose) "ERROR ${result.exc}" else "ERROR"
+        }
+        output += "sink $name: $status\n"
+    }
+    return "${output}leia: $leiaStatus\n"
+}
+
+suspend fun healthCheck(registry: Registry, checker: suspend (String) -> SinkResult, call: ApplicationCall) {
+    val results = registry.getMaps(Tables.SinkProviders)
+        .map { it["name"] as String }
+        .map { name -> name to GlobalScope.async { checker(name) } }
+        .map { (name, task) -> name to task.await() }
+    call.respondText(formatHealthReport(results, call.parameters.contains("verbose")), status = HttpStatusCode.OK)
 }
 
 private suspend fun sendNotFoundResponse(call: ApplicationCall) {
@@ -121,8 +149,10 @@ private suspend fun sendCorsPreflight(call: ApplicationCall) {
 
 // A server-frontend for the Ktor framework.
 class KtorServer private constructor(
+    private val registry: Registry,
     private val resolver: Resolver,
     private val appender: suspend (LogAppend) -> SinkResult,
+    private val checker: suspend (String) -> SinkResult,
     private val installPrometheus: Boolean
 ) : Server {
 
@@ -142,6 +172,7 @@ class KtorServer private constructor(
                 ctx.context
             )
             CorsPreflightAllowed -> sendCorsPreflight(ctx.context)
+            LeiaHealthCheck -> healthCheck(registry, checker, ctx.context)
             is ErrorMatch -> sendErrorResponse(resolveResult, ctx.context)
             NoMatch -> sendNotFoundResponse(ctx.context)
         }
@@ -184,10 +215,12 @@ class KtorServer private constructor(
     }
 
     companion object : ServerFactory {
-        override fun create(resolver: Resolver, sinkProvider: SinkProvider): Server =
+        override fun create(resolver: Resolver, sinkProvider: SinkProvider, registry: Registry): Server =
             KtorServer(
+                registry,
                 resolver,
                 { sinkProvider.handle(it.sinkDescription, it.request) },
+                { sinkProvider.check(it) },
                 false
             )
     }

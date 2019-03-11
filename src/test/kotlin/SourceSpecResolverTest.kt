@@ -21,7 +21,7 @@ private fun pathIR(path: String) = IR(HttpMethod.Get, null, path, emptyMap(), ""
 class SourceSpecResolverTest {
     private val goodPath = "this_is_the_path"
     private val defaultSp = Sp(goodPath, "rhee", allowedMethods = emptyList(), response = HttpStatusCode.OK, corsHosts = emptyList(),
-        authenticateUsing = emptyList(), validateJson = false, jsonSchema = "")
+        authenticateUsing = emptyList(), validateJson = false, jsonSchema = "", hosts = emptyList())
 
     @Test
     fun rejectsImproperPath() {
@@ -81,6 +81,28 @@ class SourceSpecResolverTest {
         assertEquals(ir, req, "Incoming request passed on")
 
         assertEquals(rec.status, sp.response.value, "Http status code set")
+    }
+
+    private val hostsRe = defaultSp.copy(hosts = listOf("mail.example.com", "www.example.com")).ssr()
+    @Test
+    fun acceptsAnyHost() {
+        val ir = pathIR(goodPath).copy(host = "anyhost.example.com")
+        val res = defaultSp.ssr().resolve(ir)
+        assertTrue(res !is NoMatch, "Shouldn't match")
+    }
+
+    @Test
+    fun acceptsProperHost() {
+        val ir = pathIR(goodPath).copy(host = "www.example.com")
+        val res = hostsRe.resolve(ir)
+        assertTrue(res !is NoMatch, "Shouldn't match")
+    }
+
+    @Test
+    fun rejectsImproperHost() {
+        val ir = pathIR(goodPath).copy(host = "example.com")
+        val res = hostsRe.resolve(ir)
+        assertTrue(res is NoMatch, "Shouldn't match")
     }
 
     @Test

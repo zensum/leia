@@ -69,7 +69,6 @@ dependencies {
 
     // Project specific dependencies (disabled by default)
     implementation("ch.vorburger:fswatch:1.1.0")
-    implementation("com.github.zensum:franz:55be4a2")
     implementation("com.github.zensum:webhook-proto:0.1.2")
     implementation("com.github.zensum:ktor-prometheus-feature:0.6")
     implementation("com.github.zensum:ktor-sentry-feature:fde5bc8f")
@@ -87,6 +86,7 @@ dependencies {
     implementation(group = "redis.clients", name = "jedis", version = "3.0.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.+")
     implementation("com.google.cloud:google-cloud-pubsub:1.62.0")
+    implementation("org.apache.kafka:kafka-clients:0.11.0.3")
 }
 
 // Important: All classes containing test cases must match the

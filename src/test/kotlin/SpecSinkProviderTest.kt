@@ -15,6 +15,8 @@ class SpecSinkProviderTest {
         val sink = object : Sink {
             override suspend fun handle(incomingRequest: IncomingRequest): SinkResult =
                 SinkResult.SuccessfullyWritten
+
+            override suspend fun healthCheck() = SinkResult.SuccessfullyWritten
         }
 
         val provider = object : SinkProvider {
@@ -37,6 +39,8 @@ class SpecSinkProviderTest {
         val sink = object : Sink {
             override suspend fun handle(incomingRequest: IncomingRequest): SinkResult =
                 SinkResult.SuccessfullyWritten
+
+            override suspend fun healthCheck() = SinkResult.SuccessfullyWritten
         }
 
         val provider = object : SinkProvider {

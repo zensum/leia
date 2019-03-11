@@ -23,9 +23,18 @@ data class IncomingRequest(
         if (it == 0L) throw IllegalStateException("Generated flake id was 0")
     }
 
+    fun matchHealthCheck(): Boolean = path == "/leia/health"
+    fun matchHost(hosts: List<String?>): Boolean =
+        host == null || hosts.isEmpty() || hosts.contains(host)
+
     fun matchPath(otherPath: String?) = otherPath == path
     fun matchCors(origins: List<String>) =
         origin == null || origins.isEmpty() || origins.contains(origin) || origins.contains("*")
+
+    fun matchPreflight(corsHosts: List<String>) =
+        origin != null && corsHosts.isNotEmpty() && method == HttpMethod.Options
+
+    fun matchMethod(methods: Set<HttpMethod>) = methods.let { it.isEmpty() || it.contains(method) }
 
     suspend fun readBody(): ByteArray {
         if (savedBody == null) {

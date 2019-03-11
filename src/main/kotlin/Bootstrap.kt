@@ -21,8 +21,8 @@ import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.getEnv
 
-fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider) =
-    sf.create(resolver, sinkProvider)
+fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, registry: Registry) =
+    sf.create(resolver, sinkProvider, registry)
 
 private const val DEFAULT_CONFIG_DIRECTORY = "/etc/config"
 
@@ -93,7 +93,8 @@ fun bootstrap() {
     val server = run(
         KtorServer,
         setupResolver(reg, auth),
-        setupSinkProvider(reg)
+        setupSinkProvider(reg),
+        reg
     )
     reg.forceUpdate()
     server.start()

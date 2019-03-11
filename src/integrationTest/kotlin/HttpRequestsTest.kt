@@ -1,15 +1,19 @@
 package se.zensum.leia.integrationTest
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.call
+import io.ktor.client.response.readText
 import io.ktor.http.HttpMethod
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.runBlocking
 import org.eclipse.jetty.http.HttpStatus
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPubSub
 import kotlin.concurrent.thread
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class HttpRequestsTest : IntegrationTestBase() {
 
@@ -25,6 +29,17 @@ class HttpRequestsTest : IntegrationTestBase() {
     fun notAllowedMethod() {
         val req = getPath("/").copy(method = HttpMethod.Delete)
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED_405, req.getResponse())
+    }
+
+    @Test
+    fun healthCheckTest() {
+        val b = getReqBuilder(getPath("/leia/health"))
+        runBlocking {
+            val response = HttpClient().call(b).response
+            val text = response.readText(Charsets.UTF_8)
+            assertEquals(HttpStatus.OK_200, response.status.value)
+            assertTrue(text.contains("leia: OK"), "Reponse should contain OK status for leia ($text)")
+        }
     }
 
     /* Test CORS */

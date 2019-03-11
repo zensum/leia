@@ -60,3 +60,6 @@ object JsonSchemaInvalid : ErrorMatch()
 
 // HTTP method is not allowed
 object MethodNotAllowed : ErrorMatch()
+
+// Leia health check
+object LeiaHealthCheck : ErrorMatch()

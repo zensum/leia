@@ -80,6 +80,7 @@ Route defines where given request should be sent to.
  - `validateJson` - is optional, wether to validate body of the request as JSON before sending, default is `false`. `204` code is returned on success, `400` code on error.
  - `jsonSchema` - is optional, validates request body against this JSON schema if `validateJson` is set to `true`
  - `cors` - is optional, list of hosts to check incoming request's [origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin) against for [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS). By default all traffic is allowed. If contains `*` then all hosts are allowed. When non empty, `OPTIONS` method is allowed implicitly.
+ - `hosts` - is optional, list of hosts to check incoming request's [host](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host) field against.
  - `authenticateUsing` - is optional, list of [auth providers](#auth-providers) to verify request against
 
 
@@ -142,4 +143,20 @@ Option `jwk_config`is **mandatory**, it is a map of key/values. The map must con
 - `KUBERNETES_SERVICE_HOST` - hostname of kubernetes API (default `localhost`)
 - `KUBERNETES_SERVICE_PORT` - port of kubernetes API (default `8080`)
 - `KUBERNETES_ENABLE` - wether to read configuration from Kubernetes custom resources (default `true`). To disable set it to `false`.
+
+### Health check
+
+To check status of leia make request to `http://leiahost/leia/health`. Sample output:
+```
+sink redis1: ERROR
+sink kafka1: OK
+leia: ERROR
+```
+
+Error messages will be written to logs. You can also get them using `verbose` parameter in the request. Here is sample output for `http://leiahost/leia/health?verbose`:
+```
+sink redis1: ERROR redis.clients.jedis.exceptions.JedisConnectionException: Failed connecting to host redis:6379
+sink kafka1: OK
+leia: ERROR
+```
 

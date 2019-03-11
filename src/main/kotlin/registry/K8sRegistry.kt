@@ -140,6 +140,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
                      val verify: Boolean? = null,
                      val methods: Collection<String>? = null,
                      val cors: List<String>? = null,
+                     val hosts: List<String>? = null,
                      val response: HttpStatusCode? = null,
                      val sink: String? = null,
                      val authenticateUsing: List<String>? = null,
@@ -147,7 +148,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
                      val jsonSchema: String? = null) {
         fun toMap(): Map<String, Any> {
             val map = hashMapOf("path" to path, "topic" to topic, "format" to format, "verify" to verify,
-                "methods" to methods, "cors" to cors, "response" to response, "sink" to sink,
+                "methods" to methods, "cors" to cors, "hosts" to hosts, "response" to response, "sink" to sink,
                 "authenticateUsing" to authenticateUsing, "validateJson" to validateJson, "jsonSchema" to jsonSchema)
             return map.filter { it.value != null }.map { it.key to it.value as Any }.toMap()
         }

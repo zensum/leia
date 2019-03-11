@@ -3,7 +3,6 @@ package leia.logic
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.MalformedJsonException
-import io.ktor.http.HttpMethod
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.everit.json.schema.Schema
@@ -42,12 +41,12 @@ class SourceSpecResolver(private val cfg: SourceSpec, private val auth: AuthProv
 
     override fun resolve(req: IncomingRequest): Result {
         return when {
-            // TODO: Add hostname restriction here
+            req.matchHealthCheck() -> LeiaHealthCheck
+            !req.matchHost(cfg.hosts) -> NoMatch
             !req.matchPath(cfg.path) -> NoMatch
             !req.matchCors(cfg.corsHosts) -> CorsNotAllowed
-            // TODO: We need to be able to tell this apart from explicitly allowed
-            cfg.corsHosts.isNotEmpty() && req.method == HttpMethod.Options -> CorsPreflightAllowed
-            cfg.allowedMethodsSet.let { it.isNotEmpty() && !it.contains(req.method) } -> MethodNotAllowed
+            req.matchPreflight(cfg.corsHosts) -> CorsPreflightAllowed
+            !req.matchMethod(cfg.allowedMethodsSet) -> MethodNotAllowed
             else -> validateAndProcess(req)
         }
     }
