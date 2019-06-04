@@ -118,7 +118,7 @@ internal fun genericRequest(headers: Map<String, List<String>> = emptyMap()) = I
     method = HttpMethod.Post,
     origin = null,
     path = "/",
-    headers = headers,
+    originalHeaders = headers,
     queryString = "",
     host = null,
     readBodyFn = { ByteArray(0) }
