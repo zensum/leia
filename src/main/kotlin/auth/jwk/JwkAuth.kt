@@ -22,7 +22,7 @@ class JwkAuth(
     ) : this(JwtValidator(config))
 
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult {
-        val token: String = incomingRequest.headers["Authorization"]
+        val token: String = incomingRequest.getHeader("Authorization")
             ?.firstOrNull { it.startsWith("Bearer") }
             ?.removePrefix("Bearer")
             ?.trim()

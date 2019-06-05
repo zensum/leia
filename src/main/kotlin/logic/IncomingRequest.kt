@@ -18,6 +18,7 @@ data class IncomingRequest(
     private val host: String?,
     private val readBodyFn: suspend () -> ByteArray
 ) {
+    private val lowerCaseHeaders: Map<String, List<String>> = headers.mapKeys { it.key.toLowerCase() }
     private var savedBody: ByteArray? = null
     val requestId = generateId().also {
         if (it == 0L) throw IllegalStateException("Generated flake id was 0")
@@ -35,6 +36,11 @@ data class IncomingRequest(
         origin != null && corsHosts.isNotEmpty() && method == HttpMethod.Options
 
     fun matchMethod(methods: Set<HttpMethod>) = methods.let { it.isEmpty() || it.contains(method) }
+
+    fun hasHeader(header: String) = lowerCaseHeaders.containsKey(header.toLowerCase())
+
+    fun getHeader(header: String) = lowerCaseHeaders[header.toLowerCase()]
+    fun getHeaderValue(header: String) = lowerCaseHeaders.getValue(header.toLowerCase())
 
     suspend fun readBody(): ByteArray {
         if (savedBody == null) {

@@ -30,10 +30,10 @@ class BasicAuth(credentials: Map<String, String>) : AuthProvider {
 
 
     override fun verify(matching: List<String>, incomingRequest: IncomingRequest): AuthResult {
-        if (!incomingRequest.headers.containsKey(HEADER))
+        if (!incomingRequest.hasHeader(HEADER))
             return AuthResult.Denied.NoCredentials
 
-        val credential: String = incomingRequest.headers.getValue(HEADER)
+        val credential: String = incomingRequest.getHeaderValue(HEADER)
             .first()
             .removePrefix("Basic")
             .trim()

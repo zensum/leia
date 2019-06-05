@@ -46,4 +46,14 @@ class JwkAuthTest {
         result as AuthResult.Authorized
         assertEquals("foo", result.identifier)
     }
+
+    @Test
+    fun `lower case authorization header`() {
+        val auth = JwkAuth(MockJWTDecoder)
+        val requestWithHeaders: IncomingRequest = genericRequest(mapOf("authorization" to listOf("Bearer $EXAMPLE_JWT")))
+        val result: AuthResult = auth.verify(emptyList(), requestWithHeaders)
+        assertTrue(result is AuthResult.Authorized)
+        result as AuthResult.Authorized
+        assertEquals("foo", result.identifier)
+    }
 }
