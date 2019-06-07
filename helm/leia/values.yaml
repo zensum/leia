@@ -6,6 +6,7 @@ image:
   pullPolicy: IfNotPresent
 env:
   kubernetesEnable: true
+  kafkaHost: operated-kafka-kafka:9092
 resources:
   limits:
     cpu: 100m
