@@ -4,9 +4,7 @@ image:
   repository: zensum/leia
   tag: latest
   pullPolicy: IfNotPresent
-env:
-  kubernetesEnable: true
-  kafkaHost: operated-kafka-kafka:9092
+env:  {}
 resources:
   limits:
     cpu: 100m
