@@ -4,7 +4,8 @@ image:
   repository: zensum/leia
   tag: latest
   pullPolicy: IfNotPresent
-env: {}
+env:
+  kubernetesEnable: true
 resources:
   limits:
     cpu: 100m

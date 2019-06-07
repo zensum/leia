@@ -56,6 +56,11 @@ spec:
           value: {{ .Values.env.jwkIssuer }}
         {{- end}}
 
+        {{- if .Values.env.kubernetesEnable}}
+        - name: KUBERNETES_ENABLE
+          valeue: {{ .Values.env.kubernetesEnable}}
+        {{- end}}
+
         {{- if .Values.env.LOGBACK_LOGGING_LEVEL }}
         - name: LOGBACK_LOGGING_LEVEL
           value: {{ .Values.env.LOGBACK_LOGGING_LEVEL }}
