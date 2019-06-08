@@ -14,6 +14,8 @@ import leia.registry.Registries
 import leia.registry.Registry
 import leia.registry.TomlRegistry
 import leia.sink.*
+import mu.KLogger
+import mu.KotlinLogging
 import registry.Tables
 import se.zensum.leia.auth.*
 import se.zensum.leia.auth.jwk.JwkAuth
@@ -25,7 +27,7 @@ fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, regis
     sf.create(resolver, sinkProvider, registry)
 
 private const val DEFAULT_CONFIG_DIRECTORY = "/etc/config"
-
+private val logger = KotlinLogging.logger {};
 // Sets up a sink provider using the passed in registry
 fun setupSinkProvider(reg: Registry): SinkProvider {
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
@@ -82,6 +84,7 @@ object Env {
 fun prepareRegistry(): Registries {
     val tomlReg = TomlRegistry(Env.configDir)
     val registries = mutableListOf<Registry>()
+    logger.info { "Env.k8sHost: ${Env.k8sHost} Env.k8sPort: ${Env.k8sPort}" }
     if (Env.k8sEnable == "true") registries.add(K8sRegistry(Env.k8sHost, Env.k8sPort))
     registries.add(tomlReg)
     return Registries(registries)

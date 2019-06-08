@@ -109,6 +109,9 @@ sourceSets {
 }
 
 jib {
+    from {
+        image = "openjdk:8-jdk"
+    }
     to {
         image = "zensum/leia:" + System.getenv("CIRCLE_SHA1")
     }
