@@ -14,7 +14,6 @@ import leia.registry.Registries
 import leia.registry.Registry
 import leia.registry.TomlRegistry
 import leia.sink.*
-import mu.KLogger
 import mu.KotlinLogging
 import registry.Tables
 import se.zensum.leia.auth.*

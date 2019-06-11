@@ -142,7 +142,7 @@ Option `jwk_config`is **mandatory**, it is a map of key/values. The map must con
 - `PORT` - port on which leia listens for requests (default `80`)
 - `KUBERNETES_SERVICE_HOST` - hostname of kubernetes API (default `localhost`)
 - `KUBERNETES_SERVICE_PORT` - port of kubernetes API (default `8080`)
-- `KUBERNETES_ENABLE` - wether to read configuration from Kubernetes custom resources (default `true`). To disable set it to `false`.
+- `KUBERNETES_ENABLE` - whether to read configuration from Kubernetes custom resources (default `true`). To disable set it to `false`.
 
 ### Health check
 

@@ -25,7 +25,3 @@ services:
       - ./example-config:/etc/config/
     ports:
       - 80:80
-    environment:
-      KAFKA_HOST: "kafka:9092"
-      KUBERNETES_ENABLE: "false"
-

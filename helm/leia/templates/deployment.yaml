@@ -36,11 +36,6 @@ spec:
         ports:
         - containerPort: 80
         env:
-        {{- if .Values.env.kafkaHost }}
-        - name: KAFKA_HOST
-          value: {{ .Values.env.kafkaHost }}
-        {{- end}}
-
         {{- if .Values.env.jwkUrl }}
         - name: JWK_URL
           value: {{ .Values.env.jwkUrl }}
@@ -56,9 +51,9 @@ spec:
           value: {{ .Values.env.jwkIssuer }}
         {{- end}}
 
-        {{- if .Values.env.kubernetesEnable}}
+        {{- if .Values.env.kubernetesEnable }}
         - name: KUBERNETES_ENABLE
-          valeue: {{ .Values.env.kubernetesEnable}}
+          valeue: {{ .Values.env.kubernetesEnable }}
         {{- end}}
 
         {{- if .Values.env.LOGBACK_LOGGING_LEVEL }}
