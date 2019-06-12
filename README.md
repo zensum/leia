@@ -143,6 +143,7 @@ Option `jwk_config`is **mandatory**, it is a map of key/values. The map must con
 - `KUBERNETES_SERVICE_HOST` - hostname of kubernetes API (default `localhost`)
 - `KUBERNETES_SERVICE_PORT` - port of kubernetes API (default `8080`)
 - `KUBERNETES_ENABLE` - whether to read configuration from Kubernetes custom resources (default `true`). To disable set it to `false`.
+- `PROMETHEUS_ENABLE` - if set to `true` enables `/metrics` endpoint on port `9090` exposing metrics for prometheus (uses [zensum/ktor-prometheus-feature](https://github.com/zensum/ktor-prometheus-feature)), default `false`
 
 ### Health check
 

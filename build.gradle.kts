@@ -70,7 +70,7 @@ dependencies {
     // Project specific dependencies (disabled by default)
     implementation("ch.vorburger:fswatch:1.1.0")
     implementation("com.github.zensum:webhook-proto:0.1.2")
-    implementation("com.github.zensum:ktor-prometheus-feature:0.6")
+    implementation("com.github.zensum:ktor-prometheus-feature:-SNAPSHOT")
     implementation("com.github.zensum:ktor-sentry-feature:fde5bc8f")
     implementation("com.github.zensum:ktor-jwt:5dc52cb")
     implementation("com.github.zensum:ktor-health-check:011a5a8")

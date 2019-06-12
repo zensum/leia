@@ -215,13 +215,13 @@ class KtorServer private constructor(
     }
 
     companion object : ServerFactory {
-        override fun create(resolver: Resolver, sinkProvider: SinkProvider, registry: Registry): Server =
+        override fun create(resolver: Resolver, sinkProvider: SinkProvider, registry: Registry, prometheusEnable: Boolean): Server =
             KtorServer(
                 registry,
                 resolver,
                 { sinkProvider.handle(it.sinkDescription, it.request) },
                 { sinkProvider.check(it) },
-                false
+                prometheusEnable
             )
     }
 }
