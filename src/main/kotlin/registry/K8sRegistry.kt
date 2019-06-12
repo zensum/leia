@@ -121,6 +121,7 @@ class K8sRegistry(private val host: String, private val port: String) : Registry
         const val DEFAULT_KUBERNETES_HOST = "localhost"
         const val DEFAULT_KUBERNETES_PORT = "8080"
         const val DEFAULT_KUBERNETES_ENABLE = "false"
+        const val DEFAULT_PROMETHEUS_ENABLE = "false"
         val apiVersions = listOf("leia.klira.io/v1") // supported versions
     }
 

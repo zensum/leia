@@ -1,5 +1,6 @@
 package leia
 
+import leia.Env.prometheusEnable
 import leia.http.KtorServer
 import leia.http.ServerFactory
 import leia.logic.IncomingRequest
@@ -10,6 +11,7 @@ import leia.registry.K8sRegistry
 import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_ENABLE
 import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_HOST
 import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_PORT
+import leia.registry.K8sRegistry.Companion.DEFAULT_PROMETHEUS_ENABLE
 import leia.registry.Registries
 import leia.registry.Registry
 import leia.registry.TomlRegistry
@@ -22,11 +24,11 @@ import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.getEnv
 
-fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, registry: Registry) =
-    sf.create(resolver, sinkProvider, registry)
+fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, registry: Registry, prometheusEnable: Boolean) =
+    sf.create(resolver, sinkProvider, registry, prometheusEnable)
 
 private const val DEFAULT_CONFIG_DIRECTORY = "/etc/config"
-private val logger = KotlinLogging.logger {};
+private val logger = KotlinLogging.logger {}
 // Sets up a sink provider using the passed in registry
 fun setupSinkProvider(reg: Registry): SinkProvider {
     val spf = CachedSinkProviderFactory(DefaultSinkProviderFactory())
@@ -78,6 +80,7 @@ object Env {
     val k8sHost = getEnv("KUBERNETES_SERVICE_HOST", DEFAULT_KUBERNETES_HOST)
     val k8sPort = getEnv("KUBERNETES_SERVICE_PORT", DEFAULT_KUBERNETES_PORT)
     val k8sEnable = getEnv("KUBERNETES_ENABLE", DEFAULT_KUBERNETES_ENABLE)
+    val prometheusEnable = getEnv("PROMETHEUS_ENABLE", DEFAULT_PROMETHEUS_ENABLE) == "true"
 }
 
 fun prepareRegistry(): Registries {
@@ -96,7 +99,8 @@ fun bootstrap() {
         KtorServer,
         setupResolver(reg, auth),
         setupSinkProvider(reg),
-        reg
+        reg,
+        prometheusEnable
     )
     reg.forceUpdate()
     server.start()
