@@ -36,6 +36,11 @@ spec:
         ports:
         - containerPort: 80
         env:
+        {{- if .Values.env.sentryDsn }}
+        - name: SENTRY_DSN
+          value: {{ .Values.env.sentryDsn }}
+        {{- end}}
+
         {{- if .Values.env.jwkUrl }}
         - name: JWK_URL
           value: {{ .Values.env.jwkUrl }}
