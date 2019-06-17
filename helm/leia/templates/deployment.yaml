@@ -43,7 +43,7 @@ spec:
 
         {{- if .Values.env.prometheusEnable }}
         - name: PROMETHEUS_ENABLE
-          value: {{ .Values.env.prometheusEnable }}
+          value: "{{ .Values.env.prometheusEnable }}"
         {{- end}}
 
         {{- if .Values.env.jwkUrl }}
