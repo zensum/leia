@@ -48,9 +48,9 @@ class BasicAuth(credentials: Map<String, String>) : AuthProvider {
     fun verify(credential: String): AuthResult {
         return try {
             val credentialDecoded = String(Base64.asBytes(credential))
-            if (credentialDecoded.count { it == ':' } != 1)
+            if (!credentialDecoded.contains(':'))
                 return AuthResult.Denied.InvalidCredentials
-            val (user: String, password: String) = credentialDecoded.split(":")
+            val (user: String, password: String) = credentialDecoded.split(":", limit = 2)
             val hashedPass: ByteArray = hash(password, HashAlgorithm.SHA256)
             if (MessageDigest.isEqual(credentials[user], hashedPass)) {
                 AuthResult.Authorized(user)

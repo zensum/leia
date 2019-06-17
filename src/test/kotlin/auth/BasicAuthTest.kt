@@ -17,7 +17,8 @@ class BasicAuthTest {
     private val credentials: Map<String, String> = mapOf(
         "Luke" to "Echo Three to Echo Seven",
         "R2-D2" to "beep beep boop",
-        "Leia" to "It's a trap!"
+        "Leia" to "It's a trap!",
+        "colons" to "colons:in:the:password"
     )
 
     /**
@@ -27,7 +28,8 @@ class BasicAuthTest {
     private val hashedCredentials: Map<String, String> = mapOf(
         "Luke" to "3df8232404be55d2d6b85be79b99316e028676b69efa2ce91d9094dd18dd3502", // "Echo Three to Echo Seven"
         "R2-D2" to "c45441cb346b69e247711e9c86405ce9de964bb89c68ad02b8eb2f55912c58ba", // "beep beep boop"
-        "Leia" to "abb9eca0af80e9f321af97b2952ca035edfdc63d5118299e32047156339955b3"// "It's a trap!"
+        "Leia" to "abb9eca0af80e9f321af97b2952ca035edfdc63d5118299e32047156339955b3",// "It's a trap!"
+        "colons" to "89b3ee7f21d475abdead3d72a0fb723f3451ad67fa68481d14eafbcc3ddb1588" // "colons:in:the:password"
     )
 
     /**
@@ -56,6 +58,25 @@ class BasicAuthTest {
         assertTrue(result is AuthResult.Authorized)
         result as AuthResult.Authorized
         assertEquals("Luke", result.identifier)
+    }
+
+    @Test
+    fun testVerifyingCredentialsAsValidWithColon() {
+        val auth = BasicAuth(hashedCredentials)
+        val b64BasicAuth: String = base64Credentials.getValue("colons")
+        val result: AuthResult = auth.verify(b64BasicAuth)
+
+        assertTrue(result is AuthResult.Authorized)
+        result as AuthResult.Authorized
+        assertEquals("colons", result.identifier)
+    }
+
+    @Test
+    fun testVerifyingCredentialsWithoutUser() {
+        val auth = BasicAuth(hashedCredentials)
+        val b64BasicAuth = credentials.getValue("Leia").toByteArray().toBase64()
+        val result: AuthResult = auth.verify(b64BasicAuth)
+        assertTrue(result is AuthResult.Denied)
     }
 
     @Test
