@@ -4,6 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.install
+import io.ktor.features.origin
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.*
@@ -153,7 +154,8 @@ class KtorServer private constructor(
     private val resolver: Resolver,
     private val appender: suspend (LogAppend) -> SinkResult,
     private val checker: suspend (String) -> SinkResult,
-    private val installPrometheus: Boolean
+    private val installPrometheus: Boolean,
+    private val logRemoteHost: Boolean
 ) : Server {
 
     private suspend fun performLogAppend(logAppend: LogAppend,
@@ -181,8 +183,9 @@ class KtorServer private constructor(
 
     private fun logRequest(call: ApplicationCall, result: Result) {
         val sink = if (result is LogAppend) result.sinkDescription.name ?: "default" else ""
+        val prefix = if (logRemoteHost) "${call.request.origin.remoteHost} - " else ""
         call.request.apply {
-            logger.info("${host()} ${httpMethod.value} ${path()} ${call.response.status()?.value} $sink")
+            logger.info("$prefix${host()} ${httpMethod.value} ${path()} ${call.response.status()?.value} $sink")
         }
     }
 
@@ -215,13 +218,15 @@ class KtorServer private constructor(
     }
 
     companion object : ServerFactory {
-        override fun create(resolver: Resolver, sinkProvider: SinkProvider, registry: Registry, prometheusEnable: Boolean): Server =
+        override fun create(resolver: Resolver, sinkProvider: SinkProvider, registry: Registry,
+                            prometheusEnable: Boolean, logRemoteHost: Boolean): Server =
             KtorServer(
                 registry,
                 resolver,
                 { sinkProvider.handle(it.sinkDescription, it.request) },
                 { sinkProvider.check(it) },
-                prometheusEnable
+                prometheusEnable,
+                logRemoteHost
             )
     }
 }

@@ -50,6 +50,11 @@ spec:
           value: "{{ .Values.env.prometheusEnable }}"
         {{- end}}
 
+        {{- if .Values.env.logRemoteHost }}
+        - name: LOG_REMOTE_HOST
+          value: "{{ .Values.env.logRemoteHost }}"
+        {{- end}}
+
         {{- if .Values.env.jwkUrl }}
         - name: JWK_URL
           value: {{ .Values.env.jwkUrl }}
