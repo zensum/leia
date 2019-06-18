@@ -1,5 +1,6 @@
 package leia
 
+import leia.Env.logRemoteHost
 import leia.Env.prometheusEnable
 import leia.http.KtorServer
 import leia.http.ServerFactory
@@ -11,6 +12,7 @@ import leia.registry.K8sRegistry
 import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_ENABLE
 import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_HOST
 import leia.registry.K8sRegistry.Companion.DEFAULT_KUBERNETES_PORT
+import leia.registry.K8sRegistry.Companion.DEFAULT_LOG_REMOTE_HOST
 import leia.registry.K8sRegistry.Companion.DEFAULT_PROMETHEUS_ENABLE
 import leia.registry.Registries
 import leia.registry.Registry
@@ -24,8 +26,9 @@ import se.zensum.leia.config.SinkProviderSpec
 import se.zensum.leia.config.SourceSpec
 import se.zensum.leia.getEnv
 
-fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, registry: Registry, prometheusEnable: Boolean) =
-    sf.create(resolver, sinkProvider, registry, prometheusEnable)
+fun run(sf: ServerFactory, resolver: Resolver, sinkProvider: SinkProvider, registry: Registry,
+        prometheusEnable: Boolean, logRemoteHost: Boolean) =
+    sf.create(resolver, sinkProvider, registry, prometheusEnable, logRemoteHost)
 
 private const val DEFAULT_CONFIG_DIRECTORY = "/etc/config"
 private val logger = KotlinLogging.logger {}
@@ -81,6 +84,7 @@ object Env {
     val k8sPort = getEnv("KUBERNETES_SERVICE_PORT", DEFAULT_KUBERNETES_PORT)
     val k8sEnable = getEnv("KUBERNETES_ENABLE", DEFAULT_KUBERNETES_ENABLE)
     val prometheusEnable = getEnv("PROMETHEUS_ENABLE", DEFAULT_PROMETHEUS_ENABLE) == "true"
+    val logRemoteHost = getEnv("LOG_REMOTE_HOST", DEFAULT_LOG_REMOTE_HOST) == "true"
 }
 
 fun prepareRegistry(): Registries {
@@ -100,7 +104,8 @@ fun bootstrap() {
         setupResolver(reg, auth),
         setupSinkProvider(reg),
         reg,
-        prometheusEnable
+        prometheusEnable,
+        logRemoteHost
     )
     reg.forceUpdate()
     server.start()

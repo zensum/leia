@@ -11,5 +11,6 @@ interface Server {
 }
 
 interface ServerFactory {
-    fun create(resolver: Resolver, sinkProvider: SinkProvider, registry: Registry, prometheusEnable: Boolean): Server
+    fun create(resolver: Resolver, sinkProvider: SinkProvider, registry: Registry, prometheusEnable: Boolean,
+               logRemoteHost: Boolean): Server
 }
