@@ -4,6 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.install
+import io.ktor.features.CallLogging
 import io.ktor.features.origin
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -23,6 +24,7 @@ import leia.registry.Registry
 import leia.sink.SinkProvider
 import leia.sink.SinkResult
 import mu.KotlinLogging
+import org.slf4j.event.Level
 import registry.Tables
 import se.zensum.ktorPrometheusFeature.PrometheusFeature
 import se.zensum.ktorSentry.SentryFeature
@@ -191,6 +193,9 @@ class KtorServer private constructor(
 
     private fun getKtorApplication(): Application.() -> Unit = {
         install(SentryFeature)
+        install(CallLogging) {
+            level = Level.TRACE
+        }
         if (installPrometheus) install(PrometheusFeature.Feature)
         install(Health)
         intercept(ApplicationCallPipeline.Call) {
